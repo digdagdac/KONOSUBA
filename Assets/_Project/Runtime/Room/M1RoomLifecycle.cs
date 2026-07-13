@@ -97,7 +97,7 @@ namespace Overbless.Runtime
             EnsureInitialized();
             if (isResetting)
             {
-                return;
+                throw new InvalidOperationException("M1 room reset is already in progress.");
             }
 
             isResetting = true;

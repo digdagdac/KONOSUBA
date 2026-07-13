@@ -19,6 +19,7 @@ namespace Overbless.Runtime
         private bool movementEnabledAtSpawn;
         private bool isAlive;
         private bool isResetting;
+        private bool isRecoveryPending;
 
         public event Action<DeathEvent> Died;
         public event Action Reset;
@@ -32,6 +33,7 @@ namespace Overbless.Runtime
             CaptureSpawnState();
             isAlive = !health.IsDead;
             inputRouter.SetRestartInputEnabled(true);
+            isRecoveryPending = false;
 
             if (!isAlive)
             {
@@ -58,6 +60,7 @@ namespace Overbless.Runtime
             }
 
             isResetting = true;
+            isRecoveryPending = true;
             var failures = new List<Exception>();
             var resetCommitted = false;
 
@@ -74,9 +77,10 @@ namespace Overbless.Runtime
                     playerController.ResetController();
                     inputRouter.ResetInputState();
                     playerController.SetMovementEnabled(movementEnabledAtSpawn);
-                    inputRouter.ReleaseInputBlock(PlayerInputBlocker.LifeCycle);
                     isAlive = true;
                     inputRouter.SetRestartInputEnabled(true);
+                    isRecoveryPending = false;
+                    inputRouter.ReleaseInputBlock(PlayerInputBlocker.LifeCycle);
                     resetCommitted = true;
                 }
                 catch (Exception exception)
@@ -115,6 +119,7 @@ namespace Overbless.Runtime
             }
 
             isAlive = false;
+            isRecoveryPending = false;
             var failures = new List<Exception>();
 
             try
@@ -131,6 +136,7 @@ namespace Overbless.Runtime
         }
         private void FailClosedAfterResetFailure(List<Exception> failures)
         {
+            isRecoveryPending = true;
             try
             {
                 playerController.SetMovementEnabled(false);
@@ -240,6 +246,13 @@ namespace Overbless.Runtime
             {
                 isAlive = true;
                 inputRouter.SetRestartInputEnabled(true);
+                if (isRecoveryPending)
+                {
+                    playerController.SetMovementEnabled(false);
+                    inputRouter.AcquireInputBlock(PlayerInputBlocker.LifeCycle);
+                    return;
+                }
+
                 inputRouter.ReleaseInputBlock(PlayerInputBlocker.LifeCycle);
                 return;
             }

@@ -244,10 +244,16 @@ namespace Overbless.Runtime
                 return false;
             }
 
-            var stats = EnemyRuntimeStats.Recompute(target.Definition, NoBlessings);
-            var preservedHealthRatio = Mathf.Clamp01(target.HealthRatio);
             try
             {
+                var stats = EnemyRuntimeStats.Recompute(target.Definition, NoBlessings);
+                var preservedHealthRatio = target.HealthRatio;
+                if (!IsValidHealthRatio(preservedHealthRatio))
+                {
+                    throw new InvalidOperationException(
+                        "Blessing targets must expose a finite health ratio within [0,1].");
+                }
+
                 target.ApplyBlessingRuntimeStats(stats, preservedHealthRatio);
             }
             catch (Exception restorationException)

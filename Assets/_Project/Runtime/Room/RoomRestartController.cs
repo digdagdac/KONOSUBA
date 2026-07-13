@@ -47,8 +47,9 @@ namespace Overbless.Runtime
             }
 
             isRestarting = true;
-            var failures = new List<Exception>();
-
+            var coreFailures = new List<Exception>();
+            var notificationFailures = new List<Exception>();
+            var coreCommitted = false;
             try
             {
                 try
@@ -57,10 +58,10 @@ namespace Overbless.Runtime
                 }
                 catch (Exception exception)
                 {
-                    failures.Add(exception);
+                    coreFailures.Add(exception);
                 }
 
-                if (failures.Count == 0)
+                if (coreFailures.Count == 0)
                 {
                     try
                     {
@@ -68,7 +69,7 @@ namespace Overbless.Runtime
                     }
                     catch (Exception exception)
                     {
-                        failures.Add(exception);
+                        coreFailures.Add(exception);
                     }
 
                     try
@@ -77,11 +78,24 @@ namespace Overbless.Runtime
                     }
                     catch (Exception exception)
                     {
-                        failures.Add(exception);
+                        coreFailures.Add(exception);
                     }
                 }
 
-                if (failures.Count == 0)
+                if (coreFailures.Count == 0)
+                {
+                    try
+                    {
+                        playerLifeCycle.InputRouter.ReleaseInputBlock(PlayerInputBlocker.RoomRestart);
+                        coreCommitted = true;
+                    }
+                    catch (Exception exception)
+                    {
+                        coreFailures.Add(exception);
+                    }
+                }
+
+                if (coreCommitted)
                 {
                     try
                     {
@@ -89,23 +103,10 @@ namespace Overbless.Runtime
                     }
                     catch (Exception exception)
                     {
-                        failures.Add(exception);
+                        notificationFailures.Add(exception);
                     }
                 }
-
-                if (failures.Count == 0)
-                {
-                    try
-                    {
-                        playerLifeCycle.InputRouter.ReleaseInputBlock(PlayerInputBlocker.RoomRestart);
-                    }
-                    catch (Exception exception)
-                    {
-                        failures.Add(exception);
-                    }
-                }
-
-                if (failures.Count > 0)
+                else
                 {
                     try
                     {
@@ -113,7 +114,7 @@ namespace Overbless.Runtime
                     }
                     catch (Exception exception)
                     {
-                        failures.Add(exception);
+                        coreFailures.Add(exception);
                     }
                 }
             }
@@ -122,7 +123,8 @@ namespace Overbless.Runtime
                 isRestarting = false;
             }
 
-            ThrowFailures("Room restart failed.", failures);
+            ThrowFailures("Room restart failed.", coreFailures);
+            ThrowFailures("Room restart committed, but observer notification failed.", notificationFailures);
         }
 
         private void ResetRoomDependents()

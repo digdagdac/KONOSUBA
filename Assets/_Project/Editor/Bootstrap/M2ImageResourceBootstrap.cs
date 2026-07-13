@@ -14,7 +14,7 @@ namespace Overbless.Editor.Bootstrap
         private const int CellSize = 128;
         private const int MaxFrames = 6;
         private const string Root = "Assets/_Project/Art/M2Preproduction";
-        private const string GolemAtlasPath = Root + "/Characters/Animation/chr_golem_animation_atlas_v001.png";
+        private const string GuardianAtlasPath = Root + "/Characters/Animation/chr_golem_animation_atlas_v001.png";
         private const string FrameLetters = "abcdef";
 
         private static readonly DirectionSpec[] Directions =
@@ -29,7 +29,7 @@ namespace Overbless.Editor.Bootstrap
             new DirectionSpec("northwest")
         };
 
-        private static readonly StateSpec[] GolemStates =
+        private static readonly StateSpec[] GuardianStates =
         {
             new StateSpec("idle", 4),
             new StateSpec("move", 6),
@@ -75,7 +75,7 @@ namespace Overbless.Editor.Bootstrap
         [MenuItem("Overbless/M2 Assets/Import Offline Image Resources")]
         public static void Import()
         {
-            ConfigureGolemAtlas();
+            ConfigureGuardianAtlas();
             for (var index = 0; index < SingleSprites.Length; index++)
             {
                 ConfigureSingleSprite(SingleSprites[index]);
@@ -91,18 +91,18 @@ namespace Overbless.Editor.Bootstrap
             Import();
         }
 
-        private static void ConfigureGolemAtlas()
+        private static void ConfigureGuardianAtlas()
         {
-            AssetDatabase.ImportAsset(GolemAtlasPath, ImportAssetOptions.ForceSynchronousImport);
-            var importer = RequireImporter(GolemAtlasPath);
+            AssetDatabase.ImportAsset(GuardianAtlasPath, ImportAssetOptions.ForceSynchronousImport);
+            var importer = RequireImporter(GuardianAtlasPath);
             ConfigureCommon(importer, 8192);
             importer.spriteImportMode = SpriteImportMode.Multiple;
 
             var metadata = new List<SpriteMetaData>();
-            var atlasHeight = CellSize * GolemStates.Length;
-            for (var stateIndex = 0; stateIndex < GolemStates.Length; stateIndex++)
+            var atlasHeight = CellSize * GuardianStates.Length;
+            for (var stateIndex = 0; stateIndex < GuardianStates.Length; stateIndex++)
             {
-                var state = GolemStates[stateIndex];
+                var state = GuardianStates[stateIndex];
                 for (var directionIndex = 0; directionIndex < Directions.Length; directionIndex++)
                 {
                     var direction = Directions[directionIndex];
@@ -130,15 +130,15 @@ namespace Overbless.Editor.Bootstrap
             SetPivot(importer, new Vector2(0.5f, 0f));
             importer.SaveAndReimport();
 
-            var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(GolemAtlasPath);
+            var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(GuardianAtlasPath);
             var expectedWidth = CellSize * MaxFrames * Directions.Length;
-            var expectedHeight = CellSize * GolemStates.Length;
+            var expectedHeight = CellSize * GuardianStates.Length;
             if (texture == null || texture.width != expectedWidth || texture.height != expectedHeight)
             {
-                throw new InvalidOperationException($"Golem atlas must be {expectedWidth}x{expectedHeight}: {GolemAtlasPath}");
+                throw new InvalidOperationException($"M2 guardian atlas must be {expectedWidth}x{expectedHeight}: {GuardianAtlasPath}");
             }
 
-            var sprites = AssetDatabase.LoadAllAssetsAtPath(GolemAtlasPath);
+            var sprites = AssetDatabase.LoadAllAssetsAtPath(GuardianAtlasPath);
             var spriteCount = 0;
             for (var index = 0; index < sprites.Length; index++)
             {
@@ -150,7 +150,7 @@ namespace Overbless.Editor.Bootstrap
 
             if (spriteCount != 264)
             {
-                throw new InvalidOperationException($"Golem atlas requires 264 named sprites but imported {spriteCount}.");
+                throw new InvalidOperationException($"M2 guardian atlas requires 264 named sprites but imported {spriteCount}.");
             }
         }
 
