@@ -187,14 +187,7 @@ namespace Overbless.Runtime
                 }
                 else
                 {
-                    try
-                    {
-                        slot.PinForRestorationRetry();
-                    }
-                    catch (Exception slotException)
-                    {
-                        failures.Add(slotException);
-                    }
+                    PinTrackedSlotsForRestorationRetry(targetEntityId, failures);
                 }
 
                 if (failures.Count == 1)
@@ -296,8 +289,11 @@ namespace Overbless.Runtime
         public void Reset()
         {
             using var mutation = EnterMutation();
-            activeBlessingsByEntityId.Clear();
-            lockedSlotsByEntityId.Clear();
+            if (activeBlessingsByEntityId.Count != 0 || lockedSlotsByEntityId.Count != 0)
+            {
+                throw new InvalidOperationException(
+                    "Blessing-system reset requires every live target to be restored or explicitly forgotten first.");
+            }
         }
         private IDisposable EnterMutation()
         {

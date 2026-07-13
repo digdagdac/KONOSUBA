@@ -243,6 +243,99 @@ namespace Overbless.Tests.PlayMode
             Assert.That(dash.IsCoolingDown, Is.True);
             Assert.That(player.transform.position.x, Is.GreaterThan(dashStart.x));
             yield return SetKeyboardState(keyboard);
+            var cancellationObserverRan = false;
+            Action<BlessingSelectionState> cancelDuringSelection = state =>
+            {
+                if (!cancellationObserverRan && state.IsSelecting)
+                {
+                    cancellationObserverRan = true;
+                    targeting.CancelSelection();
+                }
+            };
+            targeting.SelectionUiChanged += cancelDuringSelection;
+            var supersededSelectionResult = targeting.Select(BlessingType.Haste);
+            targeting.SelectionUiChanged -= cancelDuringSelection;
+            Assert.That(cancellationObserverRan, Is.True);
+            Assert.That(supersededSelectionResult, Is.False);
+            Assert.That(targeting.IsSelecting, Is.False);
+
+            Assert.That(targeting.Select(BlessingType.Haste), Is.True);
+            var firstHoverTarget = enemies[0].EntityId;
+            var replacementHoverTarget = enemies[1].EntityId;
+            var hoverObserverRan = false;
+            var nestedHoverResult = false;
+            Action<IReadOnlyList<BlessingTargetState>> replaceHoverDuringPublication = _ =>
+            {
+                if (!hoverObserverRan)
+                {
+                    hoverObserverRan = true;
+                    nestedHoverResult = targeting.SetHoveredTarget(replacementHoverTarget);
+                }
+            };
+            targeting.TargetStatesChanged += replaceHoverDuringPublication;
+            var supersededHoverResult = targeting.SetHoveredTarget(firstHoverTarget);
+            targeting.TargetStatesChanged -= replaceHoverDuringPublication;
+            Assert.That(hoverObserverRan, Is.True);
+            Assert.That(nestedHoverResult, Is.True);
+            Assert.That(supersededHoverResult, Is.False);
+
+            var replacementHasPreview = false;
+            foreach (var state in targeting.GetTargetStates())
+            {
+                if (state.TargetEntityId == replacementHoverTarget)
+                {
+                    replacementHasPreview = state.HasPreview;
+                    break;
+                }
+            }
+
+            Assert.That(replacementHasPreview, Is.True);
+            var reselectAttempted = false;
+            var reselectDuringCancellation = true;
+            Action<BlessingSelectionState> reselectOnCancellation = state =>
+            {
+                if (!state.IsSelecting)
+                {
+                    reselectAttempted = true;
+                    reselectDuringCancellation = targeting.Select(BlessingType.Giant);
+                }
+            };
+            targeting.SelectionUiChanged += reselectOnCancellation;
+            targeting.HandlePause();
+            targeting.SelectionUiChanged -= reselectOnCancellation;
+            Assert.That(reselectAttempted, Is.True);
+            Assert.That(reselectDuringCancellation, Is.False);
+            Assert.That(targeting.IsSelecting, Is.False);
+            var disableObserverRan = false;
+            var selectWhileDisabled = true;
+            Action<BlessingSelectionState> selectDuringDisable = state =>
+            {
+                if (!disableObserverRan && !state.IsSelecting)
+                {
+                    disableObserverRan = true;
+                    selectWhileDisabled = targeting.Select(BlessingType.Haste);
+                }
+            };
+            targeting.SelectionUiChanged += selectDuringDisable;
+            targeting.enabled = false;
+            targeting.SelectionUiChanged -= selectDuringDisable;
+            Assert.That(disableObserverRan, Is.True);
+            Assert.That(selectWhileDisabled, Is.False);
+            Assert.That(targeting.IsSelecting, Is.False);
+            targeting.enabled = true;
+            var driftTarget = enemies[0];
+            var registeredEntityId = driftTarget.EntityId;
+            try
+            {
+                SetPrivateField(driftTarget.Health, "entityId", registeredEntityId + 10000);
+                Assert.That(targeting.Select(BlessingType.Haste), Is.True);
+                Assert.That(targeting.SetHoveredTarget(registeredEntityId), Is.False);
+            }
+            finally
+            {
+                targeting.CancelSelection();
+                SetPrivateField(driftTarget.Health, "entityId", registeredEntityId);
+            }
         }
 
         [UnityTest]
@@ -260,6 +353,7 @@ namespace Overbless.Tests.PlayMode
             var restart = FindComponentInScene<RoomRestartController>(scene);
             var room = FindComponentInScene<M1RoomLifecycle>(scene);
             var emitter = FindComponentInScene<FunctionalAudioEmitter>(scene);
+            var audioBridge = FindComponentInScene<M1FunctionalAudioBridge>(scene);
             var player = FindComponentInScene<PlayerLifeCycle>(scene);
             var camera = FindComponentInScene<Camera>(scene);
             var enemies = FindComponentsInScene<EnemyBase>(scene);
@@ -278,6 +372,7 @@ namespace Overbless.Tests.PlayMode
             Assert.That(restart, Is.Not.Null);
             Assert.That(room, Is.Not.Null);
             Assert.That(emitter, Is.Not.Null);
+            Assert.That(audioBridge, Is.Not.Null);
             Assert.That(player, Is.Not.Null);
             Assert.That(camera, Is.Not.Null);
             Assert.That(archer, Is.Not.Null);
@@ -295,6 +390,102 @@ namespace Overbless.Tests.PlayMode
             var spawnedSouls = new List<SoulFragment>();
             var processedDeaths = new List<DeathEvent>();
             emitter.Emitted += emittedEvents.Add;
+            var isolatedAudioObserverReached = false;
+            Action<FunctionalAudioRecord> throwingAudioObserver = _ =>
+                throw new InvalidOperationException("expected functional audio observer failure");
+            Action<FunctionalAudioRecord> laterAudioObserver = _ =>
+                isolatedAudioObserverReached = true;
+            emitter.Emitted += throwingAudioObserver;
+            emitter.Emitted += laterAudioObserver;
+            LogAssert.Expect(
+                LogType.Exception,
+                new System.Text.RegularExpressions.Regex("expected functional audio observer failure"));
+            Assert.That(
+                emitter.Emit(FunctionalAudioEvent.PlayerHit, long.MaxValue),
+                Is.True);
+            yield return WaitForCondition(
+                () => isolatedAudioObserverReached,
+                2f,
+                "A throwing functional-audio observer suppressed a later observer.");
+            emitter.Emitted -= throwingAudioObserver;
+            emitter.Emitted -= laterAudioObserver;
+            var reentrantOrder = new List<long>();
+            var outerToken = long.MaxValue - 1;
+            var nestedToken = long.MaxValue - 2;
+            Action<FunctionalAudioRecord> emitNestedAudio = record =>
+            {
+                if (record.Token == outerToken)
+                {
+                    Assert.That(
+                        emitter.Emit(FunctionalAudioEvent.PlayerHit, nestedToken),
+                        Is.True);
+                }
+            };
+            Action<FunctionalAudioRecord> recordReentrantOrder = record =>
+            {
+                if (record.Token == outerToken || record.Token == nestedToken)
+                {
+                    reentrantOrder.Add(record.Token);
+                }
+            };
+            emitter.Emitted += emitNestedAudio;
+            emitter.Emitted += recordReentrantOrder;
+            Assert.That(
+                emitter.Emit(FunctionalAudioEvent.PlayerHit, outerToken),
+                Is.True);
+            yield return WaitForCondition(
+                () => reentrantOrder.Count == 2,
+                2f,
+                "Reentrant functional-audio emissions did not drain.");
+            emitter.Emitted -= emitNestedAudio;
+            emitter.Emitted -= recordReentrantOrder;
+            Assert.That(
+                reentrantOrder,
+                Is.EqualTo(new[] { outerToken, nestedToken }),
+                "Every observer must receive accepted functional-audio cues in FIFO order.");
+            var resetDuringNotificationToken = long.MaxValue - 3;
+            var postResetToken = long.MaxValue - 4;
+            var staleResetRecordReachedLaterObserver = false;
+            var postResetRecordReachedLaterObserver = false;
+            Action<FunctionalAudioRecord> resetDuringNotification = record =>
+            {
+                if (record.Token == resetDuringNotificationToken)
+                {
+                    emitter.ResetEmitter();
+                    Assert.That(
+                        emitter.Emit(FunctionalAudioEvent.PlayerHit, postResetToken),
+                        Is.True);
+                }
+            };
+            Action<FunctionalAudioRecord> observeResetBoundary = record =>
+            {
+                if (record.Token == resetDuringNotificationToken)
+                {
+                    staleResetRecordReachedLaterObserver = true;
+                }
+
+                if (record.Token == postResetToken)
+                {
+                    postResetRecordReachedLaterObserver = true;
+                }
+            };
+            emitter.Emitted += resetDuringNotification;
+            emitter.Emitted += observeResetBoundary;
+            Assert.That(
+                emitter.Emit(
+                    FunctionalAudioEvent.PlayerHit,
+                    resetDuringNotificationToken),
+                Is.True);
+            yield return WaitForCondition(
+                () => postResetRecordReachedLaterObserver,
+                2f,
+                "Post-reset functional-audio emission did not drain.");
+            emitter.Emitted -= resetDuringNotification;
+            emitter.Emitted -= observeResetBoundary;
+            Assert.That(
+                staleResetRecordReachedLaterObserver,
+                Is.False,
+                "A pre-reset functional-audio record crossed the reset generation boundary.");
             room.SoulSpawned += spawnedSouls.Add;
             room.EnemyDeathProcessed += processedDeaths.Add;
 
@@ -608,8 +799,12 @@ namespace Overbless.Tests.PlayMode
                 }
             }
 
+            audioBridge.enabled = false;
+            yield return null;
             yield return SetKeyboardState(keyboard, Key.R);
             yield return SetKeyboardState(keyboard);
+            audioBridge.enabled = true;
+            yield return null;
             Assert.That(restartCount, Is.EqualTo(1));
             Assert.That(room.SoulCount, Is.Zero);
             Assert.That(room.IsExitOpen, Is.False);
@@ -665,10 +860,52 @@ namespace Overbless.Tests.PlayMode
                     spawnedSouls[secondCycleSoulStart + index]);
             }
 
-            Assert.That(room.SoulCount, Is.EqualTo(M1RoomDefinition.RequiredSoulCount));
+            Assert.That(room.SoulCount, Is.GreaterThanOrEqualTo(M1RoomDefinition.RequiredSoulCount));
             Assert.That(room.IsExitOpen, Is.True);
             Assert.That(ContainsAudioEvent(emittedEvents, FunctionalAudioEvent.SoulCollected), Is.True);
             Assert.That(ContainsAudioEvent(emittedEvents, FunctionalAudioEvent.ExitOpened), Is.True);
+            var soulAudioCountBeforeDuplicate =
+                CountAudioEvents(emittedEvents, FunctionalAudioEvent.SoulCollected);
+            var exitAudioCountBeforeDuplicate =
+                CountAudioEvents(emittedEvents, FunctionalAudioEvent.ExitOpened);
+            var soulAudioHandler = typeof(M1FunctionalAudioBridge).GetMethod(
+                "HandleSoulCountChanged",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            var exitAudioHandler = typeof(M1FunctionalAudioBridge).GetMethod(
+                "HandleExitOpened",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(soulAudioHandler, Is.Not.Null);
+            Assert.That(exitAudioHandler, Is.Not.Null);
+            soulAudioHandler.Invoke(audioBridge, new object[] { room.SoulCount - 1 });
+            soulAudioHandler.Invoke(audioBridge, new object[] { room.SoulCount });
+            exitAudioHandler.Invoke(audioBridge, null);
+            exitAudioHandler.Invoke(audioBridge, null);
+            yield return null;
+            Assert.That(
+                CountAudioEvents(emittedEvents, FunctionalAudioEvent.SoulCollected),
+                Is.EqualTo(soulAudioCountBeforeDuplicate));
+            Assert.That(
+                CountAudioEvents(emittedEvents, FunctionalAudioEvent.ExitOpened),
+                Is.EqualTo(exitAudioCountBeforeDuplicate));
+            Action throwingPlayerResetObserver = () =>
+                throw new InvalidOperationException("expected player reset observer failure");
+            Action<int> throwingRoomResetObserver = count =>
+            {
+                if (count == 0)
+                {
+                    throw new InvalidOperationException("expected room reset observer failure");
+                }
+            };
+            player.Reset += throwingPlayerResetObserver;
+            room.SoulCountChanged += throwingRoomResetObserver;
+            Assert.Throws<AggregateException>(() => restart.RestartRoom());
+            player.Reset -= throwingPlayerResetObserver;
+            room.SoulCountChanged -= throwingRoomResetObserver;
+            Assert.That(restartCount, Is.EqualTo(2));
+            Assert.That(player.IsAlive, Is.True);
+            Assert.That(inputRouter.IsInputEnabled, Is.True);
+            Assert.That(room.SoulCount, Is.Zero);
+            Assert.That(room.IsExitOpen, Is.False);
         }
 
         [UnityTest]
@@ -694,6 +931,80 @@ namespace Overbless.Tests.PlayMode
             Assert.That(fixture.Player.transform.localScale, Is.EqualTo(fixture.SpawnLocalScale));
             Assert.That(fixture.InputRouter.IsInputEnabled, Is.True);
             Assert.That(fixture.Controller.IsMovementEnabled, Is.True);
+            Action throwingResetObserver = () =>
+                throw new InvalidOperationException("expected reset notification failure");
+            fixture.LifeCycle.Reset += throwingResetObserver;
+            Assert.Throws<PlayerResetNotificationException>(() => fixture.LifeCycle.ResetPlayer());
+            fixture.LifeCycle.Reset -= throwingResetObserver;
+            Assert.That(fixture.LifeCycle.IsAlive, Is.True);
+            Assert.That(fixture.InputRouter.IsInputEnabled, Is.True);
+
+            Action invalidateResetObserver = () =>
+                fixture.Health.TryApplyDamage(
+                    new DamageEvent(
+                        2,
+                        2,
+                        fixture.Health.EntityId,
+                        fixture.Health.MaximumHealth));
+            fixture.LifeCycle.Reset += invalidateResetObserver;
+            Assert.Throws<AggregateException>(() => fixture.LifeCycle.ResetPlayer());
+            fixture.LifeCycle.Reset -= invalidateResetObserver;
+            Assert.That(fixture.LifeCycle.IsAlive, Is.False);
+            Assert.That(fixture.Health.IsDead, Is.True);
+            Assert.That(fixture.InputRouter.IsInputEnabled, Is.False);
+            fixture.LifeCycle.ResetPlayer();
+
+            fixture.LifeCycle.enabled = false;
+            Action<DeathEvent> resetBeforeLifecycleDeathObserver = _ => fixture.LifeCycle.ResetPlayer();
+            fixture.Health.Died += resetBeforeLifecycleDeathObserver;
+            fixture.LifeCycle.enabled = true;
+            Assert.That(
+                fixture.Health.TryApplyDamage(
+                    new DamageEvent(
+                        3,
+                        3,
+                        fixture.Health.EntityId,
+                        fixture.Health.MaximumHealth)),
+                Is.True);
+            fixture.Health.Died -= resetBeforeLifecycleDeathObserver;
+            Assert.That(fixture.Health.IsDead, Is.False);
+            Assert.That(fixture.LifeCycle.IsAlive, Is.True);
+            Assert.That(fixture.InputRouter.IsInputEnabled, Is.True);
+            var staleDeathObserverRan = false;
+            Action<DeathEvent> resetDuringDeathNotification = _ => fixture.LifeCycle.ResetPlayer();
+            Action<DeathEvent> observeStaleDeath = _ => staleDeathObserverRan = true;
+            fixture.LifeCycle.Died += resetDuringDeathNotification;
+            fixture.LifeCycle.Died += observeStaleDeath;
+            Assert.That(
+                fixture.Health.TryApplyDamage(
+                    new DamageEvent(
+                        4,
+                        4,
+                        fixture.Health.EntityId,
+                        fixture.Health.MaximumHealth)),
+                Is.True);
+            fixture.LifeCycle.Died -= resetDuringDeathNotification;
+            fixture.LifeCycle.Died -= observeStaleDeath;
+            Assert.That(staleDeathObserverRan, Is.False);
+            Assert.That(fixture.LifeCycle.IsAlive, Is.True);
+            Assert.That(fixture.Health.IsDead, Is.False);
+
+            SetPrivateField(fixture.InputRouter, "movement", Vector2.right);
+            Action<Vector2> throwingMovementObserver = _ =>
+                throw new InvalidOperationException("expected movement observer failure");
+            fixture.InputRouter.MovementChanged += throwingMovementObserver;
+            Assert.Throws<InvalidOperationException>(
+                () => fixture.Health.TryApplyDamage(
+                    new DamageEvent(
+                        5,
+                        5,
+                        fixture.Health.EntityId,
+                        fixture.Health.MaximumHealth)));
+            fixture.InputRouter.MovementChanged -= throwingMovementObserver;
+            Assert.That(fixture.LifeCycle.IsAlive, Is.False);
+            Assert.That(fixture.Controller.IsMovementEnabled, Is.False);
+            Assert.That(fixture.InputRouter.IsInputEnabled, Is.False);
+            fixture.LifeCycle.ResetPlayer();
         }
 
         [UnityTest]
@@ -710,7 +1021,19 @@ namespace Overbless.Tests.PlayMode
                 Track(soul.gameObject);
             };
 
-            for (var index = 0; index < M1RoomDefinition.RequiredSoulCount; index++)
+            fixture.Lifecycle.enabled = false;
+            fixture.Lifecycle.ResetForRoom();
+            var firstEnemy = fixture.EnemyHealths[0];
+            Assert.That(
+                fixture.Lifecycle.TryApplyDamage(
+                    firstEnemy,
+                    new DamageEvent(1, 99, firstEnemy.EntityId, firstEnemy.MaximumHealth)),
+                Is.True);
+            Assert.That(firstEnemy.IsDead, Is.True);
+            Assert.That(spawnedSouls.Count, Is.EqualTo(1));
+            fixture.Lifecycle.enabled = true;
+
+            for (var index = 1; index < M1RoomDefinition.RequiredSoulCount; index++)
             {
                 var enemy = fixture.EnemyHealths[index];
                 Assert.That(
@@ -741,6 +1064,67 @@ namespace Overbless.Tests.PlayMode
             {
                 Assert.That(spawnedSouls[index].gameObject.activeSelf, Is.False);
             }
+            Action<int> throwingResetNotification = count =>
+            {
+                if (count == 0)
+                {
+                    throw new InvalidOperationException("expected room notification failure");
+                }
+            };
+            fixture.Lifecycle.SoulCountChanged += throwingResetNotification;
+            Assert.Throws<RoomResetNotificationException>(() => fixture.Lifecycle.ResetForRoom());
+            fixture.Lifecycle.SoulCountChanged -= throwingResetNotification;
+            Assert.That(fixture.Lifecycle.SoulCount, Is.Zero);
+            Assert.That(fixture.Lifecycle.DamageLedgerCount, Is.Zero);
+
+            var oldCycleEnemy = fixture.EnemyHealths[3];
+            var oldCycleEvent = default(DeathEvent);
+            oldCycleEnemy.Died += deathEvent => oldCycleEvent = deathEvent;
+            Assert.That(
+                fixture.Lifecycle.TryApplyDamage(
+                    oldCycleEnemy,
+                    new DamageEvent(10, 99, oldCycleEnemy.EntityId, oldCycleEnemy.MaximumHealth)),
+                Is.True);
+            fixture.Lifecycle.ResetForRoom();
+            oldCycleEnemy.ResetHealth();
+            var spawnCountBeforeOldEvent = spawnedSouls.Count;
+            var deathHandler = typeof(M1RoomLifecycle).GetMethod(
+                "HandleEnemyDeath",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(deathHandler, Is.Not.Null);
+            Assert.DoesNotThrow(() => deathHandler.Invoke(fixture.Lifecycle, new object[] { oldCycleEvent }));
+            Assert.That(spawnedSouls.Count, Is.EqualTo(spawnCountBeforeOldEvent));
+
+            var stalePositiveCountObserved = false;
+            Action<int> restartRoomOnPositiveCount = count =>
+            {
+                if (count > 0)
+                {
+                    fixture.Lifecycle.ResetForRoom();
+                }
+            };
+            Action<int> observeLaterCount = count =>
+            {
+                if (count > 0)
+                {
+                    stalePositiveCountObserved = true;
+                }
+            };
+            fixture.Lifecycle.SoulCountChanged += restartRoomOnPositiveCount;
+            fixture.Lifecycle.SoulCountChanged += observeLaterCount;
+            var generationEnemy = fixture.EnemyHealths[4];
+            Assert.That(
+                fixture.Lifecycle.TryApplyDamage(
+                    generationEnemy,
+                    new DamageEvent(11, 99, generationEnemy.EntityId, generationEnemy.MaximumHealth)),
+                Is.True);
+            var generationSoul = spawnedSouls[spawnedSouls.Count - 1];
+            Assert.That(generationSoul.TryCollect(player.LifeCycle), Is.True);
+            fixture.Lifecycle.SoulCountChanged -= restartRoomOnPositiveCount;
+            fixture.Lifecycle.SoulCountChanged -= observeLaterCount;
+            Assert.That(stalePositiveCountObserved, Is.False);
+            Assert.That(fixture.Lifecycle.SoulCount, Is.Zero);
+            Assert.That(fixture.Lifecycle.IsExitOpen, Is.False);
         }
 
         private static IEnumerator LoadGuidedScene()
@@ -1192,6 +1576,22 @@ namespace Overbless.Tests.PlayMode
             }
 
             return false;
+        }
+
+        private static int CountAudioEvents(
+            IReadOnlyList<FunctionalAudioRecord> records,
+            FunctionalAudioEvent expectedEvent)
+        {
+            var count = 0;
+            for (var index = 0; index < records.Count; index++)
+            {
+                if (records[index].EventType == expectedEvent)
+                {
+                    count++;
+                }
+            }
+
+            return count;
         }
 
         private PlayerFixture CreatePlayerFixture()

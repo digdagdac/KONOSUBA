@@ -4,6 +4,14 @@ using UnityEngine;
 
 namespace Overbless.Runtime
 {
+    public sealed class RoomResetNotificationException : AggregateException
+    {
+        internal RoomResetNotificationException(IReadOnlyList<Exception> failures)
+            : base("Room reset committed, but one or more room observers failed.", failures)
+        {
+        }
+    }
+
     [DisallowMultipleComponent]
     public sealed class M1RoomLifecycle : MonoBehaviour
     {
@@ -28,6 +36,7 @@ namespace Overbless.Runtime
         private bool isOpeningExit;
         private bool hasNotifiedExitOpened;
         private int soulCount;
+        private long roomGeneration;
 
         public event Action<DeathEvent> SealReturnRequested;
         public event Action<DeathEvent> EnemyDeathProcessed;
@@ -81,7 +90,7 @@ namespace Overbless.Runtime
             }
         }
 
-        private void OnDisable()
+        private void OnDestroy()
         {
             UnsubscribeFromEnemyDeaths();
         }
@@ -100,9 +109,11 @@ namespace Overbless.Runtime
                 throw new InvalidOperationException("M1 room reset is already in progress.");
             }
 
+            var resetGeneration = AdvanceRoomGeneration();
             isResetting = true;
             isResetStateValid = false;
-            var failures = new List<Exception>();
+            var coreFailures = new List<Exception>();
+            var notificationFailures = new List<Exception>();
 
             try
             {
@@ -114,13 +125,16 @@ namespace Overbless.Runtime
                 }
                 catch (Exception exception)
                 {
-                    failures.Add(exception);
+                    coreFailures.Add(exception);
                 }
 
-                var resetStateRestored = ResetRoomState(failures);
+                var resetStateRestored = ResetRoomState(
+                    coreFailures,
+                    notificationFailures,
+                    resetGeneration);
                 isResetStateValid = enemyDeathsUnsubscribed && resetStateRestored;
 
-                if (isResetStateValid && isActiveAndEnabled)
+                if (isResetStateValid)
                 {
                     try
                     {
@@ -128,7 +142,7 @@ namespace Overbless.Runtime
                     }
                     catch (Exception exception)
                     {
-                        failures.Add(exception);
+                        coreFailures.Add(exception);
                         isResetStateValid = false;
                     }
                 }
@@ -138,7 +152,11 @@ namespace Overbless.Runtime
                 isResetting = false;
             }
 
-            ThrowFailures("M1 room reset failed.", failures);
+            ThrowFailures("M1 room reset failed.", coreFailures);
+            if (notificationFailures.Count != 0)
+            {
+                throw new RoomResetNotificationException(notificationFailures.AsReadOnly());
+            }
         }
 
         private void EnsureInitialized()
@@ -177,7 +195,10 @@ namespace Overbless.Runtime
 
             for (var index = 0; index < enemyHealths.Length; index++)
             {
-                enemyHealths[index].Died -= HandleEnemyDeath;
+                if (enemyHealths[index] != null)
+                {
+                    enemyHealths[index].Died -= HandleEnemyDeath;
+                }
             }
 
             isSubscribed = false;
@@ -194,6 +215,13 @@ namespace Overbless.Runtime
                 throw new InvalidOperationException($"M1 received a death event from unwired entity {deathEvent.EntityId}.");
             }
 
+            if (!enemyHealth.IsDead ||
+                enemyHealth.DeathToken != deathEvent.DeathToken)
+            {
+                return;
+            }
+
+            var eventGeneration = roomGeneration;
             var deathToken = new DeathTokenKey(deathEvent.EntityId, deathEvent.DeathToken);
             if (processedDeathTokens.Contains(deathToken))
             {
@@ -204,9 +232,14 @@ namespace Overbless.Runtime
             processedDeathTokens.Add(deathToken);
 
             var observerErrors = new List<Exception>();
-            InvokeObservers(SoulSpawned, soul, observerErrors);
-            InvokeObservers(SealReturnRequested, deathEvent, observerErrors);
-            InvokeObservers(EnemyDeathProcessed, deathEvent, observerErrors);
+            if (!InvokeObservers(SoulSpawned, soul, eventGeneration, observerErrors) ||
+                !InvokeObservers(SealReturnRequested, deathEvent, eventGeneration, observerErrors) ||
+                !InvokeObservers(EnemyDeathProcessed, deathEvent, eventGeneration, observerErrors))
+            {
+                ThrowObserverErrors(observerErrors);
+                return;
+            }
+
             ThrowObserverErrors(observerErrors);
         }
 
@@ -226,9 +259,14 @@ namespace Overbless.Runtime
                 return;
             }
 
+            var eventGeneration = roomGeneration;
             var failures = new List<Exception>();
             TryOpenPendingExit(failures);
-            NotifyExitOpened(failures);
+            if (roomGeneration == eventGeneration)
+            {
+                NotifyExitOpened(failures, eventGeneration);
+            }
+
             ThrowFailures("M1 exit open retry failed.", failures);
         }
 
@@ -239,6 +277,7 @@ namespace Overbless.Runtime
                 return;
             }
 
+            var eventGeneration = roomGeneration;
             if (!spawnedSouls.Contains(soul))
             {
                 throw new InvalidOperationException("M1 received a collection event from an unowned soul fragment.");
@@ -257,9 +296,24 @@ namespace Overbless.Runtime
             }
 
             TryOpenPendingExit(failures);
-            InvokeObservers(SoulCountChanged, soulCount, failures);
+            if (roomGeneration != eventGeneration)
+            {
+                ThrowFailures("M1 soul collection failed.", failures);
+                return;
+            }
+
+            if (!InvokeObservers(SoulCountChanged, soulCount, eventGeneration, failures))
+            {
+                ThrowFailures("M1 soul collection failed.", failures);
+                return;
+            }
+
             TryOpenPendingExit(failures);
-            NotifyExitOpened(failures);
+            if (roomGeneration == eventGeneration)
+            {
+                NotifyExitOpened(failures, eventGeneration);
+            }
+
             ThrowFailures("M1 soul collection failed.", failures);
         }
 
@@ -295,20 +349,23 @@ namespace Overbless.Runtime
             }
         }
 
-        private void NotifyExitOpened(List<Exception> failures)
+        private void NotifyExitOpened(List<Exception> failures, long expectedGeneration)
         {
-            if (!exitGate.IsOpen || hasNotifiedExitOpened)
+            if (!exitGate.IsOpen || hasNotifiedExitOpened || roomGeneration != expectedGeneration)
             {
                 return;
             }
 
             hasNotifiedExitOpened = true;
-            InvokeObservers(ExitOpened, failures);
+            InvokeObservers(ExitOpened, expectedGeneration, failures);
         }
 
-        private bool ResetRoomState(List<Exception> failures)
+        private bool ResetRoomState(
+            List<Exception> coreFailures,
+            List<Exception> notificationFailures,
+            long resetGeneration)
         {
-            var coreFailures = new List<Exception>();
+            var initialFailureCount = coreFailures.Count;
             for (var index = 0; index < spawnedSouls.Count; index++)
             {
                 var soul = spawnedSouls[index];
@@ -362,20 +419,33 @@ namespace Overbless.Runtime
                 coreFailures.Add(exception);
             }
 
-            failures.AddRange(coreFailures);
-            InvokeObservers(SoulCountChanged, soulCount, failures);
-            return coreFailures.Count == 0;
+            var restored = coreFailures.Count == initialFailureCount;
+            if (restored)
+            {
+                InvokeObservers(SoulCountChanged, soulCount, resetGeneration, notificationFailures);
+            }
+
+            return restored;
         }
 
-        private static void InvokeObservers<T>(Action<T> observers, T value, List<Exception> errors)
+        private bool InvokeObservers<T>(
+            Action<T> observers,
+            T value,
+            long expectedGeneration,
+            List<Exception> errors)
         {
             if (observers == null)
             {
-                return;
+                return roomGeneration == expectedGeneration;
             }
 
             foreach (Action<T> observer in observers.GetInvocationList())
             {
+                if (roomGeneration != expectedGeneration)
+                {
+                    return false;
+                }
+
                 try
                 {
                     observer(value);
@@ -385,17 +455,27 @@ namespace Overbless.Runtime
                     errors.Add(exception);
                 }
             }
+
+            return roomGeneration == expectedGeneration;
         }
 
-        private static void InvokeObservers(Action observers, List<Exception> errors)
+        private bool InvokeObservers(
+            Action observers,
+            long expectedGeneration,
+            List<Exception> errors)
         {
             if (observers == null)
             {
-                return;
+                return roomGeneration == expectedGeneration;
             }
 
             foreach (Action observer in observers.GetInvocationList())
             {
+                if (roomGeneration != expectedGeneration)
+                {
+                    return false;
+                }
+
                 try
                 {
                     observer();
@@ -405,6 +485,19 @@ namespace Overbless.Runtime
                     errors.Add(exception);
                 }
             }
+
+            return roomGeneration == expectedGeneration;
+        }
+
+        private long AdvanceRoomGeneration()
+        {
+            if (roomGeneration == long.MaxValue)
+            {
+                throw new InvalidOperationException("M1 room generation overflowed.");
+            }
+
+            roomGeneration++;
+            return roomGeneration;
         }
 
         private static void ThrowObserverErrors(List<Exception> errors)

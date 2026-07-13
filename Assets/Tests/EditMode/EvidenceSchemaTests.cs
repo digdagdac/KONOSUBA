@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Text;
+using System.Security.Cryptography;
 using NUnit.Framework;
 using Overbless.Editor.Evidence;
 
@@ -86,6 +88,109 @@ namespace Overbless.Tests.EditMode
                 var chunkLimitedHash = CanonicalJson.Sha256Hex(chunkLimitedStream, out var chunkLimitedLength);
                 Assert.That(chunkLimitedHash, Is.EqualTo("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"));
                 Assert.That(chunkLimitedLength, Is.EqualTo(3L));
+            }
+        }
+
+        [Test]
+        public void M2EntryGateValidator_DetachedSignatureBindsUserAttestation()
+        {
+            const string anchorVariable = "OVERBLESS_M2_GATE_TRUST_ANCHOR";
+            const string keyVariable = "OVERBLESS_M2_GATE_TRUSTED_PUBLIC_KEY_SPKI_BASE64";
+            const string candidateId = "candidate-1";
+            const string outcome = "PASS";
+            const string decidedUtc = "2026-07-13T12:00:00.000Z";
+            const string attestation = "I reviewed the exact sealed candidate.";
+            const string trustAnchor = "test-anchor";
+            var evidenceHash = new string('a', 64);
+            var reportHash = new string('b', 64);
+            var previousAnchor = Environment.GetEnvironmentVariable(anchorVariable);
+            var previousKey = Environment.GetEnvironmentVariable(keyVariable);
+            try
+            {
+                using (var rsa = new RSACryptoServiceProvider(2048))
+                {
+                    Environment.SetEnvironmentVariable(anchorVariable, trustAnchor);
+                    Environment.SetEnvironmentVariable(
+                        keyVariable,
+                        Convert.ToBase64String(EncodeSubjectPublicKeyInfo(rsa.ExportParameters(false))));
+                    var payload = CanonicalJson.SerializeUtf8(CanonicalJsonValue.Object(
+                        new CanonicalJsonProperty("candidateId", CanonicalJsonValue.String(candidateId)),
+                        new CanonicalJsonProperty("decidedUtc", CanonicalJsonValue.String(decidedUtc)),
+                        new CanonicalJsonProperty("decision", CanonicalJsonValue.String(outcome)),
+                        new CanonicalJsonProperty("evidenceManifestSha256", CanonicalJsonValue.String(evidenceHash)),
+                        new CanonicalJsonProperty("userAttestation", CanonicalJsonValue.String(attestation)),
+                        new CanonicalJsonProperty("validatorReportSha256", CanonicalJsonValue.String(reportHash))));
+                    var writerType = typeof(M2EntryGateValidator).Assembly.GetType(
+                        "Overbless.Editor.Evidence.GateDecisionWriter");
+                    Assert.That(writerType, Is.Not.Null);
+                    var createWriterPayload = writerType.GetMethod(
+                        "CreateSigningPayload",
+                        BindingFlags.Static | BindingFlags.NonPublic);
+                    Assert.That(createWriterPayload, Is.Not.Null);
+                    CollectionAssert.AreEqual(
+                        payload,
+                        (byte[])createWriterPayload.Invoke(
+                            null,
+                            new object[]
+                            {
+                                candidateId,
+                                evidenceHash,
+                                reportHash,
+                                outcome,
+                                decidedUtc,
+                                attestation
+                            }));
+                    var signature = Convert.ToBase64String(
+                        rsa.SignData(payload, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1));
+                    var verify = typeof(M2EntryGateValidator).GetMethod(
+                        "VerifyDetachedUserDecisionSignature",
+                        BindingFlags.Static | BindingFlags.NonPublic);
+                    Assert.That(verify, Is.Not.Null);
+
+                    var validErrors = new List<string>();
+                    var validResult = (bool)verify.Invoke(
+                        null,
+                        new object[]
+                        {
+                            candidateId,
+                            evidenceHash,
+                            reportHash,
+                            outcome,
+                            decidedUtc,
+                            attestation,
+                            trustAnchor,
+                            "RSA-SHA256",
+                            signature,
+                            validErrors
+                        });
+                    Assert.That(validResult, Is.True, string.Join(" | ", validErrors));
+                    Assert.That(validErrors, Is.Empty);
+
+                    var tamperedErrors = new List<string>();
+                    Assert.That(
+                        verify.Invoke(
+                            null,
+                            new object[]
+                            {
+                                candidateId,
+                                evidenceHash,
+                                reportHash,
+                                outcome,
+                                decidedUtc,
+                                attestation + " Altered.",
+                                trustAnchor,
+                                "RSA-SHA256",
+                                signature,
+                                tamperedErrors
+                            }),
+                        Is.EqualTo(false));
+                    Assert.That(tamperedErrors, Is.Not.Empty);
+                }
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable(anchorVariable, previousAnchor);
+                Environment.SetEnvironmentVariable(keyVariable, previousKey);
             }
         }
 
@@ -433,6 +538,159 @@ namespace Overbless.Tests.EditMode
                 new CanonicalJsonProperty("warmupSeconds", CanonicalJsonValue.Number(10L)));
         }
 
+        [Test]
+        public void M2Validator_ArtifactSnapshotRetainsOneBoundedPrivateCopy()
+        {
+            if (Path.DirectorySeparatorChar != '\\')
+            {
+                Assert.Ignore("The M2 no-follow artifact snapshot contract is Windows-specific.");
+            }
+
+            var sourcePath = Path.Combine(
+                Path.GetTempPath(),
+                "overbless-snapshot-test-" + Guid.NewGuid().ToString("N") + ".bin");
+            var originalBytes = Encoding.UTF8.GetBytes("sealed artifact");
+            File.WriteAllBytes(sourcePath, originalBytes);
+
+            object cache = null;
+            try
+            {
+                var cacheType = typeof(M2EntryGateValidator).GetNestedType(
+                    "ArtifactSnapshotCache",
+                    BindingFlags.NonPublic);
+                Assert.That(cacheType, Is.Not.Null);
+                cache = Activator.CreateInstance(cacheType, true);
+                var get = cacheType.GetMethod(
+                    "Get",
+                    BindingFlags.Instance | BindingFlags.Public);
+                Assert.That(get, Is.Not.Null);
+
+                var snapshot = get.Invoke(cache, new object[] { sourcePath });
+                Assert.That(snapshot, Is.Not.Null);
+                var snapshotType = snapshot.GetType();
+                Assert.That(
+                    snapshotType.GetProperty("Size").GetValue(snapshot),
+                    Is.EqualTo((long)originalBytes.Length));
+                Assert.That(
+                    snapshotType.GetProperty("Sha256").GetValue(snapshot),
+                    Is.EqualTo(CanonicalJson.Sha256Hex(originalBytes)));
+
+                File.WriteAllBytes(sourcePath, Encoding.UTF8.GetBytes("changed after snapshot"));
+                var retainedBytes = (byte[])snapshotType.GetProperty("Bytes").GetValue(snapshot);
+                CollectionAssert.AreEqual(originalBytes, retainedBytes);
+            }
+            finally
+            {
+                if (cache is IDisposable disposable)
+                {
+                    disposable.Dispose();
+                }
+
+                if (File.Exists(sourcePath))
+                {
+                    File.Delete(sourcePath);
+                }
+            }
+        }
+        private static byte[] EncodeSubjectPublicKeyInfo(RSAParameters parameters)
+        {
+            var rsaPublicKey = EncodeDer(
+                0x30,
+                Combine(
+                    EncodeDerInteger(parameters.Modulus),
+                    EncodeDerInteger(parameters.Exponent)));
+            var algorithmIdentifier = EncodeDer(
+                0x30,
+                new byte[]
+                {
+                    0x06, 0x09, 0x2a, 0x86, 0x48, 0x86, 0xf7,
+                    0x0d, 0x01, 0x01, 0x01, 0x05, 0x00
+                });
+            return EncodeDer(
+                0x30,
+                Combine(
+                    algorithmIdentifier,
+                    EncodeDer(0x03, Combine(new byte[] { 0x00 }, rsaPublicKey))));
+        }
+
+        private static byte[] EncodeDerInteger(byte[] unsignedValue)
+        {
+            if (unsignedValue == null || unsignedValue.Length == 0)
+            {
+                throw new ArgumentException("RSA integer is empty.", nameof(unsignedValue));
+            }
+
+            var firstNonZero = 0;
+            while (firstNonZero < unsignedValue.Length - 1 &&
+                   unsignedValue[firstNonZero] == 0)
+            {
+                firstNonZero++;
+            }
+
+            var length = unsignedValue.Length - firstNonZero;
+            var needsPositivePrefix = (unsignedValue[firstNonZero] & 0x80) != 0;
+            var content = new byte[length + (needsPositivePrefix ? 1 : 0)];
+            Buffer.BlockCopy(
+                unsignedValue,
+                firstNonZero,
+                content,
+                needsPositivePrefix ? 1 : 0,
+                length);
+            return EncodeDer(0x02, content);
+        }
+
+        private static byte[] EncodeDer(byte tag, byte[] content)
+        {
+            var length = EncodeDerLength(content.Length);
+            var encoded = new byte[1 + length.Length + content.Length];
+            encoded[0] = tag;
+            Buffer.BlockCopy(length, 0, encoded, 1, length.Length);
+            Buffer.BlockCopy(content, 0, encoded, 1 + length.Length, content.Length);
+            return encoded;
+        }
+
+        private static byte[] EncodeDerLength(int length)
+        {
+            if (length < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(length));
+            }
+
+            if (length < 0x80)
+            {
+                return new[] { (byte)length };
+            }
+
+            var bytes = new List<byte>();
+            var remaining = length;
+            while (remaining > 0)
+            {
+                bytes.Insert(0, (byte)(remaining & 0xff));
+                remaining >>= 8;
+            }
+
+            bytes.Insert(0, (byte)(0x80 | bytes.Count));
+            return bytes.ToArray();
+        }
+
+        private static byte[] Combine(params byte[][] parts)
+        {
+            var length = 0;
+            foreach (var part in parts)
+            {
+                length = checked(length + part.Length);
+            }
+
+            var combined = new byte[length];
+            var offset = 0;
+            foreach (var part in parts)
+            {
+                Buffer.BlockCopy(part, 0, combined, offset, part.Length);
+                offset += part.Length;
+            }
+
+            return combined;
+        }
         private static List<long> CreateCompletionTimes(long origin, int completedFramesPerBucket)
         {
             var completionTimes = new List<long>();

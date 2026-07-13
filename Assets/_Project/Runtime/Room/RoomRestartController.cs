@@ -67,6 +67,10 @@ namespace Overbless.Runtime
                     {
                         playerLifeCycle.ResetPlayer();
                     }
+                    catch (PlayerResetNotificationException exception)
+                    {
+                        notificationFailures.AddRange(exception.InnerExceptions);
+                    }
                     catch (Exception exception)
                     {
                         coreFailures.Add(exception);
@@ -74,7 +78,7 @@ namespace Overbless.Runtime
 
                     try
                     {
-                        ResetRoomDependents();
+                        ResetRoomDependents(notificationFailures);
                     }
                     catch (Exception exception)
                     {
@@ -127,7 +131,7 @@ namespace Overbless.Runtime
             ThrowFailures("Room restart committed, but observer notification failed.", notificationFailures);
         }
 
-        private void ResetRoomDependents()
+        private void ResetRoomDependents(List<Exception> notificationFailures)
         {
             var failures = new List<Exception>();
             for (var index = 0; index < enemies.Length; index++)
@@ -163,6 +167,10 @@ namespace Overbless.Runtime
             try
             {
                 roomLifecycle.ResetForRoom();
+            }
+            catch (RoomResetNotificationException exception)
+            {
+                notificationFailures.AddRange(exception.InnerExceptions);
             }
             catch (Exception exception)
             {

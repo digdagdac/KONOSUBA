@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
 using Overbless.Editor.Evidence;
@@ -45,6 +46,8 @@ namespace Overbless.Editor.Build
             "automated/project-config.result.json",
             "automated/scope-audit.result.json"
         };
+        private static readonly IReadOnlyList<string> RequiredScopeRoots = ScopeAudit.ScannedRoots;
+        private static readonly IReadOnlyList<string> RequiredScopeExclusions = ScopeAudit.ExcludedSourcePaths;
         private static readonly TestResultExpectation[] TestResultExpectations =
         {
             new TestResultExpectation(
@@ -53,14 +56,45 @@ namespace Overbless.Editor.Build
                 "UnityTestRunner",
                 "NUnitSuite",
                 "overbless.source-nunit/v1",
-                new[] { "BLS-EFFECT-001", "BLS-SEAL-002", "CMB-ATTACK-001", "EXT-M2-001", "FND-DISPLAY-002", "FND-RULES-003", "FND-UNITY-001" }),
+                new[] { "BLS-EFFECT-001", "BLS-SEAL-002", "CMB-ATTACK-001", "EXT-M2-001", "FND-DISPLAY-002", "FND-RULES-003", "FND-UNITY-001" },
+                "Overbless.Tests.EditMode",
+                new[]
+                {
+                    "Overbless.Tests.EditMode.CoreContractTests.AttackStateMachine_LockCancelAndResetDisposeEachContextOnce",
+                    "Overbless.Tests.EditMode.CoreContractTests.AttackStateMachine_ReentrantObserversCannotPublishStaleLockOrCorruptRecovery",
+                    "Overbless.Tests.EditMode.CoreContractTests.Blessings_RejectDuplicatesOrderEffectsDeterministicallyAndUseExactMultipliers",
+                    "Overbless.Tests.EditMode.CoreContractTests.DamageLedger_KeysAcceptedDamageByAttackAndTargetAndRejectsSelfDamage",
+                    "Overbless.Tests.EditMode.CoreContractTests.Health_PreservesRatioAndEmitsOneDeathUntilReset",
+                    "Overbless.Tests.EditMode.CoreContractTests.Health_ReentrantResetAndRekillNeverPublishesTheOlderDeath",
+                    "Overbless.Tests.EditMode.CoreContractTests.Health_ReentrantResetFromDeathStopsLaterOldLifeObservers",
+                    "Overbless.Tests.EditMode.CoreContractTests.HudController_PublishesOnlyChangedValidStates",
+                    "Overbless.Tests.EditMode.CoreContractTests.PlayerInputRouter_RequiresEveryOwnerToReleaseItsOwnBlock",
+                    "Overbless.Tests.EditMode.CoreContractTests.WorldHealthBar_TracksHealthRatioFromLeftToRight",
+                    "Overbless.Tests.EditMode.EvidenceSchemaTests.CanonicalJson_SortsKeysRejectsNonCanonicalBytesAndNormalizesPaths",
+                    "Overbless.Tests.EditMode.EvidenceSchemaTests.EvidenceContracts_ExposeApprovedSchemasCriteriaAndCheckOrder",
+                    "Overbless.Tests.EditMode.EvidenceSchemaTests.EvidenceContracts_SelectDetailUsesDeclaredFailurePrecedence",
+                    "Overbless.Tests.EditMode.EvidenceSchemaTests.EvidenceSchemaValidator_RejectsPublicPerformancePayloadMutations",
+                    "Overbless.Tests.EditMode.EvidenceSchemaTests.EvidenceSchemaValidator_RejectsPublicSchemaCriteriaAndReportCheckMutations",
+                    "Overbless.Tests.EditMode.EvidenceSchemaTests.EvidenceSchemaValidator_RequiresThreeUniqueAudioEventsAndBlindTesterOrders",
+                    "Overbless.Tests.EditMode.EvidenceSchemaTests.EvidenceSchemaValidator_UsesSixtyHalfOpenPerformanceBuckets",
+                    "Overbless.Tests.EditMode.EvidenceSchemaTests.M2EntryGateValidator_DetachedSignatureBindsUserAttestation",
+                    "Overbless.Tests.EditMode.EvidenceSchemaTests.M2Validator_ArtifactSnapshotRetainsOneBoundedPrivateCopy"
+                }),
             new TestResultExpectation(
                 "automated/playmode-results.result.json",
                 "automated/playmode-results.xml",
                 "UnityTestRunner",
                 "NUnitSuite",
                 "overbless.source-nunit/v1",
-                new[] { "FUN-GUIDED-001", "PLY-LIFE-001", "ROOM-SOUL-001", "WEB-START-003" }),
+                new[] { "FUN-GUIDED-001", "PLY-LIFE-001", "ROOM-SOUL-001", "WEB-START-003" },
+                "Overbless.Tests.PlayMode",
+                new[]
+                {
+                    "Overbless.Tests.PlayMode.M1IntegrationTests.GuidedScene_BlessingsSoulsAudioPauseAndRestartCommitObservableState",
+                    "Overbless.Tests.PlayMode.M1IntegrationTests.GuidedScene_RequiresTrustedGestureAndRearmsAfterFocusLoss",
+                    "Overbless.Tests.PlayMode.M1IntegrationTests.M1RoomLifecycle_CollectingRequiredSoulsOpensExitAndResetClearsTransientState",
+                    "Overbless.Tests.PlayMode.M1IntegrationTests.PlayerLifecycle_DeathAndResetRestoreConfiguredSpawnState"
+                }),
             new TestResultExpectation(
                 "automated/project-config.result.json",
                 "automated/project-config.raw.json",
@@ -118,6 +152,11 @@ namespace Overbless.Editor.Build
         private sealed class TestResultExpectation
         {
             public TestResultExpectation(string resultPath, string rawPath, string producer, string payloadType, string payloadSchema, string[] criterionIds)
+                : this(resultPath, rawPath, producer, payloadType, payloadSchema, criterionIds, null, null)
+            {
+            }
+
+            public TestResultExpectation(string resultPath, string rawPath, string producer, string payloadType, string payloadSchema, string[] criterionIds, string nunitSuite, string[] nunitTestFullNames)
             {
                 ResultPath = resultPath;
                 RawPath = rawPath;
@@ -125,6 +164,8 @@ namespace Overbless.Editor.Build
                 PayloadType = payloadType;
                 PayloadSchema = payloadSchema;
                 CriterionIds = criterionIds;
+                NUnitSuite = nunitSuite;
+                NUnitTestFullNames = nunitTestFullNames ?? new string[0];
             }
 
             public string ResultPath { get; }
@@ -133,6 +174,8 @@ namespace Overbless.Editor.Build
             public string PayloadType { get; }
             public string PayloadSchema { get; }
             public string[] CriterionIds { get; }
+            public string NUnitSuite { get; }
+            public IReadOnlyList<string> NUnitTestFullNames { get; }
         }
 
 
@@ -299,6 +342,11 @@ namespace Overbless.Editor.Build
             }
 
             RequireCandidateSourceCapability(candidateId, chain, provenance);
+            if (!string.Equals(provenance.Scene, chain.Candidate.Scene, StringComparison.Ordinal) ||
+                !string.Equals(provenance.Scene, RequiredScenePath, StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException("Candidate build provenance scene does not bind the approved candidate scene.");
+            }
             var servedRootManifestSha256 = BuildManifestWriter.ConsumeCandidateBridge(
                 provenance,
                 servedDirectory,
@@ -347,7 +395,7 @@ namespace Overbless.Editor.Build
                     new CanonicalJsonProperty("development", CanonicalJsonValue.Boolean(true)),
                     Property("exceptionSupport", "ExplicitlyThrownExceptionsOnly"),
                     new CanonicalJsonProperty("memorySizeMb", CanonicalJsonValue.Number(provenance.Settings.MemorySizeMb)),
-                    Property("scene", RequiredScenePath),
+                    Property("scene", provenance.Scene),
                     Property("target", "WebGL"),
                     Property("unityVersion", RequiredUnityVersion));
                 var unsigned = CanonicalJsonValue.Object(
@@ -793,6 +841,12 @@ namespace Overbless.Editor.Build
                         expectation.PayloadSchema,
                         new[] { "schema", "suite", "total", "passed", "failed", "skipped", "exitCode", "failureSummary" }),
                         "NUnit payload");
+                    if (string.IsNullOrEmpty(expectation.NUnitSuite) ||
+                        expectation.NUnitTestFullNames.Count == 0 ||
+                        !string.Equals(RequireString(payload, "suite"), expectation.NUnitSuite, StringComparison.Ordinal))
+                    {
+                        throw new InvalidOperationException("NUnit payload does not bind the required suite.");
+                    }
                     var total = RequireNonNegativeInteger(payload, "total");
                     var passed = RequireNonNegativeInteger(payload, "passed");
                     var failed = RequireNonNegativeInteger(payload, "failed");
@@ -805,7 +859,7 @@ namespace Overbless.Editor.Build
                     long rawPassed;
                     long rawFailed;
                     long rawSkipped;
-                    ReadNUnitCounts(candidateDirectory, expectation.RawPath, out rawTotal, out rawPassed, out rawFailed, out rawSkipped);
+                    ReadNUnitCounts(candidateDirectory, expectation.RawPath, expectation, out rawTotal, out rawPassed, out rawFailed, out rawSkipped);
                     if (total != rawTotal || passed != rawPassed || failed != rawFailed || skipped != rawSkipped)
                     {
                         throw new InvalidOperationException("NUnit payload does not match the raw test result.");
@@ -834,7 +888,7 @@ namespace Overbless.Editor.Build
                         new[] { "schema", "scannedRoots", "forbiddenTokens", "allowlist", "matches", "auditStatus" }),
                         "Scope-audit payload");
                     RequireCanonicalRawPayloadMatches(candidateDirectory, expectation.RawPath, payload);
-                    var scopeAuditPassed = IsApprovedScopeAudit(payload);
+                    var scopeAuditPassed = IsApprovedScopeAudit(payload, sourceManifest);
                     RequireResultStatusMatchesPayload(RequireResultStatus(payload, "auditStatus"), scopeAuditPassed);
                     RequireResultStatusMatchesPayload(resultStatus, scopeAuditPassed);
                     return scopeAuditPassed;
@@ -896,37 +950,161 @@ namespace Overbless.Editor.Build
                 RequirePositiveInteger(displayPolicy, "minimumHeight") == 720;
         }
 
-        private static bool IsApprovedScopeAudit(CanonicalJsonValue payload)
+        private static bool IsApprovedScopeAudit(CanonicalJsonValue payload, SourceManifestDocument sourceManifest)
         {
-            var allowances = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var allowance in RequireArray(payload, "allowlist").Items)
+            ValidateExactCriteria(RequireArray(payload, "scannedRoots"), RequiredScopeRoots, "scope-audit scanned roots");
+            ValidateExactCriteria(RequireArray(payload, "forbiddenTokens"), ScopeAudit.ForbiddenGameplayTokens, "scope-audit forbidden tokens");
+
+            if (RequireArray(payload, "allowlist").Items.Count != 0)
             {
-                allowances.Add(CreateScopeAuditKey(
-                    RequireString(allowance, "path"),
-                    RequireString(allowance, "token"),
-                    RequireLowerSha256(allowance, "sourceSha256"),
-                    RequireString(allowance, "approvalReference")));
+                throw new InvalidOperationException("Candidate scope audit allowances require a separately sealed external approval contract.");
             }
 
-            var allMatchesApproved = true;
-            foreach (var match in RequireArray(payload, "matches").Items)
+            var derivedMatches = DeriveScopeAuditMatches(sourceManifest);
+            var reportedMatches = RequireArray(payload, "matches");
+            if (reportedMatches.Items.Count != derivedMatches.Count)
             {
-                var approvalReference = RequireNullableString(match, "approvalReference");
-                var allowedByRecord = approvalReference != null && allowances.Contains(CreateScopeAuditKey(
-                    RequireString(match, "path"),
-                    RequireString(match, "token"),
-                    RequireLowerSha256(match, "sourceSha256"),
-                    approvalReference));
-                if (RequireBoolean(match, "allowlisted") != allowedByRecord) throw new InvalidOperationException("Scope-audit allowlist claim does not match its allowlist record.");
-                if (!allowedByRecord) allMatchesApproved = false;
+                throw new InvalidOperationException("Scope audit does not report the complete sealed-source match set.");
             }
 
-            return allMatchesApproved;
+            for (var index = 0; index < reportedMatches.Items.Count; index++)
+            {
+                var reported = reportedMatches.Items[index];
+                var derived = derivedMatches[index];
+                RequireExactKeys(reported, "allowlisted", "approvalReference", "column", "line", "path", "sourceSha256", "token");
+                if (RequireBoolean(reported, "allowlisted") ||
+                    RequireNullableString(reported, "approvalReference") != null ||
+                    !string.Equals(RequireString(reported, "path"), derived.Path, StringComparison.Ordinal) ||
+                    !string.Equals(RequireString(reported, "token"), derived.Token, StringComparison.Ordinal) ||
+                    !string.Equals(RequireLowerSha256(reported, "sourceSha256"), derived.SourceSha256, StringComparison.Ordinal) ||
+                    RequirePositiveInteger(reported, "line") != derived.Line ||
+                    RequirePositiveInteger(reported, "column") != derived.Column)
+                {
+                    throw new InvalidOperationException("Scope audit match does not rederive from sealed source bytes.");
+                }
+            }
+
+            return derivedMatches.Count == 0;
         }
 
-        private static string CreateScopeAuditKey(string path, string token, string sourceSha256, string approvalReference)
+        private static List<SealedScopeAuditMatch> DeriveScopeAuditMatches(SourceManifestDocument sourceManifest)
         {
-            return path + "\n" + token + "\n" + sourceSha256 + "\n" + approvalReference;
+            var projectRoot = GetProjectRoot();
+            var matches = new List<SealedScopeAuditMatch>();
+            foreach (var source in sourceManifest.Files)
+            {
+                if (!IsGovernedScopePath(source.Path)) continue;
+
+                var text = ReadSealedScopeAuditText(projectRoot, source);
+                foreach (var token in ScopeAudit.ForbiddenGameplayTokens)
+                {
+                    foreach (Match match in ScopeAudit.FindForbiddenTokenMatches(text, token))
+                    {
+                        int line;
+                        int column;
+                        GetScopeLineAndColumn(text, match.Index, out line, out column);
+                        matches.Add(new SealedScopeAuditMatch(source.Path, token, source.Sha256, line, column));
+                    }
+                }
+            }
+
+            matches.Sort(CompareScopeAuditMatches);
+            return matches;
+        }
+
+        private static bool IsGovernedScopePath(string path)
+        {
+            var inRoot = false;
+            foreach (var root in RequiredScopeRoots)
+            {
+                if (path.StartsWith(root + "/", StringComparison.Ordinal))
+                {
+                    inRoot = true;
+                    break;
+                }
+            }
+
+            if (!inRoot) return false;
+
+            foreach (var excludedPath in RequiredScopeExclusions)
+            {
+                if (string.Equals(path, excludedPath, StringComparison.Ordinal))
+                {
+                    return false;
+                }
+            }
+            var extension = Path.GetExtension(path);
+            return string.Equals(extension, ".asset", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(extension, ".cs", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(extension, ".prefab", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(extension, ".unity", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string ReadSealedScopeAuditText(string projectRoot, SourceFile source)
+        {
+            var path = GetPathInsideDirectory(projectRoot, source.Path);
+            EnsurePathHasNoReparsePoints(projectRoot, source.Path);
+            var bytes = File.ReadAllBytes(path);
+            if (bytes.LongLength != source.Size || !string.Equals(CanonicalJson.Sha256Hex(bytes), source.Sha256, StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException("Scope audit source bytes do not match the sealed source manifest: " + source.Path + ".");
+            }
+
+            try
+            {
+                return new UTF8Encoding(false, true).GetString(bytes);
+            }
+            catch (DecoderFallbackException exception)
+            {
+                throw new InvalidOperationException("Scope audit sealed source is not valid UTF-8: " + source.Path + ".", exception);
+            }
+        }
+
+        private static void GetScopeLineAndColumn(string text, int index, out int line, out int column)
+        {
+            line = 1;
+            column = 1;
+            for (var characterIndex = 0; characterIndex < index; characterIndex++)
+            {
+                if (text[characterIndex] == '\n')
+                {
+                    line++;
+                    column = 1;
+                }
+                else
+                {
+                    column++;
+                }
+            }
+        }
+
+        private static int CompareScopeAuditMatches(SealedScopeAuditMatch left, SealedScopeAuditMatch right)
+        {
+            var path = CanonicalJson.CompareUtf8Ordinal(left.Path, right.Path);
+            if (path != 0) return path;
+            var line = left.Line.CompareTo(right.Line);
+            if (line != 0) return line;
+            var column = left.Column.CompareTo(right.Column);
+            if (column != 0) return column;
+            return CanonicalJson.CompareUtf8Ordinal(left.Token, right.Token);
+        }
+
+        private sealed class SealedScopeAuditMatch
+        {
+            public SealedScopeAuditMatch(string path, string token, string sourceSha256, int line, int column)
+            {
+                Path = path;
+                Token = token;
+                SourceSha256 = sourceSha256;
+                Line = line;
+                Column = column;
+            }
+
+            public string Path { get; }
+            public string Token { get; }
+            public string SourceSha256 { get; }
+            public int Line { get; }
+            public int Column { get; }
         }
 
         private static void RequireCanonicalRawPayloadMatches(string candidateDirectory, string rawPath, CanonicalJsonValue payload)
@@ -941,7 +1119,7 @@ namespace Overbless.Editor.Build
             }
         }
 
-        private static void ReadNUnitCounts(string candidateDirectory, string rawPath, out long total, out long passed, out long failed, out long skipped)
+        private static void ReadNUnitCounts(string candidateDirectory, string rawPath, TestResultExpectation expectation, out long total, out long passed, out long failed, out long skipped)
         {
             total = 0;
             passed = 0;
@@ -958,23 +1136,16 @@ namespace Overbless.Editor.Build
                     var testRun = document.Root;
                     if (testRun == null ||
                         !string.Equals(testRun.Name.LocalName, "test-run", StringComparison.Ordinal) ||
+                        !string.Equals((string)testRun.Attribute("result"), "Passed", StringComparison.Ordinal) ||
                         !TryReadXmlCount(testRun, "total", out total) ||
                         !TryReadXmlCount(testRun, "passed", out passed) ||
                         !TryReadXmlCount(testRun, "failed", out failed) ||
                         !TryReadXmlCount(testRun, "skipped", out skipped) ||
                         total != passed + failed + skipped ||
-                        !string.Equals((string)testRun.Attribute("result"), "Passed", StringComparison.Ordinal))
+                        !ValidateNoFailedNUnitNodes(testRun) ||
+                        !ValidateNUnitSuite(testRun, expectation))
                     {
                         throw new InvalidOperationException("NUnit raw artifact has invalid aggregate counts.");
-                    }
-                    foreach (var element in testRun.Descendants())
-                    {
-                        var result = (string)element.Attribute("result");
-                        if ((element.Name.LocalName == "test-suite" || element.Name.LocalName == "test-case") &&
-                            string.Equals(result, "Failed", StringComparison.Ordinal))
-                        {
-                            throw new InvalidOperationException("NUnit raw artifact contains a failed descendant result.");
-                        }
                     }
                 }
             }
@@ -982,6 +1153,68 @@ namespace Overbless.Editor.Build
             {
                 throw new InvalidOperationException("NUnit raw artifact is invalid XML.", exception);
             }
+        }
+
+        private static bool ValidateNUnitSuite(XElement testRun, TestResultExpectation expectation)
+        {
+            XElement suite = null;
+            foreach (var candidate in testRun.Descendants())
+            {
+                var fullName = candidate.Attribute("fullname");
+                if (string.Equals(candidate.Name.LocalName, "test-suite", StringComparison.Ordinal) &&
+                    fullName != null &&
+                    string.Equals(fullName.Value, expectation.NUnitSuite, StringComparison.Ordinal))
+                {
+                    if (suite != null) throw new InvalidOperationException("NUnit raw artifact contains the required suite more than once.");
+                    suite = candidate;
+                }
+            }
+
+            if (suite == null ||
+                !string.Equals((string)suite.Attribute("type"), "TestSuite", StringComparison.Ordinal) ||
+                !string.Equals((string)suite.Attribute("result"), "Passed", StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException("NUnit raw artifact does not contain the required passing suite.");
+            }
+
+            var expected = new HashSet<string>(expectation.NUnitTestFullNames, StringComparer.Ordinal);
+            var found = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var testCase in suite.Descendants())
+            {
+                if (!string.Equals(testCase.Name.LocalName, "test-case", StringComparison.Ordinal)) continue;
+
+                var fullName = testCase.Attribute("fullname");
+                if (fullName == null || !expected.Contains(fullName.Value)) continue;
+                if (!string.Equals((string)testCase.Attribute("result"), "Passed", StringComparison.Ordinal) ||
+                    !found.Add(fullName.Value))
+                {
+                    throw new InvalidOperationException("NUnit required test case did not pass exactly once.");
+                }
+            }
+
+            if (!found.SetEquals(expected)) throw new InvalidOperationException("NUnit raw artifact is missing a required test case.");
+            return true;
+        }
+
+        private static bool ValidateNoFailedNUnitNodes(XElement testRun)
+        {
+            foreach (var element in testRun.Descendants())
+            {
+                if (!string.Equals(element.Name.LocalName, "test-suite", StringComparison.Ordinal) &&
+                    !string.Equals(element.Name.LocalName, "test-case", StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                var result = (string)element.Attribute("result");
+                if (string.Equals(result, "Failed", StringComparison.Ordinal) ||
+                    string.Equals(result, "Error", StringComparison.Ordinal))
+                {
+                    throw new InvalidOperationException("NUnit raw artifact contains a failed suite or test case.");
+                }
+            }
+
+            return true;
         }
 
         private static bool TryReadXmlCount(XElement element, string name, out long value)

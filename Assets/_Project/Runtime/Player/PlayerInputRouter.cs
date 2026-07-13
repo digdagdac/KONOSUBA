@@ -178,7 +178,7 @@ namespace Overbless.Runtime
         {
             if (CanRouteInput())
             {
-                DashRequested?.Invoke();
+                InvokeObservers(DashRequested, "Dash request");
             }
         }
 
@@ -186,7 +186,7 @@ namespace Overbless.Runtime
         {
             if (CanRouteInput())
             {
-                BlessingSelectionRequested?.Invoke(1);
+                InvokeObservers(BlessingSelectionRequested, 1, "Blessing selection request");
             }
         }
 
@@ -194,7 +194,7 @@ namespace Overbless.Runtime
         {
             if (CanRouteInput())
             {
-                BlessingSelectionRequested?.Invoke(2);
+                InvokeObservers(BlessingSelectionRequested, 2, "Blessing selection request");
             }
         }
 
@@ -202,7 +202,7 @@ namespace Overbless.Runtime
         {
             if (CanRouteInput())
             {
-                ApplyRequested?.Invoke();
+                InvokeObservers(ApplyRequested, "Blessing apply request");
             }
         }
 
@@ -210,14 +210,14 @@ namespace Overbless.Runtime
         {
             if (CanRouteCancel())
             {
-                CancelRequested?.Invoke();
+                InvokeObservers(CancelRequested, "Cancel request");
             }
         }
         private void HandlePause(InputAction.CallbackContext context)
         {
             if (CanRouteCancel())
             {
-                PauseRequested?.Invoke();
+                InvokeObservers(PauseRequested, "Pause request");
             }
         }
 
@@ -227,7 +227,7 @@ namespace Overbless.Runtime
                 restartInputEnabled &&
                 !inputBlockers.Contains(PlayerInputBlocker.FocusGate))
             {
-                RestartRequested?.Invoke();
+                InvokeObservers(RestartRequested, "Restart request");
             }
         }
 
@@ -242,6 +242,60 @@ namespace Overbless.Runtime
         private bool CanRouteInput()
         {
             return IsInputEnabled && hasApplicationFocus;
+        }
+
+        private static void InvokeObservers(Action observers, string operation)
+        {
+            if (observers == null)
+            {
+                return;
+            }
+
+            var failures = new List<Exception>();
+            foreach (Action observer in observers.GetInvocationList())
+            {
+                try
+                {
+                    observer();
+                }
+                catch (Exception exception)
+                {
+                    failures.Add(exception);
+                }
+            }
+
+            ThrowObserverFailures(operation, failures);
+        }
+
+        private static void InvokeObservers<T>(Action<T> observers, T value, string operation)
+        {
+            if (observers == null)
+            {
+                return;
+            }
+
+            var failures = new List<Exception>();
+            foreach (Action<T> observer in observers.GetInvocationList())
+            {
+                try
+                {
+                    observer(value);
+                }
+                catch (Exception exception)
+                {
+                    failures.Add(exception);
+                }
+            }
+
+            ThrowObserverFailures(operation, failures);
+        }
+
+        private static void ThrowObserverFailures(string operation, List<Exception> failures)
+        {
+            if (failures.Count != 0)
+            {
+                throw new AggregateException(operation + " observers failed.", failures);
+            }
         }
 
         private static void ValidateBlocker(PlayerInputBlocker blocker)
@@ -262,7 +316,7 @@ namespace Overbless.Runtime
             }
 
             movement = value;
-            MovementChanged?.Invoke(movement);
+            InvokeObservers(MovementChanged, movement, "Movement change");
         }
         private void SetMousePosition(Vector2 value)
         {
@@ -272,7 +326,7 @@ namespace Overbless.Runtime
             }
 
             mousePosition = value;
-            MousePositionChanged?.Invoke(mousePosition);
+            InvokeObservers(MousePositionChanged, mousePosition, "Mouse-position change");
         }
     }
 }

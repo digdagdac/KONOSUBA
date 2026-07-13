@@ -8,6 +8,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using System.Security.Cryptography;
+using System.Runtime.InteropServices;
+using Microsoft.Win32.SafeHandles;
 using UnityEngine;
 using Overbless.Editor.Build;
 
@@ -43,13 +45,8 @@ namespace Overbless.Editor.Evidence
         private const string GateDecisionFile = "gate-decision.json";
         private const int ExpectedArtifactCount = 66;
         private static readonly IReadOnlyDictionary<string, ResultExpectation> ExpectedResults = CreateExpectedResults();
-        private static readonly string[] ExpectedScopeRoots =
-        {
-            "Assets/_Project/Data",
-            "Assets/_Project/Prefabs",
-            "Assets/_Project/Runtime",
-            "Assets/_Project/Scenes"
-        };
+        private static readonly IReadOnlyList<string> ExpectedScopeRoots = ScopeAudit.ScannedRoots;
+        private static readonly IReadOnlyList<string> ExpectedScopeExclusions = ScopeAudit.ExcludedSourcePaths;
         [ThreadStatic] private static ArtifactSnapshotCache activeSnapshots;
 
         /// <summary>Batch-mode entry point. Requires -candidateId and exits by throwing when M2 remains blocked.</summary>
@@ -79,8 +76,38 @@ namespace Overbless.Editor.Evidence
             var errors = new List<string>();
             if (!CandidateCoordinator.IsValidCandidateId(candidateId)) return Failure("Candidate ID is invalid.");
             if (string.IsNullOrEmpty(candidateRoot) || !TryValidateDirectoryPath(candidateRoot, "Candidate root", errors)) return Failure(errors);
-            activeSnapshots = new ArtifactSnapshotCache();
 
+            var previousSnapshots = activeSnapshots;
+            using (var snapshots = new ArtifactSnapshotCache())
+            {
+                activeSnapshots = snapshots;
+                try
+                {
+                    return ValidateCandidateRootWithSnapshots(candidateRoot, candidateId, requireUserPass, errors);
+                }
+                catch (UnauthorizedAccessException exception)
+                {
+                    errors.Add("Candidate artifact snapshot access failed: " + exception.Message);
+                    return Failure(errors);
+                }
+                catch (IOException exception)
+                {
+                    errors.Add("Candidate artifact snapshot failed: " + exception.Message);
+                    return Failure(errors);
+                }
+                finally
+                {
+                    activeSnapshots = previousSnapshots;
+                }
+            }
+        }
+
+        private static M2GateValidationResult ValidateCandidateRootWithSnapshots(
+            string candidateRoot,
+            string candidateId,
+            bool requireUserPass,
+            List<string> errors)
+        {
             Document candidate;
             Document source;
             Document build;
@@ -1142,8 +1169,7 @@ namespace Overbless.Editor.Evidence
                 if (!TryReadSealedSourceText(projectRoot, source, errors, out text)) return false;
                 foreach (var token in ScopeAudit.ForbiddenGameplayTokens)
                 {
-                    var expression = new Regex("\\b" + Regex.Escape(token) + "\\b", RegexOptions.CultureInvariant);
-                    foreach (Match match in expression.Matches(text))
+                    foreach (Match match in ScopeAudit.FindForbiddenTokenMatches(text, token))
                     {
                         long line;
                         long column;
@@ -1223,6 +1249,14 @@ namespace Overbless.Editor.Evidence
                 }
             }
             if (!inRoot) return false;
+
+            foreach (var excludedPath in ExpectedScopeExclusions)
+            {
+                if (string.Equals(path, excludedPath, StringComparison.Ordinal))
+                {
+                    return false;
+                }
+            }
 
             var extension = Path.GetExtension(path);
             return string.Equals(extension, ".asset", StringComparison.OrdinalIgnoreCase) ||
@@ -2065,6 +2099,7 @@ namespace Overbless.Editor.Evidence
                     actualReport,
                     outcome,
                     decidedUtc,
+                    attestation,
                     trustAnchor,
                     signatureAlgorithm,
                     signatureBase64,
@@ -2095,13 +2130,7 @@ namespace Overbless.Editor.Evidence
                 var publicKey = Convert.FromBase64String(configuredKey);
                 using (var rsa = RSA.Create())
                 {
-                    int bytesRead;
-                    rsa.ImportSubjectPublicKeyInfo(publicKey, out bytesRead);
-                    if (bytesRead != publicKey.Length)
-                    {
-                        errors.Add("Configured trusted public key has trailing bytes.");
-                        return false;
-                    }
+                    RsaSubjectPublicKeyInfo.Import(rsa, publicKey);
                 }
 
                 return true;
@@ -2111,9 +2140,9 @@ namespace Overbless.Editor.Evidence
                 errors.Add("Configured trusted public key is not Base64.");
                 return false;
             }
-            catch (CryptographicException)
+            catch (CryptographicException exception)
             {
-                errors.Add("Configured trusted public key is not a valid RSA SubjectPublicKeyInfo key.");
+                errors.Add("Configured trusted public key is not a valid RSA SubjectPublicKeyInfo key: " + exception.Message);
                 return false;
             }
         }
@@ -2123,6 +2152,7 @@ namespace Overbless.Editor.Evidence
             string reportHash,
             string outcome,
             string decidedUtc,
+            string attestation,
             string trustAnchor,
             string signatureAlgorithm,
             string signatureBase64,
@@ -2160,13 +2190,12 @@ namespace Overbless.Editor.Evidence
                     new CanonicalJsonProperty("decidedUtc", CanonicalJsonValue.String(decidedUtc)),
                     new CanonicalJsonProperty("decision", CanonicalJsonValue.String(outcome)),
                     new CanonicalJsonProperty("evidenceManifestSha256", CanonicalJsonValue.String(evidenceHash)),
+                    new CanonicalJsonProperty("userAttestation", CanonicalJsonValue.String(attestation)),
                     new CanonicalJsonProperty("validatorReportSha256", CanonicalJsonValue.String(reportHash))));
                 using (var rsa = RSA.Create())
                 {
-                    int bytesRead;
-                    rsa.ImportSubjectPublicKeyInfo(publicKey, out bytesRead);
-                    if (bytesRead != publicKey.Length ||
-                        !rsa.VerifyData(signedPayload, signature, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1))
+                    RsaSubjectPublicKeyInfo.Import(rsa, publicKey);
+                    if (!rsa.VerifyData(signedPayload, signature, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1))
                     {
                         errors.Add("Gate decision detached user signature is invalid.");
                         return false;
@@ -2180,9 +2209,9 @@ namespace Overbless.Editor.Evidence
                 errors.Add("Configured trusted public key or gate signature is not Base64.");
                 return false;
             }
-            catch (CryptographicException)
+            catch (CryptographicException exception)
             {
-                errors.Add("Configured trusted public key is not a valid RSA SubjectPublicKeyInfo key.");
+                errors.Add("Configured trusted public key is not a valid RSA SubjectPublicKeyInfo key: " + exception.Message);
                 return false;
             }
         }
@@ -2214,7 +2243,7 @@ namespace Overbless.Editor.Evidence
         {
             ArtifactSnapshot snapshot;
             if (!TryGetArtifactSnapshot(root, relativePath, "Referenced artifact", errors, out snapshot)) return false;
-            if (snapshot.Bytes.LongLength != expectedSize || snapshot.Sha256 != expectedHash)
+            if (snapshot.Size != expectedSize || snapshot.Sha256 != expectedHash)
             {
                 errors.Add("Referenced artifact size or hash is invalid: " + relativePath + ".");
                 return false;
@@ -2325,8 +2354,10 @@ namespace Overbless.Editor.Evidence
                 "Overbless.Tests.EditMode.CoreContractTests.AttackStateMachine_LockCancelAndResetDisposeEachContextOnce",
                 "Overbless.Tests.EditMode.CoreContractTests.AttackStateMachine_ReentrantObserversCannotPublishStaleLockOrCorruptRecovery",
                 "Overbless.Tests.EditMode.CoreContractTests.Blessings_RejectDuplicatesOrderEffectsDeterministicallyAndUseExactMultipliers",
-                "Overbless.Tests.EditMode.CoreContractTests.DamageLedger_RejectsDuplicateAndSelfDamageWithoutApplyingTwice",
+                "Overbless.Tests.EditMode.CoreContractTests.DamageLedger_KeysAcceptedDamageByAttackAndTargetAndRejectsSelfDamage",
                 "Overbless.Tests.EditMode.CoreContractTests.Health_PreservesRatioAndEmitsOneDeathUntilReset",
+                "Overbless.Tests.EditMode.CoreContractTests.Health_ReentrantResetAndRekillNeverPublishesTheOlderDeath",
+                "Overbless.Tests.EditMode.CoreContractTests.Health_ReentrantResetFromDeathStopsLaterOldLifeObservers",
                 "Overbless.Tests.EditMode.CoreContractTests.HudController_PublishesOnlyChangedValidStates",
                 "Overbless.Tests.EditMode.CoreContractTests.PlayerInputRouter_RequiresEveryOwnerToReleaseItsOwnBlock",
                 "Overbless.Tests.EditMode.CoreContractTests.WorldHealthBar_TracksHealthRatioFromLeftToRight",
@@ -2336,7 +2367,9 @@ namespace Overbless.Editor.Evidence
                 "Overbless.Tests.EditMode.EvidenceSchemaTests.EvidenceSchemaValidator_RejectsPublicPerformancePayloadMutations",
                 "Overbless.Tests.EditMode.EvidenceSchemaTests.EvidenceSchemaValidator_RejectsPublicSchemaCriteriaAndReportCheckMutations",
                 "Overbless.Tests.EditMode.EvidenceSchemaTests.EvidenceSchemaValidator_RequiresThreeUniqueAudioEventsAndBlindTesterOrders",
-                "Overbless.Tests.EditMode.EvidenceSchemaTests.EvidenceSchemaValidator_UsesSixtyHalfOpenPerformanceBuckets"
+                "Overbless.Tests.EditMode.EvidenceSchemaTests.EvidenceSchemaValidator_UsesSixtyHalfOpenPerformanceBuckets",
+                "Overbless.Tests.EditMode.EvidenceSchemaTests.M2EntryGateValidator_DetachedSignatureBindsUserAttestation",
+                "Overbless.Tests.EditMode.EvidenceSchemaTests.M2Validator_ArtifactSnapshotRetainsOneBoundedPrivateCopy",
             });
             AddExpectation(results, "automated/playmode-results.result.json", "SOURCE_RESULT", "UnityTestRunner", "NUnitSuite", "overbless.source-nunit/v1", new[] { "FUN-GUIDED-001", "PLY-LIFE-001", "ROOM-SOUL-001", "WEB-START-003" }, new[] { "automated/playmode-results.xml" }, "Overbless.Tests.PlayMode", new[]
             {
@@ -2807,38 +2840,364 @@ namespace Overbless.Editor.Evidence
             public string NUnitSuite { get; }
             public IReadOnlyList<string> NUnitTestFullNames { get; }
         }
-        private sealed class ArtifactSnapshotCache
+        private sealed class ArtifactSnapshotCache : IDisposable
         {
+            private const long MaxSnapshotFileBytes = 2L * 1024L * 1024L * 1024L;
+            private const long MaxAggregateSnapshotBytes = 8L * 1024L * 1024L * 1024L;
+            private const long MaxParsedFileBytes = 32L * 1024L * 1024L;
+            private const long MaxAggregateParsedBytes = 128L * 1024L * 1024L;
+            private const int MaxSnapshotCount = 1024;
+
             private readonly Dictionary<string, ArtifactSnapshot> snapshots =
-                new Dictionary<string, ArtifactSnapshot>(Path.DirectorySeparatorChar == '\\' ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
+                new Dictionary<string, ArtifactSnapshot>(StringComparer.Ordinal);
+            private readonly string snapshotDirectory;
+            private long snapshotBytes;
+            private long parsedBytes;
+            private bool disposed;
+
+            public ArtifactSnapshotCache()
+            {
+                snapshotDirectory = Path.Combine(
+                    Path.GetTempPath(),
+                    "overbless-m2-snapshots-" + Guid.NewGuid().ToString("N"));
+                Directory.CreateDirectory(snapshotDirectory);
+                if ((File.GetAttributes(snapshotDirectory) & FileAttributes.ReparsePoint) != 0)
+                {
+                    throw new IOException("Private artifact snapshot directory is a reparse point.");
+                }
+            }
 
             public ArtifactSnapshot Get(string path)
             {
+                if (disposed) throw new ObjectDisposedException(nameof(ArtifactSnapshotCache));
+
                 ArtifactSnapshot snapshot;
                 if (snapshots.TryGetValue(path, out snapshot)) return snapshot;
+                if (snapshots.Count >= MaxSnapshotCount)
+                {
+                    throw new IOException("Candidate artifacts exceed the snapshot-count limit.");
+                }
                 if ((File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0)
                 {
                     throw new IOException("Artifact is a reparse point.");
                 }
 
-                var bytes = File.ReadAllBytes(path);
-                snapshot = new ArtifactSnapshot(bytes, CanonicalJson.Sha256Hex(bytes));
-                snapshots.Add(path, snapshot);
-                return snapshot;
+                using (var secureSource = OpenSecureRead(path))
+                {
+                    var source = secureSource.Stream;
+                    var size = source.Length;
+                    if (size < 0 || size > MaxSnapshotFileBytes)
+                    {
+                        throw new IOException("Artifact exceeds the per-file snapshot limit.");
+                    }
+
+                    if (snapshotBytes > MaxAggregateSnapshotBytes - size)
+                    {
+                        throw new IOException("Candidate artifacts exceed the aggregate snapshot limit.");
+                    }
+
+                    var snapshotPath = Path.Combine(snapshotDirectory, Guid.NewGuid().ToString("N") + ".snapshot");
+                    FileStream snapshotStream = null;
+                    try
+                    {
+                        snapshotStream = new FileStream(
+                            snapshotPath,
+                            FileMode.CreateNew,
+                            FileAccess.ReadWrite,
+                            FileShare.Read,
+                            1,
+                            FileOptions.SequentialScan | FileOptions.DeleteOnClose);
+                        string sha256;
+                        using (var hash = SHA256.Create())
+                        {
+                            var buffer = new byte[64 * 1024];
+                            var remaining = size;
+                            while (remaining > 0)
+                            {
+                                var read = source.Read(
+                                    buffer,
+                                    0,
+                                    (int)Math.Min((long)buffer.Length, remaining));
+                                if (read == 0)
+                                {
+                                    throw new IOException("Artifact ended before its declared snapshot size.");
+                                }
+
+                                snapshotStream.Write(buffer, 0, read);
+                                hash.TransformBlock(buffer, 0, read, buffer, 0);
+                                remaining -= read;
+                            }
+
+                            hash.TransformFinalBlock(new byte[0], 0, 0);
+                            if (source.ReadByte() != -1 || source.Length != size)
+                            {
+                                throw new IOException("Artifact changed while its private snapshot was created.");
+                            }
+
+                            var builder = new StringBuilder(64);
+                            foreach (var value in hash.Hash)
+                            {
+                                builder.Append(value.ToString("x2", CultureInfo.InvariantCulture));
+                            }
+
+                            sha256 = builder.ToString();
+                        }
+
+                        snapshotStream.Flush(true);
+                        snapshotStream.Position = 0;
+                        snapshot = new ArtifactSnapshot(this, snapshotStream, size, sha256);
+                        snapshots.Add(path, snapshot);
+                        snapshotBytes += size;
+                        snapshotStream = null;
+                        return snapshot;
+                    }
+                    finally
+                    {
+                        if (snapshotStream != null) snapshotStream.Dispose();
+                    }
+                }
+            }
+
+            private static SecureReadHandle OpenSecureRead(string path)
+            {
+                if (Path.DirectorySeparatorChar != '\\')
+                {
+                    throw new IOException(
+                        "M2 artifact validation requires Windows no-follow snapshot handles.");
+                }
+
+                var handle = CreateFile(
+                    path,
+                    GenericRead,
+                    FileShareRead,
+                    IntPtr.Zero,
+                    OpenExisting,
+                    FileFlagSequentialScan | FileFlagOpenReparsePoint,
+                    IntPtr.Zero);
+                if (handle == null || handle.IsInvalid)
+                {
+                    var error = Marshal.GetLastWin32Error();
+                    if (handle != null) handle.Dispose();
+                    throw new IOException(
+                        "Artifact no-follow handle could not be opened.",
+                        new System.ComponentModel.Win32Exception(error));
+                }
+
+                try
+                {
+                    RequireSecureOpenedFile(path, handle);
+                    return new SecureReadHandle(
+                        handle,
+                        new FileStream(handle, FileAccess.Read, 64 * 1024, false));
+                }
+                catch
+                {
+                    handle.Dispose();
+                    throw;
+                }
+            }
+
+            private sealed class SecureReadHandle : IDisposable
+            {
+                private readonly SafeFileHandle handle;
+
+                public SecureReadHandle(SafeFileHandle handle, FileStream stream)
+                {
+                    this.handle = handle;
+                    Stream = stream;
+                }
+
+                public FileStream Stream { get; }
+
+                public void Dispose()
+                {
+                    Stream.Dispose();
+                    handle.Dispose();
+                }
+            }
+            private static void RequireSecureOpenedFile(
+                string expectedPath,
+                SafeFileHandle handle)
+            {
+                ByHandleFileInformation information;
+                if (!GetFileInformationByHandle(handle, out information))
+                {
+                    throw new IOException(
+                        "Artifact handle metadata could not be read.",
+                        new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error()));
+                }
+
+                if ((information.FileAttributes & (uint)FileAttributes.ReparsePoint) != 0 ||
+                    (information.FileAttributes & (uint)FileAttributes.Directory) != 0 ||
+                    information.NumberOfLinks != 1)
+                {
+                    throw new IOException(
+                        "Artifact snapshot source must be one regular, non-linked file.");
+                }
+
+                var capacity = 512;
+                string finalPath;
+                while (true)
+                {
+                    var buffer = new StringBuilder(capacity);
+                    var length = GetFinalPathNameByHandle(handle, buffer, (uint)buffer.Capacity, 0);
+                    if (length == 0)
+                    {
+                        throw new IOException(
+                            "Artifact handle path could not be resolved.",
+                            new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error()));
+                    }
+
+                    if (length < buffer.Capacity)
+                    {
+                        finalPath = buffer.ToString();
+                        break;
+                    }
+
+                    capacity = checked((int)length + 1);
+                }
+
+                const string devicePrefix = @"\\?\";
+                const string uncDevicePrefix = @"\\?\UNC\";
+                if (finalPath.StartsWith(uncDevicePrefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    finalPath = @"\\" + finalPath.Substring(uncDevicePrefix.Length);
+                }
+                else if (finalPath.StartsWith(devicePrefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    finalPath = finalPath.Substring(devicePrefix.Length);
+                }
+
+                if (!string.Equals(
+                        Path.GetFullPath(expectedPath),
+                        Path.GetFullPath(finalPath),
+                        StringComparison.Ordinal))
+                {
+                    throw new IOException(
+                        "Artifact no-follow handle resolved outside its validated path.");
+                }
+            }
+
+            private const uint GenericRead = 0x80000000;
+            private const uint FileShareRead = 0x00000001;
+            private const uint OpenExisting = 3;
+            private const uint FileFlagOpenReparsePoint = 0x00200000;
+            private const uint FileFlagSequentialScan = 0x08000000;
+
+            [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+            private static extern SafeFileHandle CreateFile(
+                string fileName,
+                uint desiredAccess,
+                uint shareMode,
+                IntPtr securityAttributes,
+                uint creationDisposition,
+                uint flagsAndAttributes,
+                IntPtr templateFile);
+
+            [DllImport("kernel32.dll", SetLastError = true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            private static extern bool GetFileInformationByHandle(
+                SafeFileHandle file,
+                out ByHandleFileInformation information);
+
+            [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+            private static extern uint GetFinalPathNameByHandle(
+                SafeFileHandle file,
+                StringBuilder filePath,
+                uint filePathLength,
+                uint flags);
+
+            [StructLayout(LayoutKind.Sequential)]
+            private struct ByHandleFileInformation
+            {
+                public uint FileAttributes;
+                public uint CreationTimeLow;
+                public uint CreationTimeHigh;
+                public uint LastAccessTimeLow;
+                public uint LastAccessTimeHigh;
+                public uint LastWriteTimeLow;
+                public uint LastWriteTimeHigh;
+                public uint VolumeSerialNumber;
+                public uint FileSizeHigh;
+                public uint FileSizeLow;
+                public uint NumberOfLinks;
+                public uint FileIndexHigh;
+                public uint FileIndexLow;
+            }
+            public void Dispose()
+            {
+                if (disposed) return;
+                disposed = true;
+                foreach (var snapshot in snapshots.Values)
+                {
+                    snapshot.Dispose();
+                }
+
+                snapshots.Clear();
+                if (Directory.Exists(snapshotDirectory))
+                {
+                    Directory.Delete(snapshotDirectory, true);
+                }
+            }
+
+            internal byte[] ReadBytes(ArtifactSnapshot snapshot)
+            {
+                if (disposed) throw new ObjectDisposedException(nameof(ArtifactSnapshotCache));
+                if (snapshot.CachedBytes != null) return snapshot.CachedBytes;
+                if (snapshot.Size > MaxParsedFileBytes)
+                {
+                    throw new IOException("Artifact exceeds the in-memory parsing limit.");
+                }
+
+                if (parsedBytes > MaxAggregateParsedBytes - snapshot.Size)
+                {
+                    throw new IOException("Parsed candidate artifacts exceed the aggregate in-memory limit.");
+                }
+
+                var bytes = new byte[(int)snapshot.Size];
+                snapshot.Stream.Position = 0;
+                var offset = 0;
+                while (offset < bytes.Length)
+                {
+                    var read = snapshot.Stream.Read(bytes, offset, bytes.Length - offset);
+                    if (read == 0) throw new IOException("Private artifact snapshot ended unexpectedly.");
+                    offset += read;
+                }
+
+                if (snapshot.Stream.ReadByte() != -1)
+                {
+                    throw new IOException("Private artifact snapshot grew unexpectedly.");
+                }
+
+                snapshot.CachedBytes = bytes;
+                parsedBytes += bytes.LongLength;
+                return bytes;
             }
         }
 
-        private sealed class ArtifactSnapshot
+        private sealed class ArtifactSnapshot : IDisposable
         {
-            public ArtifactSnapshot(byte[] bytes, string sha256)
+            private readonly ArtifactSnapshotCache owner;
+
+            public ArtifactSnapshot(ArtifactSnapshotCache owner, FileStream stream, long size, string sha256)
             {
-                Bytes = bytes;
+                this.owner = owner;
+                Stream = stream;
+                Size = size;
                 Sha256 = sha256;
             }
 
-            public byte[] Bytes { get; }
+            public byte[] Bytes => owner.ReadBytes(this);
+            public long Size { get; }
             public string Sha256 { get; }
             public Document Document { get; set; }
+            internal FileStream Stream { get; }
+            internal byte[] CachedBytes { get; set; }
+
+            public void Dispose()
+            {
+                Stream.Dispose();
+            }
         }
 
         private sealed class Document

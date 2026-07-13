@@ -206,11 +206,22 @@ namespace Overbless.Editor.Evidence
                 throw new InvalidOperationException("Terminal artifact hash does not match its machine event: " + relativePath);
             }
         }
-        private static string PrepareSigningPayload(string candidateId, string decision, string decidedUtc)
+        private static string PrepareSigningPayload(
+            string candidateId,
+            string decision,
+            string decidedUtc,
+            string userAttestation)
         {
             if (decision != "PASS" && decision != "REWORK")
             {
                 throw new ArgumentException("Decision must be PASS or REWORK.", nameof(decision));
+            }
+
+            if (string.IsNullOrWhiteSpace(userAttestation))
+            {
+                throw new ArgumentException(
+                    "Enter the exact non-empty user attestation before preparing the signing payload.",
+                    nameof(userAttestation));
             }
 
             DateTime parsed;
@@ -239,7 +250,8 @@ namespace Overbless.Editor.Evidence
                 terminal.EvidenceManifestSha256,
                 terminal.ValidatorReportSha256,
                 decision,
-                decidedUtc));
+                decidedUtc,
+                userAttestation));
         }
 
         private static byte[] CreateSigningPayload(
@@ -247,13 +259,15 @@ namespace Overbless.Editor.Evidence
             string evidenceManifestSha256,
             string validatorReportSha256,
             string decision,
-            string decidedUtc)
+            string decidedUtc,
+            string userAttestation)
         {
             return CanonicalJson.SerializeUtf8(CanonicalJsonValue.Object(
                 new CanonicalJsonProperty("candidateId", CanonicalJsonValue.String(candidateId)),
                 new CanonicalJsonProperty("decidedUtc", CanonicalJsonValue.String(decidedUtc)),
                 new CanonicalJsonProperty("decision", CanonicalJsonValue.String(decision)),
                 new CanonicalJsonProperty("evidenceManifestSha256", CanonicalJsonValue.String(evidenceManifestSha256)),
+                new CanonicalJsonProperty("userAttestation", CanonicalJsonValue.String(userAttestation)),
                 new CanonicalJsonProperty("validatorReportSha256", CanonicalJsonValue.String(validatorReportSha256))));
         }
 
@@ -282,13 +296,12 @@ namespace Overbless.Editor.Evidence
                     terminal.EvidenceManifestSha256,
                     terminal.ValidatorReportSha256,
                     snapshot.Decision,
-                    snapshot.DecidedUtc);
+                    snapshot.DecidedUtc,
+                    snapshot.UserAttestation);
                 using (var rsa = RSA.Create())
                 {
-                    int bytesRead;
-                    rsa.ImportSubjectPublicKeyInfo(publicKey, out bytesRead);
-                    if (bytesRead != publicKey.Length ||
-                        !rsa.VerifyData(payload, signature, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1))
+                    RsaSubjectPublicKeyInfo.Import(rsa, publicKey);
+                    if (!rsa.VerifyData(payload, signature, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1))
                     {
                         throw new InvalidOperationException("Detached gate-decision signature is invalid.");
                     }
@@ -433,7 +446,11 @@ namespace Overbless.Editor.Evidence
                 try
                 {
                     decidedUtc = DateTime.UtcNow.ToString(UtcTimestampFormat, CultureInfo.InvariantCulture);
-                    signingPayload = PrepareSigningPayload(candidateId, decision, decidedUtc);
+                    signingPayload = PrepareSigningPayload(
+                        candidateId,
+                        decision,
+                        decidedUtc,
+                        userAttestation);
                     preparedDecision = decision;
                 }
                 catch (Exception exception)
@@ -447,12 +464,16 @@ namespace Overbless.Editor.Evidence
             {
                 try
                 {
-                    var currentPayload = PrepareSigningPayload(candidateId, decision, decidedUtc);
+                    var currentPayload = PrepareSigningPayload(
+                        candidateId,
+                        decision,
+                        decidedUtc,
+                        userAttestation);
                     if (!string.Equals(preparedDecision, decision, StringComparison.Ordinal) ||
                         !string.Equals(signingPayload, currentPayload, StringComparison.Ordinal))
                     {
                         throw new InvalidOperationException(
-                            "Prepare and externally sign the current candidate, decision, and UTC payload before recording.");
+                            "Prepare and externally sign the current candidate, decision, UTC, and user-attestation payload before recording.");
                     }
 
                     if (RecordDecisionFromConfirmedWindow(
@@ -471,6 +492,214 @@ namespace Overbless.Editor.Evidence
                     Debug.LogException(exception);
                     EditorUtility.DisplayDialog("Gate Decision Was Not Recorded", exception.Message, "Close");
                 }
+            }
+        }
+    }
+
+    internal static class RsaSubjectPublicKeyInfo
+    {
+        private static readonly byte[] RsaEncryptionOid =
+        {
+            0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x01
+        };
+
+        public static void Import(RSA rsa, byte[] subjectPublicKeyInfo)
+        {
+            if (rsa == null)
+            {
+                throw new ArgumentNullException(nameof(rsa));
+            }
+
+            if (subjectPublicKeyInfo == null || subjectPublicKeyInfo.Length == 0)
+            {
+                throw new CryptographicException("RSA SubjectPublicKeyInfo is empty.");
+            }
+
+            var document = new DerReader(subjectPublicKeyInfo, 0, subjectPublicKeyInfo.Length);
+            var outer = document.ReadConstructed(0x30);
+            document.RequireEnd();
+
+            var algorithm = outer.ReadConstructed(0x30);
+            RequireEqual(algorithm.ReadValue(0x06), RsaEncryptionOid);
+            if (algorithm.ReadValue(0x05).Length != 0)
+            {
+                throw new CryptographicException("RSA algorithm parameters must be NULL.");
+            }
+
+            algorithm.RequireEnd();
+            var bitString = outer.ReadValue(0x03);
+            outer.RequireEnd();
+            if (bitString.Length < 2 || bitString[0] != 0)
+            {
+                throw new CryptographicException("RSA subjectPublicKey BIT STRING is invalid.");
+            }
+
+            var keyDocument = new DerReader(bitString, 1, bitString.Length - 1);
+            var key = keyDocument.ReadConstructed(0x30);
+            keyDocument.RequireEnd();
+            var modulus = ReadPositiveInteger(key);
+            var exponent = ReadPositiveInteger(key);
+            key.RequireEnd();
+            rsa.ImportParameters(new RSAParameters
+            {
+                Modulus = modulus,
+                Exponent = exponent
+            });
+            if (rsa.KeySize < 2048)
+            {
+                throw new CryptographicException("RSA public key must be at least 2048 bits.");
+            }
+        }
+
+        private static byte[] ReadPositiveInteger(DerReader reader)
+        {
+            var encoded = reader.ReadValue(0x02);
+            if (encoded.Length == 0 || (encoded[0] & 0x80) != 0)
+            {
+                throw new CryptographicException("RSA public-key integer is empty or negative.");
+            }
+
+            var offset = 0;
+            if (encoded[0] == 0)
+            {
+                if (encoded.Length == 1 || (encoded[1] & 0x80) == 0)
+                {
+                    throw new CryptographicException("RSA public-key integer is not minimally encoded.");
+                }
+
+                offset = 1;
+            }
+
+            var value = new byte[encoded.Length - offset];
+            Buffer.BlockCopy(encoded, offset, value, 0, value.Length);
+            var nonZero = false;
+            for (var index = 0; index < value.Length; index++)
+            {
+                nonZero |= value[index] != 0;
+            }
+
+            if (!nonZero)
+            {
+                throw new CryptographicException("RSA public-key integer must be positive.");
+            }
+
+            return value;
+        }
+
+        private static void RequireEqual(byte[] actual, byte[] expected)
+        {
+            if (actual.Length != expected.Length)
+            {
+                throw new CryptographicException("RSA SubjectPublicKeyInfo algorithm is invalid.");
+            }
+
+            var different = 0;
+            for (var index = 0; index < actual.Length; index++)
+            {
+                different |= actual[index] ^ expected[index];
+            }
+
+            if (different != 0)
+            {
+                throw new CryptographicException("RSA SubjectPublicKeyInfo algorithm is invalid.");
+            }
+        }
+
+        private sealed class DerReader
+        {
+            private readonly byte[] bytes;
+            private readonly int end;
+            private int offset;
+
+            public DerReader(byte[] bytes, int offset, int length)
+            {
+                if (bytes == null ||
+                    offset < 0 ||
+                    length < 0 ||
+                    offset > bytes.Length - length)
+                {
+                    throw new CryptographicException("DER range is invalid.");
+                }
+
+                this.bytes = bytes;
+                this.offset = offset;
+                end = offset + length;
+            }
+
+            public DerReader ReadConstructed(byte expectedTag)
+            {
+                var value = ReadValue(expectedTag);
+                return new DerReader(value, 0, value.Length);
+            }
+
+            public byte[] ReadValue(byte expectedTag)
+            {
+                if (offset >= end || bytes[offset++] != expectedTag)
+                {
+                    throw new CryptographicException("DER tag is invalid.");
+                }
+
+                var length = ReadLength();
+                if (length > end - offset)
+                {
+                    throw new CryptographicException("DER value length exceeds its container.");
+                }
+
+                var value = new byte[length];
+                Buffer.BlockCopy(bytes, offset, value, 0, length);
+                offset += length;
+                return value;
+            }
+
+            public void RequireEnd()
+            {
+                if (offset != end)
+                {
+                    throw new CryptographicException("DER value contains trailing bytes.");
+                }
+            }
+
+            private int ReadLength()
+            {
+                if (offset >= end)
+                {
+                    throw new CryptographicException("DER length is missing.");
+                }
+
+                var first = bytes[offset++];
+                if ((first & 0x80) == 0)
+                {
+                    return first;
+                }
+
+                var byteCount = first & 0x7f;
+                if (byteCount == 0 || byteCount > 4 || byteCount > end - offset)
+                {
+                    throw new CryptographicException("DER length encoding is invalid.");
+                }
+
+                if (bytes[offset] == 0)
+                {
+                    throw new CryptographicException("DER length is not minimally encoded.");
+                }
+
+                var length = 0;
+                for (var index = 0; index < byteCount; index++)
+                {
+                    if (length > (int.MaxValue >> 8))
+                    {
+                        throw new CryptographicException("DER length is too large.");
+                    }
+
+                    length = (length << 8) | bytes[offset++];
+                }
+
+                if (length < 0x80)
+                {
+                    throw new CryptographicException("DER length is not minimally encoded.");
+                }
+
+                return length;
             }
         }
     }

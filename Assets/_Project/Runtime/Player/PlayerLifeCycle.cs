@@ -4,6 +4,14 @@ using UnityEngine;
 
 namespace Overbless.Runtime
 {
+    public sealed class PlayerResetNotificationException : AggregateException
+    {
+        internal PlayerResetNotificationException(IReadOnlyList<Exception> failures)
+            : base("Player reset committed, but one or more reset observers failed.", failures)
+        {
+        }
+    }
+
     [DisallowMultipleComponent]
     public sealed class PlayerLifeCycle : MonoBehaviour
     {
@@ -20,6 +28,7 @@ namespace Overbless.Runtime
         private bool isAlive;
         private bool isResetting;
         private bool isRecoveryPending;
+        private long lifecycleGeneration;
 
         public event Action<DeathEvent> Died;
         public event Action Reset;
@@ -56,12 +65,14 @@ namespace Overbless.Runtime
         {
             if (isResetting)
             {
-                return;
+                throw new InvalidOperationException("Player reset cannot be re-entered.");
             }
 
+            var resetGeneration = AdvanceLifecycleGeneration();
             isResetting = true;
             isRecoveryPending = true;
-            var failures = new List<Exception>();
+            var coreFailures = new List<Exception>();
+            var notificationFailures = new List<Exception>();
             var resetCommitted = false;
 
             try
@@ -85,12 +96,21 @@ namespace Overbless.Runtime
                 }
                 catch (Exception exception)
                 {
-                    failures.Add(exception);
+                    coreFailures.Add(exception);
                 }
 
                 if (resetCommitted)
                 {
-                    InvokeObservers(Reset, failures);
+                    InvokeResetObservers(Reset, resetGeneration, notificationFailures);
+                    if (lifecycleGeneration != resetGeneration || health.IsDead || !isAlive)
+                    {
+                        resetCommitted = false;
+                        coreFailures.Add(
+                            new InvalidOperationException(
+                                "A player-reset observer invalidated the committed alive state."));
+                        coreFailures.AddRange(notificationFailures);
+                        notificationFailures.Clear();
+                    }
                 }
             }
             finally
@@ -99,7 +119,7 @@ namespace Overbless.Runtime
                 {
                     if (!resetCommitted)
                     {
-                        FailClosedAfterResetFailure(failures);
+                        FailClosedAfterResetFailure(coreFailures);
                     }
                 }
                 finally
@@ -108,16 +128,24 @@ namespace Overbless.Runtime
                 }
             }
 
-            ThrowFailures("Player reset failed.", failures);
+            ThrowFailures("Player reset failed.", coreFailures);
+            if (notificationFailures.Count != 0)
+            {
+                throw new PlayerResetNotificationException(notificationFailures.AsReadOnly());
+            }
         }
 
         private void HandleDeath(DeathEvent deathEvent)
         {
-            if (!isAlive)
+            if (!isAlive ||
+                !health.IsDead ||
+                health.EntityId != deathEvent.EntityId ||
+                health.DeathToken != deathEvent.DeathToken)
             {
                 return;
             }
 
+            var deathGeneration = AdvanceLifecycleGeneration();
             isAlive = false;
             isRecoveryPending = false;
             var failures = new List<Exception>();
@@ -131,7 +159,7 @@ namespace Overbless.Runtime
                 failures.Add(exception);
             }
 
-            InvokeObservers(Died, deathEvent, failures);
+            InvokeDeathObservers(Died, deathEvent, deathGeneration, failures);
             ThrowFailures("Player death handling failed.", failures);
         }
         private void FailClosedAfterResetFailure(List<Exception> failures)
@@ -193,7 +221,39 @@ namespace Overbless.Runtime
             }
         }
 
-        private static void InvokeObservers(Action observers, List<Exception> failures)
+        private void InvokeDeathObservers(
+            Action<DeathEvent> observers,
+            DeathEvent deathEvent,
+            long expectedGeneration,
+            List<Exception> failures)
+        {
+            if (observers == null)
+            {
+                return;
+            }
+
+            foreach (Action<DeathEvent> observer in observers.GetInvocationList())
+            {
+                if (lifecycleGeneration != expectedGeneration)
+                {
+                    break;
+                }
+
+                try
+                {
+                    observer(deathEvent);
+                }
+                catch (Exception exception)
+                {
+                    failures.Add(exception);
+                }
+            }
+        }
+
+        private void InvokeResetObservers(
+            Action observers,
+            long expectedGeneration,
+            List<Exception> failures)
         {
             if (observers == null)
             {
@@ -202,6 +262,11 @@ namespace Overbless.Runtime
 
             foreach (Action observer in observers.GetInvocationList())
             {
+                if (lifecycleGeneration != expectedGeneration)
+                {
+                    break;
+                }
+
                 try
                 {
                     observer();
@@ -213,24 +278,15 @@ namespace Overbless.Runtime
             }
         }
 
-        private static void InvokeObservers<T>(Action<T> observers, T value, List<Exception> failures)
+        private long AdvanceLifecycleGeneration()
         {
-            if (observers == null)
+            if (lifecycleGeneration == long.MaxValue)
             {
-                return;
+                throw new InvalidOperationException("Player lifecycle generation overflowed.");
             }
 
-            foreach (Action<T> observer in observers.GetInvocationList())
-            {
-                try
-                {
-                    observer(value);
-                }
-                catch (Exception exception)
-                {
-                    failures.Add(exception);
-                }
-            }
+            lifecycleGeneration++;
+            return lifecycleGeneration;
         }
 
         private static void ThrowFailures(string operation, List<Exception> failures)
@@ -279,11 +335,53 @@ namespace Overbless.Runtime
 
         private void DisableGameplay()
         {
-            playerController.SetMovementEnabled(false);
-            inputRouter.SetRestartInputEnabled(true);
-            inputRouter.AcquireInputBlock(PlayerInputBlocker.LifeCycle);
-            playerController.ResetController();
-            dashAbility.ResetAbility();
+            var failures = new List<Exception>();
+            try
+            {
+                playerController.SetMovementEnabled(false);
+            }
+            catch (Exception exception)
+            {
+                failures.Add(exception);
+            }
+
+            try
+            {
+                inputRouter.SetRestartInputEnabled(true);
+            }
+            catch (Exception exception)
+            {
+                failures.Add(exception);
+            }
+
+            try
+            {
+                playerController.ResetController();
+            }
+            catch (Exception exception)
+            {
+                failures.Add(exception);
+            }
+
+            try
+            {
+                dashAbility.ResetAbility();
+            }
+            catch (Exception exception)
+            {
+                failures.Add(exception);
+            }
+
+            try
+            {
+                inputRouter.AcquireInputBlock(PlayerInputBlocker.LifeCycle);
+            }
+            catch (Exception exception)
+            {
+                failures.Add(exception);
+            }
+
+            ThrowFailures("Player gameplay disable failed.", failures);
         }
 
         private void ValidateConfiguration()

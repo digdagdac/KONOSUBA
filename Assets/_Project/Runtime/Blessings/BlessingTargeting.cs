@@ -90,6 +90,7 @@ namespace Overbless.Runtime
         private bool suppressSelectionStatePublication;
         private bool isResettingTargets;
         private bool isCleaningUp;
+        private bool isCancellingSelection;
         private long selectionPublicationGeneration;
         private long targetPublicationGeneration;
         private BlessingType selectedType;
@@ -257,7 +258,7 @@ namespace Overbless.Runtime
             suppressTargetStatePublication = true;
             try
             {
-                var forceForgetLockedTarget = IsDestroyedRuntime(binding.Runtime) || binding.Health == null;
+                var forceForgetLockedTarget = RequiresForcedForget(targetEntityId, binding);
                 if (forceForgetLockedTarget)
                 {
                     blessingSystem.ForgetTarget(targetEntityId);
@@ -328,6 +329,10 @@ namespace Overbless.Runtime
         {
             EnsureInitialized();
             ThrowIfTargetMutationBlocked();
+            if (!isActiveAndEnabled || isCancellingSelection)
+            {
+                return false;
+            }
 
             var slot = GetSlot(type);
             if (!slot.IsAvailable || Time.timeScale <= 0f)
@@ -346,7 +351,7 @@ namespace Overbless.Runtime
             selectedType = type;
             hoveredTargetEntityId = NoTarget;
             PublishSelectionTransition();
-            return true;
+            return isSelecting && selectedType == type;
         }
 
         public bool SetHoveredTarget(int targetEntityId)
@@ -360,7 +365,8 @@ namespace Overbless.Runtime
             }
 
             if (targetEntityId != NoTarget &&
-                (!targetsByEntityId.TryGetValue(targetEntityId, out var binding) || !IsEligible(binding)))
+                (!targetsByEntityId.TryGetValue(targetEntityId, out var binding) ||
+                 !IsEligible(targetEntityId, binding)))
             {
                 if (hoveredTargetEntityId != NoTarget)
                 {
@@ -378,7 +384,7 @@ namespace Overbless.Runtime
 
             hoveredTargetEntityId = targetEntityId;
             PublishTargetStates();
-            return true;
+            return isSelecting && hoveredTargetEntityId == targetEntityId;
         }
 
         public bool ApplyHoveredTarget()
@@ -387,12 +393,18 @@ namespace Overbless.Runtime
             ThrowIfTargetMutationBlocked();
 
             if (!isSelecting || hoveredTargetEntityId == NoTarget ||
-                !targetsByEntityId.TryGetValue(hoveredTargetEntityId, out var binding) || !IsEligible(binding))
+                !targetsByEntityId.TryGetValue(hoveredTargetEntityId, out var binding) ||
+                !IsEligible(hoveredTargetEntityId, binding))
             {
                 return false;
             }
 
             var slot = GetSlot(selectedType);
+            if (RequiresForcedForget(hoveredTargetEntityId, binding))
+            {
+                PublishTargetStates();
+                return false;
+            }
             if (!blessingSystem.TryApply(slot, binding.Runtime, binding.Health, out var application))
             {
                 PublishTargetStates();
@@ -408,15 +420,23 @@ namespace Overbless.Runtime
         {
             EnsureInitialized();
 
-            if (!isSelecting)
+            if (!isSelecting || isCancellingSelection)
             {
                 return;
             }
 
-            isSelecting = false;
-            hoveredTargetEntityId = NoTarget;
-            RestoreTimeScale();
-            PublishSelectionTransition();
+            isCancellingSelection = true;
+            try
+            {
+                isSelecting = false;
+                hoveredTargetEntityId = NoTarget;
+                RestoreTimeScale();
+                PublishSelectionTransition();
+            }
+            finally
+            {
+                isCancellingSelection = false;
+            }
         }
 
         public void HandlePause()
@@ -470,7 +490,7 @@ namespace Overbless.Runtime
                         }
 
                         var binding = pair.Value;
-                        if (IsDestroyedRuntime(binding.Runtime) || binding.Health == null)
+                        if (RequiresForcedForget(pair.Key, binding))
                         {
                             try
                             {
@@ -487,7 +507,15 @@ namespace Overbless.Runtime
 
                         try
                         {
-                            blessingSystem.RemoveTarget(binding.Runtime);
+                            var hadActiveBlessings =
+                                blessingSystem.GetActiveBlessings(pair.Key).Count != 0;
+                            var removed = blessingSystem.RemoveTarget(binding.Runtime);
+                            if ((hadActiveBlessings && !removed) ||
+                                blessingSystem.GetActiveBlessings(pair.Key).Count != 0)
+                            {
+                                throw new InvalidOperationException(
+                                    "Blessing target restoration did not discharge the registered ownership.");
+                            }
                         }
                         catch (Exception exception)
                         {
@@ -517,22 +545,27 @@ namespace Overbless.Runtime
 
                     if (!restorationFailed)
                     {
+                        var systemResetSucceeded = false;
                         try
                         {
                             blessingSystem.Reset();
+                            systemResetSucceeded = true;
                         }
                         catch (Exception exception)
                         {
                             failures.Add(exception);
                         }
 
-                        try
+                        if (systemResetSucceeded)
                         {
-                            CancelAllSlots();
-                        }
-                        catch (Exception exception)
-                        {
-                            failures.Add(exception);
+                            try
+                            {
+                                CancelAllSlots();
+                            }
+                            catch (Exception exception)
+                            {
+                                failures.Add(exception);
+                            }
                         }
                     }
                 }
@@ -623,7 +656,7 @@ namespace Overbless.Runtime
                     if (collider == null ||
                         !targetEntityIdsByCollider.TryGetValue(collider, out var targetEntityId) ||
                         !targetsByEntityId.TryGetValue(targetEntityId, out var binding) ||
-                        !IsEligible(binding) ||
+                        !IsEligible(targetEntityId, binding) ||
                         (selectedEntityId != NoTarget && targetEntityId >= selectedEntityId))
                     {
                         continue;
@@ -640,10 +673,9 @@ namespace Overbless.Runtime
             }
         }
 
-        private bool IsEligible(TargetBinding binding)
+        private bool IsEligible(int registeredEntityId, TargetBinding binding)
         {
-            if (!isSelecting || binding.Health == null ||
-                (binding.Runtime is UnityEngine.Object runtimeObject && runtimeObject == null))
+            if (!isSelecting || RequiresForcedForget(registeredEntityId, binding))
             {
                 return false;
             }
@@ -793,7 +825,7 @@ namespace Overbless.Runtime
                     continue;
                 }
 
-                var isEligible = IsEligible(binding);
+                var isEligible = IsEligible(pair.Key, binding);
                 var hasPreview = isEligible && pair.Key == hoveredTargetEntityId;
                 var preview = hasPreview
                     ? new BlessingPreviewData(pair.Key, BlessingDefinition.Get(selectedType))
@@ -930,6 +962,16 @@ namespace Overbless.Runtime
             }
         }
 
+
+        private static bool RequiresForcedForget(
+            int registeredEntityId,
+            TargetBinding binding)
+        {
+            return IsDestroyedRuntime(binding.Runtime) ||
+                   binding.Health == null ||
+                   binding.Runtime.EntityId != registeredEntityId ||
+                   binding.Health.EntityId != registeredEntityId;
+        }
 
         private void RemoveBindingState(int targetEntityId, TargetBinding binding, bool forceForgetLockedTarget)
         {
@@ -1181,13 +1223,21 @@ namespace Overbless.Runtime
 
                     try
                     {
-                        if (IsDestroyedRuntime(binding.Runtime) || binding.Health == null)
+                        if (RequiresForcedForget(pair.Key, binding))
                         {
                             blessingSystem.ForgetTarget(pair.Key);
                         }
                         else
                         {
-                            blessingSystem.RemoveTarget(binding.Runtime);
+                            var hadActiveBlessings =
+                                blessingSystem.GetActiveBlessings(pair.Key).Count != 0;
+                            var removed = blessingSystem.RemoveTarget(binding.Runtime);
+                            if ((hadActiveBlessings && !removed) ||
+                                blessingSystem.GetActiveBlessings(pair.Key).Count != 0)
+                            {
+                                throw new InvalidOperationException(
+                                    "Blessing cleanup did not discharge the registered ownership.");
+                            }
                         }
                     }
                     catch (Exception exception)
@@ -1200,37 +1250,56 @@ namespace Overbless.Runtime
                             pair.Key);
                     }
                 }
+                for (var index = 0; index < targetSnapshot.Count; index++)
+                {
+                    var pair = targetSnapshot[index];
+                    if (blessingSystem.GetActiveBlessings(pair.Key).Count == 0)
+                    {
+                        continue;
+                    }
+
+                    transferredRestoration = true;
+                    BlessingRestorationRecovery.Enqueue(
+                        blessingSystem,
+                        pair.Value.Runtime,
+                        pair.Key);
+                }
 
                 targetsByEntityId.Clear();
                 targetEntityIdsByCollider.Clear();
 
                 if (!transferredRestoration)
                 {
+                    var systemResetSucceeded = false;
                     try
                     {
                         blessingSystem.Reset();
+                        systemResetSucceeded = true;
                     }
                     catch (Exception exception)
                     {
                         failures.Add(exception);
                     }
 
-                    try
+                    if (systemResetSucceeded)
                     {
-                        hasteSlot.Dispose();
-                    }
-                    catch (Exception exception)
-                    {
-                        failures.Add(exception);
-                    }
+                        try
+                        {
+                            hasteSlot.Dispose();
+                        }
+                        catch (Exception exception)
+                        {
+                            failures.Add(exception);
+                        }
 
-                    try
-                    {
-                        giantSlot.Dispose();
-                    }
-                    catch (Exception exception)
-                    {
-                        failures.Add(exception);
+                        try
+                        {
+                            giantSlot.Dispose();
+                        }
+                        catch (Exception exception)
+                        {
+                            failures.Add(exception);
+                        }
                     }
                 }
             }
@@ -1287,9 +1356,35 @@ namespace Overbless.Runtime
                 for (var index = Pending.Count - 1; index >= 0; index--)
                 {
                     var record = Pending[index];
+                    if (IsDestroyedRuntime(record.Target))
+                    {
+                        record.ObserveTargetDestroyed();
+                        if (Time.unscaledTime < record.NextAttemptAt)
+                        {
+                            continue;
+                        }
+
+                        try
+                        {
+                            record.System.ForgetTarget(record.TargetEntityId);
+                            Pending.RemoveAt(index);
+                        }
+                        catch (Exception exception)
+                        {
+                            record.RecordFailure(exception);
+                        }
+
+                        continue;
+                    }
+
+                    if (Time.unscaledTime < record.NextAttemptAt)
+                    {
+                        continue;
+                    }
+
                     try
                     {
-                        if (IsDestroyedRuntime(record.Target))
+                        if (record.Target.EntityId != record.TargetEntityId)
                         {
                             record.System.ForgetTarget(record.TargetEntityId);
                         }
@@ -1299,14 +1394,26 @@ namespace Overbless.Runtime
                         }
                         else
                         {
-                            record.System.RemoveTarget(record.Target);
+                            var removed = record.System.RemoveTarget(record.Target);
+                            if (!removed &&
+                                record.System.GetActiveBlessings(record.TargetEntityId).Count != 0)
+                            {
+                                throw new InvalidOperationException(
+                                    "Blessing restoration retry did not discharge the retained target ownership.");
+                            }
+                        }
+
+                        if (record.System.GetActiveBlessings(record.TargetEntityId).Count != 0)
+                        {
+                            throw new InvalidOperationException(
+                                "Blessing restoration retry left retained target ownership active.");
                         }
 
                         Pending.RemoveAt(index);
                     }
-                    catch
+                    catch (Exception exception)
                     {
-                        // The retry remains pinned and is attempted on the next frame.
+                        record.RecordFailure(exception);
                     }
                 }
 
@@ -1318,8 +1425,13 @@ namespace Overbless.Runtime
                 }
             }
 
-            private readonly struct RecoveryRecord
+            private sealed class RecoveryRecord
             {
+                private const float InitialRetryDelay = 0.25f;
+                private const float MaximumRetryDelay = 30f;
+
+                private bool persistentFailureReported;
+
                 public RecoveryRecord(
                     BlessingSystem system,
                     IEnemyBlessingRuntime target,
@@ -1333,6 +1445,46 @@ namespace Overbless.Runtime
                 public BlessingSystem System { get; }
                 public IEnemyBlessingRuntime Target { get; }
                 public int TargetEntityId { get; }
+                public int FailureCount { get; private set; }
+                public float NextAttemptAt { get; private set; }
+                public Exception LastFailure { get; private set; }
+                public bool TargetDestructionObserved { get; private set; }
+
+                public void ObserveTargetDestroyed()
+                {
+                    if (TargetDestructionObserved)
+                    {
+                        return;
+                    }
+
+                    TargetDestructionObserved = true;
+                    NextAttemptAt = 0f;
+                }
+
+                public void RecordFailure(Exception exception)
+                {
+                    LastFailure = exception;
+                    FailureCount++;
+
+                    var exponent = Math.Min(FailureCount - 1, 16);
+                    var delay = Math.Min(
+                        MaximumRetryDelay,
+                        InitialRetryDelay * (float)Math.Pow(2d, exponent));
+                    NextAttemptAt = Time.unscaledTime + delay;
+
+                    if (FailureCount == 1)
+                    {
+                        Debug.LogException(exception);
+                    }
+                    else if (!persistentFailureReported && delay >= MaximumRetryDelay)
+                    {
+                        persistentFailureReported = true;
+                        Debug.LogError(
+                            $"Blessing baseline restoration for entity {TargetEntityId} remains retained after " +
+                            $"{FailureCount} failures and will retry every {MaximumRetryDelay:0} seconds. " +
+                            $"Last error: {exception.Message}");
+                    }
+                }
             }
 
             private sealed class RecoveryRunner : MonoBehaviour

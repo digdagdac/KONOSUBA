@@ -16,6 +16,7 @@ namespace Overbless.Runtime
         private bool manualInvulnerability;
         private bool isDead;
         private long deathToken;
+        private long mutationGeneration;
 
         public event Action<DamageEvent> Damaged;
         public event Action<DeathEvent> Died;
@@ -100,40 +101,49 @@ namespace Overbless.Runtime
                 return false;
             }
 
-            currentHealth = damageEvent.Damage >= currentHealth ? 0 : currentHealth - damageEvent.Damage;
-            var diedFromDamage = currentHealth == 0;
+            var nextHealth = damageEvent.Damage >= currentHealth ? 0 : currentHealth - damageEvent.Damage;
+            var diedFromDamage = nextHealth == 0;
+            if (diedFromDamage && deathToken == long.MaxValue)
+            {
+                throw new InvalidOperationException("Death token overflowed.");
+            }
+
+            var publicationGeneration = AdvanceMutationGeneration();
+            currentHealth = nextHealth;
             DeathEvent deathEvent = default;
 
             if (diedFromDamage)
             {
                 isDead = true;
-
-                if (deathToken == long.MaxValue)
-                {
-                    throw new InvalidOperationException("Death token overflowed.");
-                }
-
                 deathToken++;
                 deathEvent = new DeathEvent(entityId, deathToken, damageEvent);
             }
 
             var observerErrors = new System.Collections.Generic.List<Exception>();
-            InvokeObservers(Damaged, damageEvent, observerErrors);
+            InvokeObservers(
+                Damaged,
+                damageEvent,
+                observerErrors,
+                () => mutationGeneration == publicationGeneration);
 
-            if (diedFromDamage)
+            if (diedFromDamage && IsCurrentDeath(publicationGeneration, deathEvent.DeathToken))
             {
-                InvokeObservers(Died, deathEvent, observerErrors);
+                InvokeObservers(
+                    Died,
+                    deathEvent,
+                    observerErrors,
+                    () => IsCurrentDeath(publicationGeneration, deathEvent.DeathToken));
             }
 
             ThrowObserverErrors(observerErrors);
-
             return true;
         }
 
         private static void InvokeObservers<T>(
             Action<T> observers,
             T value,
-            System.Collections.Generic.List<Exception> errors)
+            System.Collections.Generic.List<Exception> errors,
+            Func<bool> continueCondition)
         {
             if (observers == null)
             {
@@ -142,6 +152,11 @@ namespace Overbless.Runtime
 
             foreach (Action<T> observer in observers.GetInvocationList())
             {
+                if (continueCondition != null && !continueCondition())
+                {
+                    break;
+                }
+
                 try
                 {
                     observer(value);
@@ -168,11 +183,29 @@ namespace Overbless.Runtime
         public void ResetHealth()
         {
             ValidateConfiguration();
+            AdvanceMutationGeneration();
 
             currentHealth = maximumHealth;
             manualInvulnerability = startsInvulnerable;
             invulnerabilitySources.Clear();
             isDead = false;
+        }
+        private long AdvanceMutationGeneration()
+        {
+            if (mutationGeneration == long.MaxValue)
+            {
+                throw new InvalidOperationException("Health mutation generation overflowed.");
+            }
+
+            mutationGeneration++;
+            return mutationGeneration;
+        }
+
+        private bool IsCurrentDeath(long expectedGeneration, long expectedDeathToken)
+        {
+            return mutationGeneration == expectedGeneration &&
+                   isDead &&
+                   deathToken == expectedDeathToken;
         }
 
         private void ValidateConfiguration()

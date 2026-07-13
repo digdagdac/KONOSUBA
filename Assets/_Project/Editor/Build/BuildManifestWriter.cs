@@ -18,6 +18,7 @@ namespace Overbless.Editor.Build
         public const string ManifestFileName = "build-manifest.json";
         public const string ServedRootManifestSchema = "overbless.served-root/v1";
         private const string RequiredUnityVersion = "6000.0.72f1";
+        private const BuildOptions ApprovedBuildOptions = BuildOptions.Development;
 
         /// <summary>Immutable pre-build settings and BuildReport facts bound to one served WebGL directory.</summary>
         public sealed class BuildProvenance
@@ -110,12 +111,17 @@ namespace Overbless.Editor.Build
 
             if (options.target != BuildTarget.WebGL ||
                 options.targetGroup != BuildTargetGroup.WebGL ||
-                (options.options & BuildOptions.Development) == 0 ||
                 report.summary.platform != BuildTarget.WebGL ||
-                report.summary.platformGroup != BuildTargetGroup.WebGL ||
-                report.summary.options != options.options)
+                report.summary.platformGroup != BuildTargetGroup.WebGL)
             {
-                throw new InvalidOperationException("Build provenance must bind matching WebGL Development options and BuildReport summary facts.");
+                throw new InvalidOperationException("Build provenance must bind WebGL target facts.");
+            }
+
+            ValidateApprovedBuildOptions(options.options, "requested build");
+            ValidateApprovedBuildOptions(report.summary.options, "BuildReport summary");
+            if (report.summary.options != options.options)
+            {
+                throw new InvalidOperationException("Build provenance must bind matching requested and reported BuildOptions.");
             }
 
             if (options.scenes == null || options.scenes.Length != 1 || !string.Equals(options.scenes[0], settings.Scene, StringComparison.Ordinal))
@@ -222,10 +228,10 @@ namespace Overbless.Editor.Build
 
             provenance.SealConsumed = true;
             ValidateCurrentDevelopmentSettings();
+            ValidateApprovedBuildOptions(provenance.Options, "stored build provenance");
             if (string.IsNullOrEmpty(provenance.PostprocessName) ||
                 !CanonicalJson.IsLowerSha256(provenance.PostprocessedSnapshotSha256) ||
                 !string.Equals(provenance.Settings.Scene, provenance.Scene, StringComparison.Ordinal) ||
-                provenance.Options == BuildOptions.None ||
                 PlayerSettings.WebGL.memorySize != provenance.Settings.MemorySizeMb)
             {
                 throw new InvalidOperationException("Build provenance settings or deterministic postprocessing record are not stable.");
@@ -298,6 +304,7 @@ namespace Overbless.Editor.Build
             }
 
             var root = RequireServedDirectory(servedDirectory);
+            ValidateApprovedBuildOptions(provenance.Options, "stored build provenance");
             if (!PathsEqual(root, provenance.OutputDirectory) ||
                 !string.Equals(
                     ComputeSnapshotSha256(CollectStableServedFiles(root)),
@@ -380,6 +387,16 @@ namespace Overbless.Editor.Build
             }
 
             return CanonicalJson.Sha256Hex(CanonicalJsonValue.Array(values));
+        }
+        private static void ValidateApprovedBuildOptions(BuildOptions options, string context)
+        {
+            if ((options & BuildOptions.ConnectWithProfiler) != 0 ||
+                (options & BuildOptions.EnableDeepProfilingSupport) != 0 ||
+                (options & ~ApprovedBuildOptions) != 0 ||
+                (options & ApprovedBuildOptions) != ApprovedBuildOptions)
+            {
+                throw new InvalidOperationException(context + " BuildOptions do not satisfy the approved WebGL Development contract.");
+            }
         }
         private static string RequireServedDirectory(string servedDirectory)
         {

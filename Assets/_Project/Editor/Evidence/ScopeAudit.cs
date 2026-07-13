@@ -120,6 +120,23 @@ namespace Overbless.Editor.Evidence
         };
 
         public static IReadOnlyList<string> ForbiddenGameplayTokens => Array.AsReadOnly(DefaultForbiddenTokens);
+        public static IReadOnlyList<string> ScannedRoots => Array.AsReadOnly(DefaultScannedRoots);
+        public static IReadOnlyList<string> ExcludedSourcePaths => Array.AsReadOnly(DefaultExcludedSourcePaths);
+
+        internal static MatchCollection FindForbiddenTokenMatches(string text, string token)
+        {
+            if (text == null)
+            {
+                throw new ArgumentNullException(nameof(text));
+            }
+
+            if (token == null)
+            {
+                throw new ArgumentNullException(nameof(token));
+            }
+
+            return Regex.Matches(text, Regex.Escape(token), RegexOptions.CultureInvariant);
+        }
 
         public static ScopeAuditReport Audit(
             IEnumerable<string> scannedRoots,
@@ -401,8 +418,7 @@ namespace Overbless.Editor.Evidence
                 var text = ReadUtf8Source(sourcePath, out sourceSha256);
                 foreach (var token in tokens)
                 {
-                    var expression = new Regex(Regex.Escape(token), RegexOptions.CultureInvariant);
-                    foreach (Match match in expression.Matches(text))
+                    foreach (Match match in FindForbiddenTokenMatches(text, token))
                     {
                         var lineAndColumn = GetLineAndColumn(text, match.Index);
                         ScopeAuditAllowance allowance;

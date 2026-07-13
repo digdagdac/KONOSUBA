@@ -16,12 +16,20 @@ namespace Overbless.Runtime
             new Dictionary<AttackStateMachine, Action<AttackPhase>>();
         private readonly Dictionary<AttackIdentity, long> attackTokens =
             new Dictionary<AttackIdentity, long>();
+        private readonly Dictionary<CueIdentity, long> cueTokens =
+            new Dictionary<CueIdentity, long>();
+        private readonly Dictionary<AttackStateMachine, long> warningGenerations =
+            new Dictionary<AttackStateMachine, long>();
+        private readonly HashSet<AttackStateMachine> warningStates =
+            new HashSet<AttackStateMachine>();
 
-        private long nextReadyToken;
-        private long nextSoulToken;
-        private long nextExitToken;
+        private long roomEpoch = 1;
+        private long nextCueToken;
         private long nextAttackToken;
-        private bool subscribed;
+        private int lastSoulCount;
+        private long exitOpenedEpoch;
+        private bool runtimeSubscribed;
+        private bool restartSubscribed;
         private bool started;
 
         private void OnEnable()
@@ -34,31 +42,37 @@ namespace Overbless.Runtime
 
         private void Start()
         {
-            Subscribe();
             started = true;
+            Subscribe();
         }
 
         private void OnDisable()
         {
-            Unsubscribe();
+            UnsubscribeRuntimeEvents();
+        }
+
+        private void OnDestroy()
+        {
+            UnsubscribeRuntimeEvents();
+            UnsubscribeFromRestart();
         }
 
         private void Subscribe()
         {
-            if (subscribed)
+            if (runtimeSubscribed)
             {
                 return;
             }
 
             ValidateConfiguration();
-            subscribed = true;
+            runtimeSubscribed = true;
 
             try
             {
+                SubscribeToRestart();
                 playerHealth.Damaged += HandlePlayerDamaged;
                 roomLifecycle.SoulCountChanged += HandleSoulCountChanged;
                 roomLifecycle.ExitOpened += HandleExitOpened;
-                restartController.Restarted += HandleRoomRestarted;
 
                 for (var index = 0; index < enemies.Length; index++)
                 {
@@ -66,24 +80,47 @@ namespace Overbless.Runtime
                     var attackState = enemy.AttackState;
                     if (enemy is DasherAI || enemy is ArcherAI)
                     {
-                        Action<AttackPhase> phaseHandler = phase => HandleEnemyAttackPhaseChanged(enemy, phase);
+                        Action<AttackPhase> phaseHandler =
+                            phase => HandleEnemyAttackPhaseChanged(enemy, attackState, phase);
                         phaseHandlers.Add(attackState, phaseHandler);
                         attackState.PhaseChanged += phaseHandler;
                     }
 
                     attackState.ContextLocked += HandleAttackLocked;
                 }
+                ReconcileCurrentRoomState();
             }
             catch
             {
-                Unsubscribe();
+                UnsubscribeRuntimeEvents();
+                UnsubscribeFromRestart();
                 throw;
             }
         }
 
-        private void Unsubscribe()
+        private void ReconcileCurrentRoomState()
         {
-            if (!subscribed)
+            lastSoulCount = roomLifecycle.SoulCount;
+            if (roomLifecycle.IsExitOpen)
+            {
+                exitOpenedEpoch = roomEpoch;
+            }
+
+            warningStates.Clear();
+            for (var index = 0; index < enemies.Length; index++)
+            {
+                var enemy = enemies[index];
+                var attackState = enemy.AttackState;
+                if ((enemy is DasherAI || enemy is ArcherAI) &&
+                    attackState.Phase == AttackPhase.Warning)
+                {
+                    warningStates.Add(attackState);
+                }
+            }
+        }
+        private void UnsubscribeRuntimeEvents()
+        {
+            if (!runtimeSubscribed)
             {
                 return;
             }
@@ -91,7 +128,6 @@ namespace Overbless.Runtime
             playerHealth.Damaged -= HandlePlayerDamaged;
             roomLifecycle.SoulCountChanged -= HandleSoulCountChanged;
             roomLifecycle.ExitOpened -= HandleExitOpened;
-            restartController.Restarted -= HandleRoomRestarted;
 
             for (var index = 0; index < enemies.Length; index++)
             {
@@ -116,13 +152,17 @@ namespace Overbless.Runtime
             }
 
             phaseHandlers.Clear();
-            subscribed = false;
+            runtimeSubscribed = false;
         }
 
-        private void HandleEnemyAttackPhaseChanged(EnemyBase enemy, AttackPhase phase)
+        private void HandleEnemyAttackPhaseChanged(
+            EnemyBase enemy,
+            AttackStateMachine attackState,
+            AttackPhase phase)
         {
             if (phase != AttackPhase.Warning)
             {
+                warningStates.Remove(attackState);
                 return;
             }
 
@@ -140,8 +180,18 @@ namespace Overbless.Runtime
                 return;
             }
 
-            nextReadyToken = IncrementToken(nextReadyToken);
-            emitter.Emit(eventType, nextReadyToken);
+            if (!warningStates.Add(attackState))
+            {
+                return;
+            }
+
+            var warningGeneration = GetNextWarningGeneration(attackState);
+            emitter.Emit(
+                eventType,
+                GetCueToken(
+                    CueDomain.Ready,
+                    attackState.AttackerEntityId,
+                    warningGeneration));
         }
 
         private void HandleAttackLocked(AttackContext context)
@@ -160,29 +210,89 @@ namespace Overbless.Runtime
 
         private void HandleSoulCountChanged(int soulCount)
         {
-            if (soulCount <= 0)
+            if (soulCount <= 0 || soulCount <= lastSoulCount)
             {
                 return;
             }
 
-            nextSoulToken = IncrementToken(nextSoulToken);
-            emitter.Emit(FunctionalAudioEvent.SoulCollected, nextSoulToken);
+            lastSoulCount = soulCount;
+            emitter.Emit(
+                FunctionalAudioEvent.SoulCollected,
+                GetCueToken(CueDomain.Soul, soulCount, 0));
         }
 
         private void HandleExitOpened()
         {
-            nextExitToken = IncrementToken(nextExitToken);
-            emitter.Emit(FunctionalAudioEvent.ExitOpened, nextExitToken);
+            if (exitOpenedEpoch == roomEpoch)
+            {
+                return;
+            }
+
+            exitOpenedEpoch = roomEpoch;
+            emitter.Emit(
+                FunctionalAudioEvent.ExitOpened,
+                GetCueToken(CueDomain.Exit, 0, 0));
         }
 
         private void HandleRoomRestarted()
         {
-            emitter.ResetEmitter();
-            nextReadyToken = 0;
-            nextSoulToken = 0;
-            nextExitToken = 0;
+            roomEpoch = IncrementToken(roomEpoch);
+            nextCueToken = 0;
             nextAttackToken = 0;
+            lastSoulCount = 0;
+            exitOpenedEpoch = 0;
             attackTokens.Clear();
+            cueTokens.Clear();
+            warningGenerations.Clear();
+            warningStates.Clear();
+            emitter.ResetEmitter();
+        }
+
+        private void SubscribeToRestart()
+        {
+            if (restartSubscribed)
+            {
+                return;
+            }
+
+            restartController.Restarted += HandleRoomRestarted;
+            restartSubscribed = true;
+        }
+
+        private void UnsubscribeFromRestart()
+        {
+            if (!restartSubscribed)
+            {
+                return;
+            }
+
+            restartController.Restarted -= HandleRoomRestarted;
+            restartSubscribed = false;
+        }
+
+        private long GetNextWarningGeneration(AttackStateMachine attackState)
+        {
+            if (!warningGenerations.TryGetValue(attackState, out var generation))
+            {
+                generation = 0;
+            }
+
+            generation = IncrementToken(generation);
+            warningGenerations[attackState] = generation;
+            return generation;
+        }
+
+        private long GetCueToken(CueDomain domain, int entityId, long occurrence)
+        {
+            var identity = new CueIdentity(roomEpoch, domain, entityId, occurrence);
+            if (cueTokens.TryGetValue(identity, out var token))
+            {
+                return token;
+            }
+
+            nextCueToken = IncrementToken(nextCueToken);
+            cueTokens.Add(identity, nextCueToken);
+            return nextCueToken;
         }
 
         private long GetAttackToken(int attackerEntityId, long attackInstanceId)
@@ -280,6 +390,52 @@ namespace Overbless.Runtime
             }
         }
 
+        private enum CueDomain
+        {
+            Ready,
+            Soul,
+            Exit
+        }
+
+        private readonly struct CueIdentity : IEquatable<CueIdentity>
+        {
+            private readonly long roomEpoch;
+            private readonly CueDomain domain;
+            private readonly int entityId;
+            private readonly long occurrence;
+
+            public CueIdentity(long roomEpoch, CueDomain domain, int entityId, long occurrence)
+            {
+                this.roomEpoch = roomEpoch;
+                this.domain = domain;
+                this.entityId = entityId;
+                this.occurrence = occurrence;
+            }
+
+            public bool Equals(CueIdentity other)
+            {
+                return roomEpoch == other.roomEpoch &&
+                       domain == other.domain &&
+                       entityId == other.entityId &&
+                       occurrence == other.occurrence;
+            }
+
+            public override bool Equals(object obj)
+            {
+                return obj is CueIdentity other && Equals(other);
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    var hash = roomEpoch.GetHashCode();
+                    hash = (hash * 397) ^ (int)domain;
+                    hash = (hash * 397) ^ entityId;
+                    return (hash * 397) ^ occurrence.GetHashCode();
+                }
+            }
+        }
         private readonly struct AttackIdentity : IEquatable<AttackIdentity>
         {
             public AttackIdentity(int attackerEntityId, long attackInstanceId)

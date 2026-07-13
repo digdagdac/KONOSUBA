@@ -15,6 +15,11 @@ namespace Overbless.Runtime
         private readonly HashSet<(FunctionalAudioEvent EventType, long Token)> pendingKeys =
             new HashSet<(FunctionalAudioEvent EventType, long Token)>();
         private readonly List<PendingEmission> pending = new List<PendingEmission>();
+        private readonly List<PendingEmission> accepted = new List<PendingEmission>();
+        private readonly Queue<PendingNotification> notifications =
+            new Queue<PendingNotification>();
+        private bool isDraining;
+        private long resetGeneration;
         private bool webStarted;
 
         public event Action<FunctionalAudioRecord> Emitted;
@@ -22,24 +27,40 @@ namespace Overbless.Runtime
 
         private void Update()
         {
+            if (!webStarted)
+            {
+                return;
+            }
+
             while (pending.Count > 0)
             {
                 var emission = pending[0];
-                if (emission.Clip.loadState == AudioDataLoadState.Failed)
+                switch (emission.Clip.loadState)
                 {
-                    pending.RemoveAt(0);
-                    pendingKeys.Remove(emission.Key);
-                    throw new InvalidOperationException("Functional audio clip failed to load: " + emission.Clip.name + ".");
-                }
+                    case AudioDataLoadState.Loaded:
+                        pending.RemoveAt(0);
+                        accepted.Add(emission);
+                        DrainAcceptedEmissions();
+                        continue;
 
-                if (emission.Clip.loadState != AudioDataLoadState.Loaded)
-                {
-                    return;
-                }
+                    case AudioDataLoadState.Loading:
+                        return;
 
-                pending.RemoveAt(0);
-                pendingKeys.Remove(emission.Key);
-                Play(emission.EventType, emission.Token, emission.Clip);
+                    case AudioDataLoadState.Unloaded:
+                        StartPendingLoad(emission);
+                        return;
+
+                    case AudioDataLoadState.Failed:
+                        FailPendingEmission(emission, "the clip failed to load.", null);
+                        continue;
+
+                    default:
+                        FailPendingEmission(
+                            emission,
+                            "the clip entered an unsupported load state.",
+                            null);
+                        continue;
+                }
             }
         }
 
@@ -91,56 +112,209 @@ namespace Overbless.Runtime
                 throw new InvalidOperationException("Functional audio clip failed to load: " + clip.name + ".");
             }
 
+            pendingKeys.Add(key);
+            var emission = new PendingEmission(eventType, token, clip);
             if (pending.Count > 0 || clip.loadState != AudioDataLoadState.Loaded)
             {
-
-                pendingKeys.Add(key);
-                pending.Add(new PendingEmission(eventType, token, clip));
+                pending.Add(emission);
                 return true;
             }
 
-            Play(eventType, token, clip);
+            accepted.Add(emission);
+            DrainAcceptedEmissions();
             return true;
         }
 
         public void ResetEmitter()
         {
+            if (resetGeneration == long.MaxValue)
+            {
+                throw new InvalidOperationException(
+                    "Functional audio reset generation is exhausted.");
+            }
+
+            resetGeneration++;
             emitted.Clear();
             pendingKeys.Clear();
             pending.Clear();
+            accepted.Clear();
+            notifications.Clear();
             audioSource.Stop();
         }
 
-        private void Play(FunctionalAudioEvent eventType, long token, AudioClip clip)
+        private void Play(PendingEmission emission)
         {
-            var key = (eventType, token);
+            var key = emission.Key;
             try
             {
-                audioSource.PlayOneShot(clip);
+                audioSource.PlayOneShot(emission.Clip);
                 emitted.Add(key);
+                pendingKeys.Remove(key);
             }
             catch
             {
                 emitted.Remove(key);
+                pendingKeys.Remove(key);
                 throw;
             }
 
-            Emitted?.Invoke(new FunctionalAudioRecord(eventType, token, Time.frameCount));
+            notifications.Enqueue(
+                new PendingNotification(
+                    new FunctionalAudioRecord(
+                        emission.EventType,
+                        emission.Token,
+                        Time.frameCount),
+                    resetGeneration));
         }
 
+        private void DrainAcceptedEmissions()
+        {
+            if (isDraining)
+            {
+                return;
+            }
+
+            isDraining = true;
+            try
+            {
+                while (notifications.Count > 0 || accepted.Count > 0)
+                {
+                    if (notifications.Count > 0)
+                    {
+                        NotifyEmitted(notifications.Dequeue());
+                        continue;
+                    }
+
+                    var emission = accepted[0];
+                    accepted.RemoveAt(0);
+                    Play(emission);
+                }
+            }
+            finally
+            {
+                isDraining = false;
+            }
+        }
+
+        private void StartPendingLoad(PendingEmission emission)
+        {
+            if (emission.LoadRequested)
+            {
+                FailPendingEmission(
+                    emission,
+                    "the clip remained unloaded after loading was requested.",
+                    null);
+                return;
+            }
+
+            bool loadStarted;
+            try
+            {
+                loadStarted = emission.Clip.LoadAudioData();
+            }
+            catch (Exception exception)
+            {
+                FailPendingEmission(
+                    emission,
+                    "LoadAudioData threw before loading could start.",
+                    exception);
+                return;
+            }
+
+            if (!loadStarted)
+            {
+                FailPendingEmission(
+                    emission,
+                    "LoadAudioData could not start loading.",
+                    null);
+                return;
+            }
+
+            pending[0] = emission.WithLoadRequested();
+        }
+
+        private void FailPendingEmission(
+            PendingEmission emission,
+            string reason,
+            Exception exception)
+        {
+            pending.RemoveAt(0);
+            pendingKeys.Remove(emission.Key);
+            Debug.LogError(
+                "Functional audio cue " + emission.EventType +
+                " was removed because " + reason +
+                " Clip: " + emission.Clip.name + ".",
+                this);
+
+            if (exception != null)
+            {
+                Debug.LogException(exception, this);
+            }
+        }
+
+        private void NotifyEmitted(PendingNotification notification)
+        {
+            var observers = Emitted;
+            if (observers == null)
+            {
+                return;
+            }
+
+            foreach (Action<FunctionalAudioRecord> observer in observers.GetInvocationList())
+            {
+                if (notification.ResetGeneration != resetGeneration)
+                {
+                    return;
+                }
+
+                try
+                {
+                    observer(notification.Record);
+                }
+                catch (Exception exception)
+                {
+                    Debug.LogException(exception, this);
+                }
+            }
+        }
+
+        private readonly struct PendingNotification
+        {
+            public PendingNotification(
+                FunctionalAudioRecord record,
+                long resetGeneration)
+            {
+                Record = record;
+                ResetGeneration = resetGeneration;
+            }
+
+            public FunctionalAudioRecord Record { get; }
+            public long ResetGeneration { get; }
+        }
         private readonly struct PendingEmission
         {
-            public PendingEmission(FunctionalAudioEvent eventType, long token, AudioClip clip)
+            public PendingEmission(
+                FunctionalAudioEvent eventType,
+                long token,
+                AudioClip clip,
+                bool loadRequested = false)
             {
                 EventType = eventType;
                 Token = token;
                 Clip = clip;
+                LoadRequested = loadRequested;
             }
 
             public FunctionalAudioEvent EventType { get; }
             public long Token { get; }
             public AudioClip Clip { get; }
+            public bool LoadRequested { get; }
             public (FunctionalAudioEvent EventType, long Token) Key => (EventType, Token);
+
+            public PendingEmission WithLoadRequested()
+            {
+                return new PendingEmission(EventType, Token, Clip, true);
+            }
         }
     }
 }

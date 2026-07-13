@@ -107,6 +107,54 @@ namespace Overbless.Tests.EditMode
         }
 
         [Test]
+        public void Health_ReentrantResetAndRekillNeverPublishesTheOlderDeath()
+        {
+            var health = CreateHealth(18, 1);
+            var observedDeathTokens = new List<long>();
+            var reentered = false;
+
+            health.Damaged += damageEvent =>
+            {
+                if (reentered || damageEvent.AttackInstanceId != 20)
+                {
+                    return;
+                }
+
+                reentered = true;
+                health.ResetHealth();
+                Assert.That(
+                    health.TryApplyDamage(new DamageEvent(21, 2, 18, 1)),
+                    Is.True);
+            };
+            health.Died += deathEvent => observedDeathTokens.Add(deathEvent.DeathToken);
+
+            Assert.That(
+                health.TryApplyDamage(new DamageEvent(20, 1, 18, 1)),
+                Is.True);
+            Assert.That(health.IsDead, Is.True);
+            Assert.That(health.DeathToken, Is.EqualTo(2));
+            Assert.That(observedDeathTokens, Is.EqualTo(new[] { 2L }));
+        }
+
+        [Test]
+        public void Health_ReentrantResetFromDeathStopsLaterOldLifeObservers()
+        {
+            var health = CreateHealth(19, 1);
+            var laterDeathObserved = false;
+
+            health.Died += _ => health.ResetHealth();
+            health.Died += _ => laterDeathObserved = true;
+
+            Assert.That(
+                health.TryApplyDamage(new DamageEvent(22, 1, 19, 1)),
+                Is.True);
+            Assert.That(health.IsDead, Is.False);
+            Assert.That(health.CurrentHealth, Is.EqualTo(1));
+            Assert.That(health.DeathToken, Is.EqualTo(1));
+            Assert.That(laterDeathObserved, Is.False);
+        }
+
+        [Test]
         public void AttackStateMachine_LockCancelAndResetDisposeEachContextOnce()
         {
             var machine = new AttackStateMachine(9);
@@ -239,6 +287,22 @@ namespace Overbless.Tests.EditMode
             Assert.That(router.IsInputEnabled, Is.True);
             Assert.Throws<ArgumentOutOfRangeException>(
                 () => router.AcquireInputBlock((PlayerInputBlocker)99));
+            router.SetRestartInputEnabled(true);
+            var laterRestartObserverRan = false;
+            router.RestartRequested += () => throw new InvalidOperationException("expected observer failure");
+            router.RestartRequested += () => laterRestartObserverRan = true;
+            var restartHandler = typeof(PlayerInputRouter).GetMethod(
+                "HandleRestart",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(restartHandler, Is.Not.Null);
+            var callbackContext = Activator.CreateInstance(
+                restartHandler.GetParameters()[0].ParameterType);
+            var restartFailure = Assert.Throws<TargetInvocationException>(
+                () => restartHandler.Invoke(
+                    router,
+                    new[] { callbackContext }));
+            Assert.That(restartFailure.InnerException, Is.TypeOf<AggregateException>());
+            Assert.That(laterRestartObserverRan, Is.True);
         }
 
         [Test]
@@ -329,6 +393,7 @@ namespace Overbless.Tests.EditMode
                 };
 
                 Assert.That(system.TryApply(hasteSlot, target, health, out _), Is.True);
+                Assert.Throws<InvalidOperationException>(() => system.Reset());
                 Assert.That(reentrantResetRejected, Is.True);
 
                 target.Applying = (_, __) => throw new InvalidOperationException("target apply failed");
@@ -337,10 +402,13 @@ namespace Overbless.Tests.EditMode
                     system.GetActiveBlessings(target.EntityId),
                     Is.EqualTo(new[] { BlessingType.Haste, BlessingType.Giant }));
                 Assert.That(giantSlot.IsAvailable, Is.False);
+                Assert.That(hasteSlot.IsPinnedForRestorationRetry, Is.True);
+                Assert.That(giantSlot.IsPinnedForRestorationRetry, Is.True);
 
                 target.Applying = null;
                 Assert.That(system.RemoveTarget(target), Is.True);
                 Assert.That(system.GetActiveBlessings(target.EntityId), Is.Empty);
+                Assert.DoesNotThrow(() => system.Reset());
             }
             finally
             {

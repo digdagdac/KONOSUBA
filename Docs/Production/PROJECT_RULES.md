@@ -5,8 +5,8 @@
 - Unity Editor는 `6000.0.72f1`로 고정한다. 렌더 파이프라인은 URP 2D이며 입력은 Input System만 사용한다. Addressables는 도입하지 않는다.
 - 오디오는 저장소 안의 절차 합성만 사용한다. 외부 녹음, 외부 생성 오디오, AI 오디오 에셋은 허용하지 않는다.
 - **M0**은 프로젝트 설정·문서·승인 원문·증거 계약을 고정한다. **M1**은 직접 공격 없는 유도 전투 슬라이스, 대표 시청각 표현, 로컬 Development WebGL 검증을 구현한다.
-- `M2EntryGate`의 최종 결정은 Unity의 `Overbless/M2 Entry Gate/Record Human Gate Decision` 대화형 창에서 사용자가 후보·결정·UTC에 결합된 canonical payload를 준비한 뒤, Unity/저장소 밖에서 보관하는 RSA 개인 키로 그 정확한 UTF-8 바이트를 서명하고 detached signature를 붙여 기록한다. validator는 후보 밖 환경의 `OVERBLESS_M2_GATE_TRUST_ANCHOR`와 `OVERBLESS_M2_GATE_TRUSTED_PUBLIC_KEY_SPKI_BASE64`를 신뢰 기준으로 사용하며, 키가 없거나 서명이 맞지 않으면 fail-closed 한다.
-- 일반 Editor 자동화에는 PASS를 생성하거나 개인 키를 읽는 API가 없다. `gate-decision.json`은 candidate ID, evidence/validator 해시, `PASS|REWORK`, 결정 UTC를 RSA-SHA256 서명으로 인증하므로 공개 증거만 읽는 자동화는 사용자를 사칭할 수 없다. 개인 키는 저장소, 후보, Unity 환경 변수에 두지 않는다. 사용자가 외부 서명 후 대화형 확인을 완료하기 전에는 machine validator가 준비 상태여도 최종 PASS가 아니다.
+- `M2EntryGate`의 최종 결정은 Unity의 `Overbless/M2 Entry Gate/Record Human Gate Decision` 대화형 창에서 사용자가 후보·결정·UTC·사용자 증언에 결합된 canonical payload를 준비한 뒤, Unity/저장소 밖에서 보관하는 RSA 개인 키로 그 정확한 UTF-8 바이트를 서명하고 detached signature를 붙여 기록한다. validator는 후보 밖 환경의 `OVERBLESS_M2_GATE_TRUST_ANCHOR`와 `OVERBLESS_M2_GATE_TRUSTED_PUBLIC_KEY_SPKI_BASE64`를 신뢰 기준으로 사용하며, 키가 없거나 서명이 맞지 않으면 fail-closed 한다.
+- 일반 Editor 자동화에는 PASS를 생성하거나 개인 키를 읽는 API가 없다. `gate-decision.json`은 candidate ID, evidence/validator 해시, `PASS|REWORK`, 결정 UTC, 사용자 증언을 RSA-SHA256 서명으로 인증하므로 공개 증거만 읽는 자동화는 사용자를 사칭하거나 증언을 바꿀 수 없다. 개인 키는 저장소, 후보, Unity 환경 변수에 두지 않는다. 사용자가 외부 서명 후 대화형 확인을 완료하기 전에는 machine validator가 준비 상태여도 최종 PASS가 아니다.
 
 ## 2. 폴더와 이름
 
@@ -57,7 +57,7 @@
 
 - 승인된 원문과 결정 파일은 쓰기 한 번의 증거다. 승인 뒤 내용을 수정·덮어쓰기·재생성하지 않는다.
 - 최종 `gate-decision.json`은 같은 후보 디렉터리의 고유 임시 파일에 기록하고 `FileOptions.WriteThrough`와 `Flush(true)`로 flush한 뒤, 기존 파일을 덮어쓰지 않는 같은 디렉터리 promotion으로만 만든다. 최종 이름만 결정으로 간주한다. 중단된 임시 파일은 최종 결정을 오염시키지 않으며 재시도는 새 임시 이름을 사용한다.
-- detached signature는 `candidateId`, `evidenceManifestSha256`, `validatorReportSha256`, `decision`, `decidedUtc`의 canonical JSON에 결합한다. `trustAnchor`, `signatureAlgorithm: RSA-SHA256`, canonical Base64 signature가 스키마와 외부 공개 키 검증을 모두 통과해야 한다.
+- detached signature는 `candidateId`, `evidenceManifestSha256`, `validatorReportSha256`, `decision`, `decidedUtc`, `userAttestation`의 canonical JSON에 결합한다. `trustAnchor`, `signatureAlgorithm: RSA-SHA256`, canonical Base64 signature가 스키마와 외부 공개 키 검증을 모두 통과해야 한다.
 - 정정 또는 재검증은 새 파일과 새 식별자/시각/해시로 남기고, 이전 증거와 대체 관계를 참조한다. 이전 파일은 보존한다.
 - 에셋·오디오 증거는 입력 원본, 생성기·도구·버전, 설정 또는 지시, 시드, 생성 시각, 원본/최종 경로와 SHA-256, 순서가 있는 수정 내역, 검토자를 기록한다. 해시는 실제 바이트를 기준으로 한다.
 - 증거에 라이선스나 출처를 추정해 채우지 않는다.
