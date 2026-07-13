@@ -1,0 +1,43 @@
+{
+  "status": 200,
+  "headers": {
+    "x-codex-active-limit": "premium",
+    "x-codex-plan-type": "pro",
+    "x-models-etag": "W/\"82064eb631c228baaf368627eaa0d23f\"",
+    "x-oai-request-id": "7ed161ed-54d3-45c9-a801-9534bea16b82"
+  },
+  "body": {
+    "format": "sse",
+    "responseIdPresent": true,
+    "eventCounts": {
+      "response.created": 1,
+      "response.in_progress": 1,
+      "response.output_item.added": 2,
+      "response.image_generation_call.in_progress": 1,
+      "response.image_generation_call.generating": 1,
+      "keepalive": 2,
+      "response.image_generation_call.partial_image": 1,
+      "response.output_item.done": 2,
+      "response.content_part.added": 1,
+      "response.output_text.done": 1,
+      "response.content_part.done": 1,
+      "response.completed": 1
+    },
+    "items": [
+      {
+        "type": "image_generation_call",
+        "status": "generating",
+        "hasResult": true,
+        "hasRevisedPrompt": true,
+        "role": null
+      },
+      {
+        "type": "message",
+        "status": "completed",
+        "hasResult": false,
+        "hasRevisedPrompt": false,
+        "role": "assistant"
+      }
+    ]
+  }
+}

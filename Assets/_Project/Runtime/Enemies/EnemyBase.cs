@@ -1,0 +1,446 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace Overbless.Runtime
+{
+    [RequireComponent(typeof(Health))]
+    public abstract class EnemyBase : MonoBehaviour, IDamageSource, IEnemyBlessingRuntime
+    {
+        private static readonly BlessingType[] NoBlessings = Array.Empty<BlessingType>();
+        private const float WorldMinimumX = -8f;
+        private const float WorldMaximumX = 8f;
+        private const float WorldMinimumY = -4.5f;
+        private const float WorldMaximumY = 4.5f;
+
+        [SerializeField] private EnemyDefinition definition;
+        [SerializeField] private Health health;
+        [SerializeField] private Transform playerTarget;
+        [SerializeField] private Transform spawnTransform;
+
+        private readonly DamageLedger damageLedger = new DamageLedger();
+        private readonly List<RaycastHit2D> movementHits = new List<RaycastHit2D>();
+        private Vector3 spawnPosition;
+        private Quaternion spawnRotation;
+        private EnemyRuntimeStats runtimeStats;
+        private Rigidbody2D body;
+        private Collider2D bodyCollider;
+        private Vector3 baseLocalScale;
+        private float baseMass;
+        private AttackStateMachine attackState;
+
+        public event Action<EnemyRuntimeStats, EnemyRuntimeStats> RuntimeStatsChanged;
+        public event Action<EnemyBase> Restarted;
+        public event Action<EnemyRuntimeStats, EnemyRuntimeStats, float> BlessingRuntimeStatsApplied;
+
+        public int EntityId => health.EntityId;
+        public Health Health => health;
+        public EnemyDefinition Definition => definition;
+        public Transform PlayerTarget => playerTarget;
+        public Transform SpawnTransform => spawnTransform;
+        public DamageLedger DamageLedger => damageLedger;
+        public AttackStateMachine AttackState => attackState;
+        public AttackPhase CurrentAttackPhase => attackState.Phase;
+        public EnemyRuntimeStats RuntimeStats => runtimeStats;
+        public bool IsDead => health.IsDead;
+        public float HealthRatio => health.MaximumHealth == 0
+            ? 0f
+            : (float)health.CurrentHealth / health.MaximumHealth;
+
+        protected virtual void Awake()
+        {
+            if (health == null)
+            {
+                health = GetComponent<Health>();
+            }
+
+            if (health == null)
+            {
+                throw new InvalidOperationException("EnemyBase requires a Health component.");
+            }
+
+            if (health.EntityId == 0)
+            {
+                throw new InvalidOperationException("EnemyBase requires Health to have a non-zero stable entity ID.");
+            }
+
+            if (definition == null)
+            {
+                throw new InvalidOperationException("EnemyBase requires an EnemyDefinition.");
+            }
+
+            var authoredSpawn = spawnTransform == null ? transform : spawnTransform;
+            spawnPosition = authoredSpawn.position;
+            spawnRotation = authoredSpawn.rotation;
+            baseLocalScale = transform.localScale;
+            body = GetComponent<Rigidbody2D>();
+            bodyCollider = GetComponent<Collider2D>();
+            if (body == null || bodyCollider == null)
+            {
+                throw new InvalidOperationException("EnemyBase requires Rigidbody2D and Collider2D components for collision-aware movement.");
+            }
+
+            baseMass = body.mass;
+            attackState = new AttackStateMachine(EntityId);
+            var attackPresenter = GetComponentInChildren<AttackStatePresenter>(true);
+            if (attackPresenter != null)
+            {
+                attackPresenter.Bind(this);
+            }
+            health.Died += HandleDeath;
+            ApplyRuntimeStats(EnemyRuntimeStats.Recompute(definition, NoBlessings), HealthRatio);
+            var blessingIndicator = GetComponentInChildren<BlessingIndicator>(true);
+            if (blessingIndicator != null)
+            {
+                blessingIndicator.Bind(this);
+            }
+            OnEnemyInitialized();
+        }
+
+        protected virtual void OnDisable()
+        {
+            if (attackState != null)
+            {
+                attackState.Cancel();
+            }
+        }
+
+        protected virtual void OnDestroy()
+        {
+            if (health != null)
+            {
+                health.Died -= HandleDeath;
+            }
+        }
+
+        private void Update()
+        {
+            var deltaTime = Time.deltaTime;
+            if (health.IsDead || deltaTime <= 0f)
+            {
+                return;
+            }
+
+            TickBehavior(deltaTime);
+        }
+
+        public void SetPlayerTarget(Transform target)
+        {
+            playerTarget = target;
+        }
+
+        public void RecomputeRuntimeStats(IReadOnlyCollection<BlessingType> activeBlessingIds)
+        {
+            ApplyRuntimeStats(EnemyRuntimeStats.Recompute(definition, activeBlessingIds), HealthRatio);
+        }
+
+        public void ApplyBlessingRuntimeStats(EnemyRuntimeStats stats, float healthRatio)
+        {
+            if (float.IsNaN(healthRatio) ||
+                float.IsInfinity(healthRatio) ||
+                healthRatio < 0f ||
+                healthRatio > 1f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(healthRatio), healthRatio, "Health ratio must be finite and within [0,1].");
+            }
+
+            ApplyRuntimeStats(stats, healthRatio);
+        }
+
+        public void Restart()
+        {
+            var failures = new List<Exception>();
+            try
+            {
+                attackState.Reset();
+            }
+            catch (Exception exception)
+            {
+                failures.Add(exception);
+            }
+
+            damageLedger.Clear();
+            body.linearVelocity = Vector2.zero;
+            body.angularVelocity = 0f;
+            body.position = spawnPosition;
+            body.rotation = spawnRotation.eulerAngles.z;
+
+            try
+            {
+                health.ResetHealth();
+            }
+            catch (Exception exception)
+            {
+                failures.Add(exception);
+            }
+
+            try
+            {
+                OnRestarted();
+            }
+            catch (Exception exception)
+            {
+                failures.Add(exception);
+            }
+
+            if (Restarted != null)
+            {
+                foreach (Action<EnemyBase> observer in Restarted.GetInvocationList())
+                {
+                    try
+                    {
+                        observer(this);
+                    }
+                    catch (Exception exception)
+                    {
+                        failures.Add(exception);
+                    }
+                }
+            }
+
+            ThrowFailures(failures);
+        }
+
+        public void ResetForRoom()
+        {
+            var failures = new List<Exception>();
+            try
+            {
+                ApplyRuntimeStats(EnemyRuntimeStats.Recompute(definition, NoBlessings), HealthRatio);
+            }
+            catch (Exception exception)
+            {
+                failures.Add(exception);
+            }
+
+            try
+            {
+                Restart();
+            }
+            catch (Exception exception)
+            {
+                failures.Add(exception);
+            }
+
+            ThrowFailures(failures);
+        }
+
+        protected bool TryGetPlayerTargetPosition(out Vector2 position)
+        {
+            if (playerTarget == null)
+            {
+                position = default;
+                return false;
+            }
+
+            var targetHealth = playerTarget.GetComponentInParent<Health>();
+            if (targetHealth != null && targetHealth.IsDead)
+            {
+                position = default;
+                return false;
+            }
+
+            position = playerTarget.position;
+            return true;
+        }
+
+        protected void MoveTowards(Vector2 targetPosition, float maximumDistanceDelta)
+        {
+            if (maximumDistanceDelta <= 0f)
+            {
+                return;
+            }
+
+            MoveWithCollision(Vector2.MoveTowards((Vector2)transform.position, targetPosition, maximumDistanceDelta));
+        }
+
+        protected void MoveInDirection(Vector2 normalizedDirection, float distance)
+        {
+            if (distance <= 0f)
+            {
+                return;
+            }
+
+            var current = (Vector2)transform.position;
+            MoveWithCollision(current + normalizedDirection * distance);
+        }
+
+        protected void BeginAttackWarning(float requestedWarningDuration)
+        {
+            attackState.BeginWarning(requestedWarningDuration);
+            damageLedger.Clear();
+        }
+
+        protected bool AdvanceAttackWarning(float deltaTime)
+        {
+            return attackState.AdvanceWarning(deltaTime);
+        }
+
+        protected AttackContext LockAttack(
+            Vector2 direction,
+            AttackShape shape,
+            float range,
+            float width,
+            int damage,
+            LayerMask targetMask)
+        {
+            return attackState.Lock(
+                Time.time,
+                transform.position,
+                direction,
+                shape,
+                range,
+                width,
+                damage,
+                targetMask);
+        }
+
+        protected void BeginAttackExecution()
+        {
+            attackState.BeginExecuting();
+        }
+
+        protected void BeginAttackRecovery()
+        {
+            attackState.BeginRecovery();
+        }
+
+        protected void CompleteAttackRecovery()
+        {
+            attackState.CompleteRecovery();
+        }
+
+        protected void CancelAttack()
+        {
+            attackState.Cancel();
+        }
+
+        protected bool TryApplyAttackDamage(AttackContext attackContext, Collider2D collider)
+        {
+            if (collider == null)
+            {
+                return false;
+            }
+
+            var target = collider.GetComponentInParent<Health>();
+            if (target == null || target.EntityId == 0 || target.EntityId == attackContext.AttackerEntityId)
+            {
+                return false;
+            }
+
+            var damageEvent = new DamageEvent(
+                attackContext.AttackInstanceId,
+                attackContext.AttackerEntityId,
+                target.EntityId,
+                attackContext.Damage);
+
+            return damageLedger.TryRegister(in damageEvent) && target.TryApplyDamage(damageEvent);
+        }
+
+        private void ApplyRuntimeStats(EnemyRuntimeStats nextStats, float healthRatio)
+        {
+            health.SetMaximumHealthAndRatio(nextStats.MaximumHealth, healthRatio);
+            transform.localScale = baseLocalScale * nextStats.ScaleMultiplier;
+            Physics2D.SyncTransforms();
+            ConstrainBodyToWorldBounds();
+            if (body != null)
+            {
+                body.mass = baseMass * nextStats.MassMultiplier;
+            }
+            var previousStats = runtimeStats;
+            runtimeStats = nextStats;
+            OnRuntimeStatsChanged(previousStats, runtimeStats);
+            RuntimeStatsChanged?.Invoke(previousStats, runtimeStats);
+            BlessingRuntimeStatsApplied?.Invoke(previousStats, runtimeStats, healthRatio);
+        }
+
+        protected virtual void OnEnemyInitialized()
+        {
+        }
+
+        protected virtual void OnRuntimeStatsChanged(EnemyRuntimeStats previousStats, EnemyRuntimeStats currentStats)
+        {
+        }
+
+        private void ConstrainBodyToWorldBounds()
+        {
+            var extents = bodyCollider.bounds.extents;
+            var position = body.position;
+            body.position = new Vector2(
+                Mathf.Clamp(position.x, WorldMinimumX + extents.x, WorldMaximumX - extents.x),
+                Mathf.Clamp(position.y, WorldMinimumY + extents.y, WorldMaximumY - extents.y));
+        }
+        private void MoveWithCollision(Vector2 desiredPosition)
+        {
+            var current = body.position;
+            var delta = desiredPosition - current;
+            var distance = delta.magnitude;
+            if (distance <= 0f)
+            {
+                return;
+            }
+
+            var direction = delta / distance;
+            var filter = new ContactFilter2D();
+            filter.SetLayerMask(definition.WorldCollisionMask);
+            filter.useTriggers = false;
+            movementHits.Clear();
+            body.Cast(direction, filter, movementHits, distance);
+
+            var allowedDistance = distance;
+            for (var index = 0; index < movementHits.Count; index++)
+            {
+                var hit = movementHits[index];
+                if (hit.collider == null)
+                {
+                    continue;
+                }
+
+                if (hit.distance <= 0.001f && Vector2.Dot(direction, hit.normal) > 0f)
+                {
+                    continue;
+                }
+
+                if (hit.distance < allowedDistance)
+                {
+                    allowedDistance = Mathf.Max(0f, hit.distance - 0.001f);
+                }
+            }
+
+            var extents = bodyCollider.bounds.extents;
+            var next = current + direction * allowedDistance;
+            body.position = new Vector2(
+                Mathf.Clamp(next.x, WorldMinimumX + extents.x, WorldMaximumX - extents.x),
+                Mathf.Clamp(next.y, WorldMinimumY + extents.y, WorldMaximumY - extents.y));
+            movementHits.Clear();
+        }
+        protected virtual void OnEnemyDied(DeathEvent deathEvent)
+        {
+        }
+
+        protected virtual void OnRestarted()
+        {
+        }
+
+        private static void ThrowFailures(List<Exception> failures)
+        {
+            if (failures.Count == 1)
+            {
+                System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(failures[0]).Throw();
+            }
+
+            if (failures.Count > 1)
+            {
+                throw new AggregateException("Enemy reset observers failed.", failures);
+            }
+        }
+        protected abstract void TickBehavior(float deltaTime);
+
+        private void HandleDeath(DeathEvent deathEvent)
+        {
+            attackState.HandleOwnerDeath();
+            OnEnemyDied(deathEvent);
+        }
+    }
+
+}

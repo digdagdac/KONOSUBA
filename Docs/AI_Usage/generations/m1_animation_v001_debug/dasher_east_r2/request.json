@@ -1,0 +1,49 @@
+{
+  "url": "https://chatgpt.com/backend-api/codex/responses",
+  "headers": {
+    "Authorization": "Bearer [REDACTED]",
+    "ChatGPT-Account-ID": "[REDACTED_ACCOUNT_ID]",
+    "Content-Type": "application/json",
+    "Accept": "text/event-stream",
+    "originator": "codex_cli_rs",
+    "session_id": "[REDACTED_SESSION_ID]"
+  },
+  "body": {
+    "model": "gpt-5.4",
+    "instructions": "",
+    "input": [
+      {
+        "type": "message",
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Create exactly one isolated neutral standing key pose of this exact coral-red charging knight, facing east/right. Use the supplied approved south-facing production sprite as the binding design: same compact four-head-tall body, helmet crest, broad shoulders, small shield, short lance, coral-red palette and pale-gold accents. Stand upright at rest with both feet planted; no crouching, lunging, running, charging or attack pose. Fixed 3/4 top-down camera, upper-left light. Crisp low-resolution pixel art with hard pixels and no antialiasing. Centered, fully visible. Flat pure magenta #FF00FF background only; no floor, shadow, particles, text, border, logo or duplicate. Do not use magenta in the character."
+          },
+          {
+            "type": "input_image",
+            "image_url": "[REDACTED_IMAGE_DATA]"
+          }
+        ]
+      }
+    ],
+    "tools": [
+      {
+        "type": "image_generation",
+        "output_format": "png",
+        "size": "1024x1024"
+      }
+    ],
+    "tool_choice": "auto",
+    "parallel_tool_calls": false,
+    "reasoning": null,
+    "store": false,
+    "stream": true,
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "client_metadata": {
+      "x-codex-installation-id": "[REDACTED_INSTALLATION_ID]"
+    }
+  }
+}

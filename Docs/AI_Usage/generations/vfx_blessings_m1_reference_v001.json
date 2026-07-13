@@ -1,0 +1,23 @@
+{
+  "asset_id": "vfx_blessings_m1_reference_v001",
+  "category": "vfx-reference",
+  "status": "review-required",
+  "tool": "god-tibo-imagen",
+  "tool_version": "0.3.1",
+  "provider": "private-codex",
+  "model": "gpt-5.4",
+  "created_at": "2026-07-12",
+  "prompt_file": "Docs/AI_Usage/prompts/m1_combat_visual_prompts_v001.json",
+  "prompt_key": "blessing_rules_reference_m1",
+  "input_images": ["Docs/Style/References/style_reference_master_v001.png","Docs/Style/References/chr_dasher_reference_v001.png","Docs/Style/References/chr_archer_reference_v001.png"],
+  "source_file": "Docs/Style/References/vfx_blessings_m1_reference_v001.png",
+  "final_file": "Docs/Style/References/vfx_blessings_m1_reference_v001.png",
+  "requested_size": "1536x1024",
+  "actual_size": "1536x1024",
+  "manual_edits": [],
+  "license": "project-generated original; final licensing review pending",
+  "approved_by": "pending-user-review",
+  "response_id": "resp_0aa246dca2ff2db7016a53c2d09f448191b4505c7b84d618d2",
+  "sha256": "89fec77d5183917e900f34115ee44836570ff818070ef99d81ea85bad5bb705c",
+  "review": {"haste_shape":"pass-draft","giant_shape":"pass-draft","two_blessings_only":"pass","character_visibility":"pass-draft","text_or_watermark":"pass","grayscale_test":"pending","final_vfx_readiness":"not-approved"}
+}

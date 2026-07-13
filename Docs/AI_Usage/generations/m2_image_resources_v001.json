@@ -1,0 +1,140 @@
+{
+  "schema": "overbless.m2-image-resources/v1",
+  "created_at": "2026-07-13",
+  "status": "generated-review-required",
+  "approval": {
+    "file": "Docs/Decisions/M2_ASSET_PRODUCTION_APPROVAL.json",
+    "sha256": "7ca6e92e0fdd90d9555ae09aa88c10673a5270b02e17115953214aa6e826a7a3",
+    "scope": "offline image-resource production only",
+    "runtime_binding": false
+  },
+  "generator": {
+    "tool": "god-tibo-imagen 0.3.1",
+    "provider": "private-codex",
+    "model": "gpt-5.4",
+    "prompt_file": "Docs/AI_Usage/prompts/m2_image_resource_prompts_v001.json",
+    "prompt_file_sha256": "4139ffff446d7fb5e3da67a63156b1a179e268cf3d6d98fc3b12a6cf7b3cd114"
+  },
+  "sources": [
+    {
+      "prompt_key": "golem_idle_south",
+      "response_id": "resp_0bb0605f09191638016a548db4cbb48192a87dcd18d752c79b",
+      "file": "Docs/AI_Usage/sources/m2_assets_v001/golem_idle_south_source.png",
+      "size": [1254, 1254],
+      "sha256": "2f5f30be196dc14da7697a301719183384ef972e2bc4304e30e6c06ffa28de97",
+      "debug_directory": "Docs/AI_Usage/generations/m2_assets_v001_debug/golem_south"
+    },
+    {
+      "prompt_key": "golem_idle_north",
+      "response_id": "resp_0e363618fc612a13016a548e0a20a88191babb74817659e9e9",
+      "file": "Docs/AI_Usage/sources/m2_assets_v001/golem_idle_north_source.png",
+      "size": [1254, 1254],
+      "sha256": "3a9fa294d62619495fbb25dab4b0bdf9261e28059732ada9c7f4307b717cabb4",
+      "debug_directory": "Docs/AI_Usage/generations/m2_assets_v001_debug/golem_north"
+    },
+    {
+      "prompt_key": "golem_idle_east",
+      "response_id": "resp_04a746a13ae31150016a548e5e72ec8191802c972f7b2e1993",
+      "file": "Docs/AI_Usage/sources/m2_assets_v001/golem_idle_east_source.png",
+      "size": [1254, 1254],
+      "sha256": "e1fb1afb233c747d2a42348f5239037e41f66ad73b1a8aec0449905fe3b6f18f",
+      "debug_directory": "Docs/AI_Usage/generations/m2_assets_v001_debug/golem_east"
+    },
+    {
+      "prompt_key": "golem_idle_southeast",
+      "response_id": "resp_0ed7d550f17147fe016a548eaf9b948191a71d0b24e8672f2d",
+      "file": "Docs/AI_Usage/sources/m2_assets_v001/golem_idle_southeast_source.png",
+      "size": [1254, 1254],
+      "sha256": "6ee78a2944e6530834bd18dc8ef01b3919aa1ff92036a8c830aafbd8b0b35b7e",
+      "debug_directory": "Docs/AI_Usage/generations/m2_assets_v001_debug/golem_southeast"
+    },
+    {
+      "prompt_key": "golem_idle_northeast",
+      "response_id": "resp_08a79decebba854d016a548f08bb28819190c893152ef5b150",
+      "file": "Docs/AI_Usage/sources/m2_assets_v001/golem_idle_northeast_source.png",
+      "size": [1254, 1254],
+      "sha256": "d22d321b12117cc176b0eafe4c075bc9546523944437d15662557c9f1d62ec4c",
+      "debug_directory": "Docs/AI_Usage/generations/m2_assets_v001_debug/golem_northeast"
+    },
+    {
+      "prompt_key": "echo_vfx_sheet",
+      "response_id": "resp_0f01ac53dc4710b1016a548da2c4a081a3b3ebf1456fb538b8",
+      "file": "Docs/AI_Usage/sources/m2_assets_v001/echo_vfx_sheet_source.png",
+      "size": [1536, 1024],
+      "sha256": "4017f9badd6d291028599a290e22f2a7cf860654db679e52c5b082b5ca3d5044",
+      "debug_directory": "Docs/AI_Usage/generations/m2_assets_v001_debug/echo_vfx_sheet"
+    },
+    {
+      "prompt_key": "environment_mechanics_sheet",
+      "response_id": "resp_0dcd78628d3cb711016a548d9964f88191956ccb9a4c1e3a1e",
+      "file": "Docs/AI_Usage/sources/m2_assets_v001/environment_mechanics_sheet_source.png",
+      "size": [1254, 1254],
+      "sha256": "411b0e30c04e97b5078cec18e1237f8e84d787328e19ce357692db24e97322fd",
+      "debug_directory": "Docs/AI_Usage/generations/m2_assets_v001_debug/environment_mechanics_sheet"
+    },
+    {
+      "prompt_key": "final_room_sheet",
+      "response_id": "resp_09328d27f5375b2e016a548d8ba89081a1bfe6fc8fcbfaf75b",
+      "file": "Docs/AI_Usage/sources/m2_assets_v001/final_room_sheet_source.png",
+      "size": [1536, 1024],
+      "sha256": "0a46b96d853914ee8526fb466cc0a107bcac9971ebb7dfffd0e4be2bb4f314ce",
+      "debug_directory": "Docs/AI_Usage/generations/m2_assets_v001_debug/final_room_sheet"
+    }
+  ],
+  "deterministic_processing": {
+    "script": "Tools/process_m2_art.py",
+    "script_sha256": "8ed592c9564f190e82221c9acaf0ce9f359aac427ec3c29c5075a8b018e27bde",
+    "steps": [
+      "Crop fixed sheet cells with source-specific gutter exclusion.",
+      "Remove magenta and near-corner chroma pixels into binary alpha.",
+      "Crop, nearest-neighbor resize and center or bottom-align on 128x128 canvases.",
+      "Normalize five Golem key poses, mirror left-facing poses and produce deterministic state frames.",
+      "Pack the Golem states into eight six-cell direction blocks per row."
+    ],
+    "index": "Docs/AI_Usage/generations/m2_image_resource_index_v001.json",
+    "index_sha256": "3c68a778176ef6b0efddbbcfb3083659226481dcced42a01b9c67aecbaf800dd"
+  },
+  "unity_import": {
+    "script": "Assets/_Project/Editor/Bootstrap/M2ImageResourceBootstrap.cs",
+    "script_sha256": "c2a91bb670977e6b01ac5bb8e0db7b3f7b5d7dea6ab1bd9f08457542bf27d5b3",
+    "pixels_per_unit": 128,
+    "filter": "Point",
+    "mipmaps": false,
+    "compression": "Uncompressed",
+    "golem_pivot": "bottom-center",
+    "golem_sub_sprites": 264,
+    "single_sprites": 28
+  },
+  "verification": {
+    "deterministic_regeneration": "Passed",
+    "package_check": "Passed: sources=8 atlasFrames=264 sprites=28 unityMeta=29 runtimeBindings=0",
+    "unity_import_log": {
+      "file": "Evidence/Verification/m2-image-resource-import.log",
+      "sha256": "2df21037bc68ae997b6ea3bdd686965660f079ac3a2edd02869a38cf387aa63e"
+    },
+    "editmode": {
+      "result": "Passed",
+      "total": 19,
+      "passed": 19,
+      "failed": 0,
+      "file": "Evidence/Verification/editmode-m2-image-resources-results.xml",
+      "sha256": "fc4e71f36391a675cd6f58073599d6b660d8b5661299cd66b82ba460ad770dc9"
+    }
+  },
+  "review": {
+    "status": "human-review-required",
+    "golem_source_contact": {
+      "file": "Evidence/Verification/m2-golem-source-keyposes-contact.png",
+      "sha256": "a0c8321d70fd4a421f9c990a71e1e63e2af4015bcbae6a03b2c5d357ebb9f027"
+    },
+    "production_contact": {
+      "file": "Evidence/Verification/m2-image-resource-production-contact.png",
+      "sha256": "79f7e68466378874ff26eb6b1627b1375be82f476188c904f43329bfc5bc55f8"
+    },
+    "remaining": [
+      "Confirm Golem costume and palette continuity across independently generated directions.",
+      "Confirm cliff tiles communicate lethal void rather than raised solid blocks.",
+      "Confirm every mechanic silhouette remains readable at gameplay scale."
+    ]
+  }
+}

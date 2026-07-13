@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!78 &1
+TagManager:
+  serializedVersion: 3
+  tags: []
+  layers:
+  - Default
+  - TransparentFX
+  - Ignore Raycast
+  - 
+  - Water
+  - UI
+  - 
+  - 
+  - Player
+  - EnemyBody
+  - EnemyAttack
+  - Projectile
+  - World
+  - Pickup
+  - Exit
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  m_SortingLayers:
+  - name: Default
+    uniqueID: 0
+    locked: 0
+  - name: Background
+    uniqueID: 989596349
+    locked: 0
+  - name: World
+    uniqueID: 1566633267
+    locked: 0
+  - name: Actors
+    uniqueID: 2034603147
+    locked: 0
+  - name: VFX
+    uniqueID: 219262143
+    locked: 0
+  - name: Telegraph
+    uniqueID: 227823951
+    locked: 0
+  - name: UI
+    uniqueID: 2079568635
+    locked: 0
+  m_RenderingLayers:
+  - Default

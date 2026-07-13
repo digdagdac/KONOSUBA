@@ -1,0 +1,72 @@
+{
+  "review_id": "m1_unity_sprite_review_v001",
+  "reviewed_at": "2026-07-13",
+  "status": "machine-pass-human-review-required",
+  "scope": "Nine M1 production sprites integrated into the guided validation scene",
+  "asset_checks": {
+    "png_signature": "pass 9/9",
+    "rgba_128x128": "pass 9/9",
+    "binary_alpha_non_tile": "pass 8/8",
+    "opaque_tile": "pass 1/1",
+    "tile_opposite_edges_exact": "pass",
+    "source_and_final_sha256": "pass 9/9",
+    "manifest_binding": "pass 9/9",
+    "deterministic_postprocess_rerun": "pass 9/9",
+    "unity_meta_present": "pass 9/9",
+    "point_filter_128_ppu_no_mipmaps_uncompressed": "pass 9/9",
+    "custom_pivots": "pass 9/9"
+  },
+  "unity_checks": {
+    "editor": "6000.0.72f1",
+    "editmode": {
+      "result": "Passed",
+      "total": 11,
+      "passed": 11,
+      "failed": 0,
+      "file": "Evidence/Verification/editmode-production-art-results.xml",
+      "sha256": "746dde7eac85294fb3b6b23e064c6e57dd57512a34d2c2817b017b99431def38"
+    },
+    "playmode": {
+      "result": "Passed",
+      "total": 4,
+      "passed": 4,
+      "failed": 0,
+      "file": "Evidence/Verification/playmode-production-art-results.xml",
+      "sha256": "1100a26c0f2954b26d0d706b0d6a1245c1c8291db4b224379eee9aa9d2a2f924"
+    },
+    "webgl": {
+      "result": "Passed",
+      "development": true,
+      "served_dimensions": "1280x720",
+      "fullscreen_control_removed": true,
+      "file_set_sha256": "cf221301a4aa9c0106e6ead7a646255c5cbe976114c736533d84464b80b143d2",
+      "manifest": "Builds/M1_GuidedValidation_WebGL.sealed/build-manifest.json"
+    }
+  },
+  "browser_checks": {
+    "canvas_backing_size": "1280x720",
+    "canvas_client_size": "1280x720",
+    "loading_complete": true,
+    "canvas_focus_after_trusted_click": true,
+    "fullscreen_button_present": false,
+    "screenshot": "Evidence/Verification/m1-production-art-final-1280x720.png",
+    "screenshot_sha256": "422ecc38fc182f230c2b16a5b278612ca24180c4b796b39a5ee79b45569f7097",
+    "interactive_screenshot": "Evidence/Verification/m1-production-art-final-interactive-1280x720.png",
+    "interactive_screenshot_sha256": "b84f8ed6104d577fc8201c3f0ba326734e2288cae34364cf2099e63cf945885d"
+  },
+  "visual_checks": {
+    "characters_upright": "pass",
+    "role_palette_separation": "pass-draft",
+    "transparent_edge_noise": "none observed",
+    "magenta_chroma_residue": "none observed",
+    "player_target_height_contract": "pass by 126/128 source-content height at 128 PPU and the fixed 720p camera",
+    "minion_relative_scale": "pass-draft",
+    "telegraph_priority": "unchanged from M1 runtime"
+  },
+  "human_review_remaining": [
+    "Confirm the final character rendering and relative scale on the captured 1280x720 scene.",
+    "Confirm Haste and Giant icon readability during live blessing selection.",
+    "Approve or request revisions before producing directional animation sheets."
+  ],
+  "scope_note": "No Echo, Golem, hazard, destructible, final-room, M2, or marketing asset was added."
+}

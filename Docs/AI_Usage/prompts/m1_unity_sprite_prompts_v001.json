@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0",
+  "project": "Overbless",
+  "created_at": "2026-07-13",
+  "tool": "god-tibo-imagen 0.3.1",
+  "model": "gpt-5.4",
+  "provider": "private-codex",
+  "shared_constraints": "Create one isolated game asset only, centered, fully visible, no crop. Crisp hand-placed pixel art with a deliberately low internal pixel resolution, no antialiasing, no smooth vector edges, no painterly texture, no photorealism. Use the attached approved draft reference as the exact design, palette, 3/4 top-down camera, and upper-left light guide. Flat uniform pure magenta #FF00FF background with no gradient, floor, cast shadow, glow spill, particles, border, text, letters, numbers, labels, logo, signature, or watermark. Do not use magenta anywhere in the asset itself.",
+  "prompts": {
+    "player_idle_south": "The cyan non-attacking blessing mage player in a neutral idle pose facing south/front in fixed 3/4 top-down view. Empty hands held visibly away from the body; no weapon. Preserve the cyan hood, white accents, short mantle, compact four-head-tall silhouette, and readable feet.",
+    "dasher_idle_south": "The coral-red charging knight enemy in a neutral idle pose facing south/front in fixed 3/4 top-down view. Preserve the forward helmet crest, broad shoulders, compact shield, lance-like charge weapon, pale-gold accents, and wedge-shaped charging silhouette.",
+    "archer_idle_south": "The violet piercing archer enemy in a neutral ready pose facing south/front in fixed 3/4 top-down view. Preserve the hood, lavender accents, and long asymmetrical bow with a clearly readable horizontal firing axis.",
+    "minion_idle_south": "The compact green dungeon minion in a neutral idle pose facing south/front in fixed 3/4 top-down view. Preserve the small rounded-square head-and-body silhouette, short limbs, simple clothing, and clearly smaller scale than humanoids.",
+    "soul_pickup": "A single cyan-white soul shard pickup: compact faceted diamond-flame silhouette, bright cyan core and pale outline, readable at 32 pixels, no character and no pedestal.",
+    "exit_closed": "A single closed gold diamond exit marker in fixed 3/4 top-down view: faceted golden diamond hovering just above a compact dark blue-gray octagonal stone base, restrained pale-gold trim, no open portal hole and no particles.",
+    "blessing_haste_icon": "A single Haste blessing icon: cyan-white stack of three forward chevrons crossed by one narrow lightning bolt, strong asymmetric speed silhouette, readable at 32 and 64 pixels, no frame and no character.",
+    "blessing_giant_icon": "A single Giant blessing icon: heavy red-orange concentric hexagon with a solid central stone cube, thick weight-bearing silhouette, readable at 32 and 64 pixels, no frame and no character.",
+    "dungeon_floor_tile": "A single square low-contrast blue-gray stone floor tile in fixed 3/4 top-down visual language but presented as a seamless square texture. Subtle four-stone pattern, uniform edge values so all four sides repeat seamlessly, no perspective border, no prop and no gold accent."
+  },
+  "postprocess_contract": {
+    "chroma_key": "#FF00FF",
+    "character_canvas": "128x128 RGBA PNG",
+    "icon_canvas": "128x128 RGBA PNG",
+    "filter": "nearest-neighbor only",
+    "character_target_content_height": "player/dasher/archer 126px; minion 70px",
+    "pivot": "bottom center",
+    "unity_pixels_per_unit": 128
+  }
+}
