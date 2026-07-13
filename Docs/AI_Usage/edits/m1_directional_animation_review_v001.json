@@ -1,0 +1,90 @@
+{
+  "review_id": "m1_directional_animation_review_v001",
+  "reviewed_at": "2026-07-13",
+  "status": "machine-pass-human-review-required",
+  "scope": "Eight-direction M1 animation atlases for player, Dasher, Archer and Minion",
+  "production_summary": {
+    "generated_key_poses": 8,
+    "directions": ["south", "north", "east", "west", "southeast", "southwest", "northeast", "northwest"],
+    "west_policy": "west and left-facing diagonals are exact horizontal mirrors of their right-facing counterparts",
+    "diagonal_policy": "integer-shift opaque pixel composites derived from approved cardinal poses",
+    "atlases": 4,
+    "active_sub_sprites": 944,
+    "cell_size": "128x128",
+    "pivot": "bottom-center",
+    "pixels_per_unit": 128,
+    "filter": "Point",
+    "mipmaps": false,
+    "compression": "Uncompressed",
+    "alpha": "binary"
+  },
+  "state_coverage": {
+    "player": ["Idle", "Move", "Dash", "BlessCast", "Hit", "Death"],
+    "dasher": ["Idle", "Move", "AttackCharge", "AttackExecute", "Recover", "Hit", "Death"],
+    "archer": ["Idle", "Move", "AttackCharge", "AttackExecute", "Recover", "Hit", "Death"],
+    "minion": ["Idle", "Move", "BasicAttack", "Hit", "Death"]
+  },
+  "runtime_checks": {
+    "direction_selection": "deterministic eight-sector quantization with 22.5/67.5 degree boundaries and persisted last facing",
+    "player_states": "movement, dash, blessing selection, hit and death drive visible clips",
+    "enemy_states": "attack state machine phases drive charge, execute, recover and basic attack clips",
+    "initial_facing": "player north; authored enemy facing or player-relative fallback",
+    "non_looping_clips": "hold their final frame until runtime state changes",
+    "pause_behavior": "frame playback uses scaled delta time",
+    "telegraph_readability": "line strokes encode attack width without filling the whole collision corridor",
+    "hud_sorting": "screen-space camera HUD is explicitly on the UI sorting layer"
+  },
+  "verification": {
+    "editmode": {
+      "result": "Passed",
+      "total": 18,
+      "passed": 18,
+      "failed": 0,
+      "file": "Evidence/Verification/editmode-eight-direction-results.xml",
+      "sha256": "70b20649eaaca8434c0b01ac538d40a57c76354bf28b31213141a4f410236619"
+    },
+    "playmode": {
+      "result": "Passed",
+      "total": 4,
+      "passed": 4,
+      "failed": 0,
+      "file": "Evidence/Verification/playmode-eight-direction-results.xml",
+      "sha256": "d6b8618e24000388fda38d371ad35c643967a455c0f74253d18e8945009f4f4a"
+    },
+    "webgl": {
+      "result": "Passed",
+      "canvas": "1280x720 backing and client size",
+      "file_set_sha256": "b5474480e57fc9e83ea88a31df7600588a94ad441309f2245ad776b61dbe27fc",
+      "manifest": "Builds/M1_GuidedValidation_WebGL.sealed/build-manifest.json"
+    },
+    "screenshots": [
+      {
+        "state": "eight-direction role key-pose comparison",
+        "file": "Evidence/Verification/m1-eight-direction-keyposes-contact.png",
+        "sha256": "a1dde8b4bb2f87eca0b1b7308559a6635fba4f15281a129946fdfb23d2c04e56"
+      },
+      {
+        "state": "initial north-facing player and mixed enemy directions",
+        "file": "Evidence/Verification/m1-eight-direction-webgl-initial-1280x720.png",
+        "sha256": "5554ed6c66451c35c894adf0a9e2a8d35340860d153a34c45ce1d6e4f7329ae8"
+      },
+      {
+        "state": "north-east movement",
+        "file": "Evidence/Verification/m1-eight-direction-webgl-northeast-1280x720.png",
+        "sha256": "88c1d4bd342cec0c065efc32666e68478cb5cdea6ff3b699f733a587652580f2"
+      },
+      {
+        "state": "south-west death orientation",
+        "file": "Evidence/Verification/m1-eight-direction-webgl-southwest-1280x720.png",
+        "sha256": "701245cafc8f5c557d9d0d7eeb9ef7d84a77d210d53b2538a17cbaded59ef2e7"
+      }
+    ]
+  },
+  "human_review_remaining": [
+    "Confirm costume-detail consistency between approved south poses and generated north/east poses.",
+    "Confirm derived diagonal composites read clearly at gameplay scale or commission dedicated diagonal key poses.",
+    "Confirm the deterministic whole-silhouette motion density is sufficient before commissioning hand-authored limb animation.",
+    "Approve or request revisions to individual role/direction key poses."
+  ],
+  "scope_note": "No Echo, Golem, hazard, destructible, final-room, M2 or marketing feature was produced because no valid user-owned M2EntryGate PASS exists."
+}

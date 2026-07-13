@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "decision": "approved",
+  "status": "confirmed",
+  "decidedBy": "user",
+  "decidedAtUtc": "2026-07-12T11:49:14Z",
+  "sources": [
+    {
+      "path": "overbless_prd_v0.2_ko.md",
+      "sha256": "21f953935801cb873e8d34dd81bf4bfa35ad1cf840e8d3ed3359b16a9dd8136c"
+    },
+    {
+      "path": "overbless_ai_resource_production_checklist_v0.1_ko.md",
+      "sha256": "b1b79d6111ce8dd436a6a42b4de5bc4eeba8b63790238ba28736d2e66639708b"
+    }
+  ],
+  "sourceSealRequirement": "The SHA-256 of the actual bytes of every source must equal its approved sha256 before a source seal is allowed."
+}

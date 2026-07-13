@@ -1,0 +1,159 @@
+{
+  "schema_version": "1.0",
+  "generation_id": "m1_directional_animations_v001",
+  "project": "Overbless",
+  "status": "review-required",
+  "created_at": "2026-07-13",
+  "tool": {
+    "generator": "god-tibo-imagen",
+    "generator_version": "0.3.1",
+    "provider": "private-codex",
+    "model": "gpt-5.4",
+    "postprocessor": "Tools/process_m1_animation.py",
+    "postprocessor_runtime": "Python 3 + Pillow 12.1.1"
+  },
+  "prompt_file": "Docs/AI_Usage/prompts/m1_directional_animation_prompts_v001.json",
+  "key_poses": [
+    {
+      "prompt_key": "player_idle_north",
+      "response_id": "resp_0376f7ffd085cff6016a54670177548191acf7fea0e3853924",
+      "reference_files": [
+        "Assets/_Project/Art/M1Production/Characters/chr_player_idle_south_a_v001.png",
+        "Docs/Style/References/chr_player_reference_v001.png"
+      ],
+      "source_file": "Docs/AI_Usage/sources/m1_animation_v001/player_idle_north_source.png",
+      "source_size": "1254x1254",
+      "source_sha256": "1af2a35a5f2ed9083dee0402c422fbc590e146569b72c98fccb400562c5a2ad9"
+    },
+    {
+      "prompt_key": "player_idle_east",
+      "response_id": "resp_0507312af4ba1045016a5467530d74819182367ac9d38e7ad4",
+      "reference_files": [
+        "Assets/_Project/Art/M1Production/Characters/chr_player_idle_south_a_v001.png",
+        "Docs/Style/References/chr_player_reference_v001.png"
+      ],
+      "source_file": "Docs/AI_Usage/sources/m1_animation_v001/player_idle_east_source.png",
+      "source_size": "1254x1254",
+      "source_sha256": "159647edc7ba285887599b28a5af8d497a32fe03c75340ed7b8ff5164c4cad2c"
+    },
+    {
+      "prompt_key": "dasher_idle_north",
+      "response_id": "resp_0de8879fa647ce57016a5467a1e1a881919d5ff0f96c4a2a08",
+      "reference_files": [
+        "Assets/_Project/Art/M1Production/Characters/chr_dasher_idle_south_a_v001.png",
+        "Docs/Style/References/chr_dasher_reference_v001.png"
+      ],
+      "source_file": "Docs/AI_Usage/sources/m1_animation_v001/dasher_idle_north_source.png",
+      "source_size": "1254x1254",
+      "source_sha256": "e6fd2eefc3dadfa1b6d7b6862531671226bddd2d7ef37c1391bcd0983d96cce1"
+    },
+    {
+      "prompt_key": "dasher_idle_east",
+      "response_id": "resp_0d508c235245fec1016a54698bd8248191b2f3de7afb59df7a",
+      "reference_files": [
+        "Assets/_Project/Art/M1Production/Characters/chr_dasher_idle_south_a_v001.png"
+      ],
+      "source_file": "Docs/AI_Usage/sources/m1_animation_v001/dasher_idle_east_source.png",
+      "source_size": "1254x1254",
+      "source_sha256": "e7a1933267caa7f4f76a4ffd2049c2d82e130a541fab33b659bfb739fcfe5515"
+    },
+    {
+      "prompt_key": "archer_idle_north",
+      "response_id": "resp_07d22abe4e561deb016a54683fca148191bac99ea3bf0194d3",
+      "reference_files": [
+        "Assets/_Project/Art/M1Production/Characters/chr_archer_idle_south_a_v001.png",
+        "Docs/Style/References/chr_archer_reference_v001.png"
+      ],
+      "source_file": "Docs/AI_Usage/sources/m1_animation_v001/archer_idle_north_source.png",
+      "source_size": "1254x1254",
+      "source_sha256": "04fe19f4a69c6b2fd5be39c962697e455cd945d23a57f6054a268c622a08de93"
+    },
+    {
+      "prompt_key": "archer_idle_east",
+      "response_id": "resp_00f60e0d4c720cda016a5469d330b881918c78deb26ce3b9ae",
+      "reference_files": [
+        "Assets/_Project/Art/M1Production/Characters/chr_archer_idle_south_a_v001.png"
+      ],
+      "source_file": "Docs/AI_Usage/sources/m1_animation_v001/archer_idle_east_source.png",
+      "source_size": "1254x1254",
+      "source_sha256": "5a8514b3a1acc29c44a66cf1e6d9ebb0c548c489aaf08288c7145100b5297df1"
+    },
+    {
+      "prompt_key": "minion_idle_north",
+      "response_id": "resp_090b08c4ddba7dd2016a5468e52d3c81919b3c785ec5edc5e0",
+      "reference_files": [
+        "Assets/_Project/Art/M1Production/Characters/chr_minion_idle_south_a_v001.png",
+        "Docs/Style/References/chr_minion_reference_v001.png"
+      ],
+      "source_file": "Docs/AI_Usage/sources/m1_animation_v001/minion_idle_north_source.png",
+      "source_size": "1254x1254",
+      "source_sha256": "521afea40b37f03936e254fbfc14d84db865ba781976fa83b2fd44dc13205baa"
+    },
+    {
+      "prompt_key": "minion_idle_east",
+      "response_id": "resp_022492b27f403b37016a54692ee124819491d3a43c45143aba",
+      "reference_files": [
+        "Assets/_Project/Art/M1Production/Characters/chr_minion_idle_south_a_v001.png",
+        "Docs/Style/References/chr_minion_reference_v001.png"
+      ],
+      "source_file": "Docs/AI_Usage/sources/m1_animation_v001/minion_idle_east_source.png",
+      "source_size": "1254x1254",
+      "source_sha256": "65adcb78775ea55a84c66a99b312f2740456bf55d9d61c157e829a6292994abd"
+    }
+  ],
+  "superseded_attempts": [
+    {
+      "prompt_key": "dasher_idle_east",
+      "response_id": "resp_0aa4fb7be4df849c016a5467f84a40819195735c20900196fb",
+      "reason": "Replaced because the pose crouched into an attack rather than a neutral standing key pose."
+    },
+    {
+      "prompt_key": "archer_idle_east",
+      "response_id": "resp_0906e0c9c96687ff016a54688f04d8819186af2b4f76387ecb",
+      "reason": "Replaced because the silhouette was too large and heavily armored relative to the approved south pose."
+    }
+  ],
+  "deterministic_modifications": [
+    "Remove pure-magenta and near-corner chroma pixels into binary alpha.",
+    "Normalize north/east key poses to 128x128 with nearest-neighbor scaling and bottom-center alignment.",
+    "Derive west from east using exact nearest-neighbor horizontal mirroring.",
+    "Derive southeast/northeast with integer-shift opaque-pixel cardinal composites and derive southwest/northwest by exact horizontal mirroring.",
+    "Produce state frames with integer-pixel translation, nearest-neighbor bottom-centered scaling/rotation and palette-safe state tint.",
+    "Pack frames into one state row and eight six-cell directional blocks per atlas.",
+    "Validate every active cell for 128x128 bounds, nonempty content, binary alpha and visible frame variation; validate diagonal/cardinal distinction and mirror symmetry."
+  ],
+  "atlas_index": {
+    "file": "Docs/AI_Usage/generations/m1_directional_animation_index_v001.json",
+    "sha256": "46027723e505e1b4e55125abb8c4ec7f0a8c82e4c163026578606f795f2379bf"
+  },
+  "atlases": [
+    {
+      "role": "player",
+      "file": "Assets/_Project/Art/M1Production/Characters/Animation/chr_player_animation_atlas_v001.png",
+      "size": "6144x768",
+      "sub_sprites": 232,
+      "sha256": "c9ccd01706fec9faaf4ffeb504b67cb50aeb6675a5125270f4d1c3d5582b52cf"
+    },
+    {
+      "role": "dasher",
+      "file": "Assets/_Project/Art/M1Production/Characters/Animation/chr_dasher_animation_atlas_v001.png",
+      "size": "6144x896",
+      "sub_sprites": 264,
+      "sha256": "424d7943ec171846aa69e4dda209a26283632df552a2b76a8cdf3fb4947a0dde"
+    },
+    {
+      "role": "archer",
+      "file": "Assets/_Project/Art/M1Production/Characters/Animation/chr_archer_animation_atlas_v001.png",
+      "size": "6144x896",
+      "sub_sprites": 264,
+      "sha256": "8703f121b5794a2290c2fe22e32fbaa6b3e6a5b3f37a8da6b1a32a67343e5bda"
+    },
+    {
+      "role": "minion",
+      "file": "Assets/_Project/Art/M1Production/Characters/Animation/chr_minion_animation_atlas_v001.png",
+      "size": "6144x640",
+      "sub_sprites": 184,
+      "sha256": "13b550f5b46dc4e05c0ccc4c403031532667775bafe917cdeaa10f3c6ef9c124"
+    }
+  ]
+}

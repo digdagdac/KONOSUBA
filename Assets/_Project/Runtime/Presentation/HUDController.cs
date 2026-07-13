@@ -1,0 +1,249 @@
+using System;
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace Overbless.Runtime
+{
+    public readonly struct HudState
+    {
+        public HudState(
+            int health,
+            int maximumHealth,
+            float dash01,
+            bool dashAvailable,
+            float dashCooldownRemaining,
+            bool hasteAvailable,
+            bool giantAvailable,
+            int souls,
+            bool exitOpen)
+        {
+            Health = health;
+            MaximumHealth = maximumHealth;
+            Dash01 = dash01;
+            DashAvailable = dashAvailable;
+            DashCooldownRemaining = dashCooldownRemaining;
+            HasteAvailable = hasteAvailable;
+            GiantAvailable = giantAvailable;
+            Souls = souls;
+            ExitOpen = exitOpen;
+        }
+
+        public int Health { get; }
+        public int MaximumHealth { get; }
+        public float Dash01 { get; }
+        public bool DashAvailable { get; }
+        public float DashCooldownRemaining { get; }
+        public bool HasteAvailable { get; }
+        public bool GiantAvailable { get; }
+        public int Souls { get; }
+        public bool ExitOpen { get; }
+    }
+
+    [DisallowMultipleComponent]
+    public sealed class HUDController : MonoBehaviour
+    {
+        private const int RequiredSouls = M1RoomDefinition.RequiredSoulCount;
+
+        private static readonly Color AvailableHasteColor = new Color32(55, 211, 242, 255);
+        private static readonly Color AvailableGiantColor = new Color32(255, 137, 72, 255);
+        private static readonly Color SelectedColor = new Color32(255, 238, 143, 255);
+        private static readonly Color UnavailableColor = new Color32(66, 76, 92, 255);
+        private static readonly Color HealthyColor = new Color32(70, 224, 205, 255);
+        private static readonly Color DangerColor = new Color32(255, 92, 102, 255);
+
+        [Header("Runtime state")]
+        [SerializeField] private Health playerHealth;
+        [SerializeField] private DashAbility dashAbility;
+        [SerializeField] private BlessingTargeting blessingTargeting;
+        [SerializeField] private M1RoomLifecycle roomLifecycle;
+
+        [Header("Bars")]
+        [SerializeField] private Image healthFill;
+        [SerializeField] private Image dashFill;
+
+        [Header("Readouts")]
+        [SerializeField] private Text healthText;
+        [SerializeField] private Text dashText;
+        [SerializeField] private Text soulText;
+        [SerializeField] private Text exitText;
+        [SerializeField] private Text selectionText;
+        [SerializeField] private Text hasteStatusText;
+        [SerializeField] private Text giantStatusText;
+
+        [Header("Blessing cards")]
+        [SerializeField] private Image hasteFrame;
+        [SerializeField] private Image giantFrame;
+
+        private HudState state;
+        private bool hasState;
+
+        public event Action<HudState> StateChanged;
+
+        public bool HasState => hasState;
+        public bool IsBound =>
+            playerHealth != null && dashAbility != null && blessingTargeting != null && roomLifecycle != null;
+        public bool IsViewConfigured =>
+            healthFill != null && healthFill.sprite != null && healthFill.type == Image.Type.Filled &&
+            dashFill != null && dashFill.sprite != null && dashFill.type == Image.Type.Filled &&
+            healthText != null && dashText != null && soulText != null && exitText != null &&
+            selectionText != null && hasteStatusText != null && giantStatusText != null &&
+            hasteFrame != null && giantFrame != null;
+
+        public HudState State
+        {
+            get
+            {
+                if (!hasState)
+                {
+                    throw new InvalidOperationException("HUD state has not been initialized.");
+                }
+
+                return state;
+            }
+        }
+
+        private void OnEnable()
+        {
+            RefreshFromSources();
+        }
+
+        private void Update()
+        {
+            RefreshFromSources();
+        }
+
+        public bool TryGetState(out HudState currentState)
+        {
+            currentState = state;
+            return hasState;
+        }
+
+        public void SetState(HudState newState)
+        {
+            ValidateState(newState);
+            var changed = !hasState || !StatesEqual(state, newState);
+            state = newState;
+            hasState = true;
+            RenderView(newState);
+
+            if (changed)
+            {
+                StateChanged?.Invoke(newState);
+            }
+        }
+
+        private void RefreshFromSources()
+        {
+            if (!IsBound)
+            {
+                return;
+            }
+
+            var cooldownDuration = dashAbility.CooldownDuration;
+            var dashAvailable = dashAbility.CanDash;
+            var dash01 = dashAvailable
+                ? 1f
+                : cooldownDuration <= 0f
+                    ? 0f
+                    : 1f - Mathf.Clamp01(dashAbility.CooldownRemaining / cooldownDuration);
+
+            SetState(new HudState(
+                playerHealth.CurrentHealth,
+                playerHealth.MaximumHealth,
+                dash01,
+                dashAvailable,
+                dashAbility.CooldownRemaining,
+                blessingTargeting.IsAvailable(BlessingType.Haste),
+                blessingTargeting.IsAvailable(BlessingType.Giant),
+                roomLifecycle.SoulCount,
+                roomLifecycle.IsExitOpen));
+        }
+
+        private void RenderView(HudState value)
+        {
+            if (!IsViewConfigured)
+            {
+                return;
+            }
+
+            var health01 = (float)value.Health / value.MaximumHealth;
+            healthFill.fillAmount = health01;
+            healthFill.color = health01 <= 0.34f ? DangerColor : HealthyColor;
+            healthText.text = $"LIFE  {value.Health} / {value.MaximumHealth}";
+
+            dashFill.fillAmount = value.Dash01;
+            dashText.text = value.DashAvailable
+                ? "DASH  READY"
+                : value.DashCooldownRemaining > 0f
+                    ? $"DASH  {Mathf.CeilToInt(value.DashCooldownRemaining)}s"
+                    : "DASH  UNAVAILABLE";
+
+            soulText.text = $"SOULS  {Mathf.Min(value.Souls, RequiredSouls)} / {RequiredSouls}";
+            exitText.text = value.ExitOpen ? "EXIT  OPEN" : $"EXIT  LOCKED  {Mathf.Min(value.Souls, RequiredSouls)}/{RequiredSouls}";
+
+            var selectingHaste = blessingTargeting != null &&
+                                 blessingTargeting.IsSelecting &&
+                                 blessingTargeting.SelectedType == BlessingType.Haste;
+            var selectingGiant = blessingTargeting != null &&
+                                 blessingTargeting.IsSelecting &&
+                                 blessingTargeting.SelectedType == BlessingType.Giant;
+
+            hasteFrame.color = !value.HasteAvailable
+                ? UnavailableColor
+                : selectingHaste ? SelectedColor : AvailableHasteColor;
+            giantFrame.color = !value.GiantAvailable
+                ? UnavailableColor
+                : selectingGiant ? SelectedColor : AvailableGiantColor;
+            hasteStatusText.text = value.HasteAvailable ? selectingHaste ? "SELECTED" : "READY" : "BOUND";
+            giantStatusText.text = value.GiantAvailable ? selectingGiant ? "SELECTED" : "READY" : "BOUND";
+
+            if (selectingHaste)
+            {
+                selectionText.text = "HASTE SELECTED  |  POINT AT AN ENEMY + CLICK  |  RMB CANCEL";
+            }
+            else if (selectingGiant)
+            {
+                selectionText.text = "GIANT SELECTED  |  POINT AT AN ENEMY + CLICK  |  RMB CANCEL";
+            }
+            else
+            {
+                selectionText.text = "1 / 2 SELECT BLESSING  |  SPACE DASH  |  R RESTART";
+            }
+        }
+
+        private static void ValidateState(HudState value)
+        {
+            if (value.MaximumHealth <= 0 ||
+                value.Health < 0 ||
+                value.Health > value.MaximumHealth ||
+                value.Souls < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(value));
+            }
+
+            if (float.IsNaN(value.Dash01) ||
+                float.IsInfinity(value.Dash01) ||
+                value.Dash01 < 0f ||
+                value.Dash01 > 1f ||
+                float.IsNaN(value.DashCooldownRemaining) ||
+                float.IsInfinity(value.DashCooldownRemaining) ||
+                value.DashCooldownRemaining < 0f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(value));
+            }
+        }
+
+        private static bool StatesEqual(HudState left, HudState right)
+        {
+            return left.Health == right.Health &&
+                   left.MaximumHealth == right.MaximumHealth &&
+                   Mathf.Approximately(left.Dash01, right.Dash01) &&
+                   left.DashAvailable == right.DashAvailable &&
+                   Mathf.Approximately(left.DashCooldownRemaining, right.DashCooldownRemaining) &&
+                   left.HasteAvailable == right.HasteAvailable &&
+                   left.GiantAvailable == right.GiantAvailable &&
+                   left.Souls == right.Souls &&
+                   left.ExitOpen == right.ExitOpen;
+        }
+    }
+}

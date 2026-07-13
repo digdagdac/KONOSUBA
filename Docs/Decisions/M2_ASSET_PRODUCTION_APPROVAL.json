@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "decision": "approved",
+  "status": "confirmed",
+  "decidedBy": "user",
+  "decidedAtUtc": "2026-07-13T06:58:49Z",
+  "scope": "M2 image-resource preproduction for Golem, Echo, cliffs, destructibles, traps, resonance/final-room presentation and required UI/VFX",
+  "authorizationSource": "Explicit interactive user directive to proceed after disclosure of the M2EntryGate blocker",
+  "runtimeBoundary": "This decision authorizes offline image-resource production only. It does not create or impersonate the write-once M2EntryGate gate-decision.json and does not authorize M2 runtime activation."
+}

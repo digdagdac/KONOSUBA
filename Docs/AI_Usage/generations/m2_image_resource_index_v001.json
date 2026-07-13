@@ -1,0 +1,3981 @@
+{
+  "schema": "overbless.m2-image-resource-index/v1",
+  "created_at": "2026-07-13",
+  "approval": "Docs/Decisions/M2_ASSET_PRODUCTION_APPROVAL.json",
+  "runtime_binding": false,
+  "cell_size": 128,
+  "golem_animation": {
+    "role": "golem",
+    "atlas_file": "Assets/_Project/Art/M2Preproduction/Characters/Animation/chr_golem_animation_atlas_v001.png",
+    "atlas_size": [
+      6144,
+      896
+    ],
+    "atlas_sha256": "331dc230740e5dc6977e5e207cecf7c742c59069e0961929fe56de1ea062a4e9",
+    "active_sub_sprites": 264,
+    "directions": [
+      "south",
+      "north",
+      "east",
+      "west",
+      "southeast",
+      "southwest",
+      "northeast",
+      "northwest"
+    ],
+    "source_files": {
+      "south": "Docs/AI_Usage/sources/m2_assets_v001/golem_idle_south_source.png",
+      "north": "Docs/AI_Usage/sources/m2_assets_v001/golem_idle_north_source.png",
+      "east": "Docs/AI_Usage/sources/m2_assets_v001/golem_idle_east_source.png",
+      "southeast": "Docs/AI_Usage/sources/m2_assets_v001/golem_idle_southeast_source.png",
+      "northeast": "Docs/AI_Usage/sources/m2_assets_v001/golem_idle_northeast_source.png",
+      "west": "derived:horizontal-mirror-east",
+      "southwest": "derived:horizontal-mirror-southeast",
+      "northwest": "derived:horizontal-mirror-northeast"
+    },
+    "source_sha256": {
+      "south": "2f5f30be196dc14da7697a301719183384ef972e2bc4304e30e6c06ffa28de97",
+      "north": "3a9fa294d62619495fbb25dab4b0bdf9261e28059732ada9c7f4307b717cabb4",
+      "east": "e1fb1afb233c747d2a42348f5239037e41f66ad73b1a8aec0449905fe3b6f18f",
+      "southeast": "6ee78a2944e6530834bd18dc8ef01b3919aa1ff92036a8c830aafbd8b0b35b7e",
+      "northeast": "d22d321b12117cc176b0eafe4c075bc9546523944437d15662557c9f1d62ec4c"
+    },
+    "states": [
+      {
+        "name": "idle",
+        "fps": 4.0,
+        "loop": true,
+        "directions": {
+          "south": [
+            {
+              "name": "chr_golem_idle_south_a_v001",
+              "frame": 0,
+              "rect": [
+                0,
+                0,
+                128,
+                128
+              ],
+              "pixel_sha256": "433022808bd962435ccb0c9e8a0e975e9870f6187882a6735bc959f533a78833"
+            },
+            {
+              "name": "chr_golem_idle_south_b_v001",
+              "frame": 1,
+              "rect": [
+                128,
+                0,
+                128,
+                128
+              ],
+              "pixel_sha256": "dbd1c1341411da607f52989d6aae88dfe842cfb463e6826e78f689a0621f7dca"
+            },
+            {
+              "name": "chr_golem_idle_south_c_v001",
+              "frame": 2,
+              "rect": [
+                256,
+                0,
+                128,
+                128
+              ],
+              "pixel_sha256": "9e1ab64681bba908689fb42e0674754ec8deb37a97dfdcbb83a1283f3d6de17a"
+            },
+            {
+              "name": "chr_golem_idle_south_d_v001",
+              "frame": 3,
+              "rect": [
+                384,
+                0,
+                128,
+                128
+              ],
+              "pixel_sha256": "dbd1c1341411da607f52989d6aae88dfe842cfb463e6826e78f689a0621f7dca"
+            }
+          ],
+          "north": [
+            {
+              "name": "chr_golem_idle_north_a_v001",
+              "frame": 0,
+              "rect": [
+                768,
+                0,
+                128,
+                128
+              ],
+              "pixel_sha256": "55368222901158cd4d278f64381ccf5fb5c5e701da594060c439bd57c001891e"
+            },
+            {
+              "name": "chr_golem_idle_north_b_v001",
+              "frame": 1,
+              "rect": [
+                896,
+                0,
+                128,
+                128
+              ],
+              "pixel_sha256": "3021de0d48e2172abfb0d9b79cc56a13cec60dd3e1183504d9969f6e9dacef81"
+            },
+            {
+              "name": "chr_golem_idle_north_c_v001",
+              "frame": 2,
+              "rect": [
+                1024,
+                0,
+                128,
+                128
+              ],
+              "pixel_sha256": "0d2a0cbc7a710a8d20c4bae688f5c7194d459b5f8e0429ab400592f67b90b520"
+            },
+            {
+              "name": "chr_golem_idle_north_d_v001",
+              "frame": 3,
+              "rect": [
+                1152,
+                0,
+                128,
+                128
+              ],
+              "pixel_sha256": "3021de0d48e2172abfb0d9b79cc56a13cec60dd3e1183504d9969f6e9dacef81"
+            }
+          ],
+          "east": [
+            {
+              "name": "chr_golem_idle_east_a_v001",
+              "frame": 0,
+              "rect": [
+                1536,
+                0,
+                128,
+                128
+              ],
+              "pixel_sha256": "14aba3562e7e021daab58062d3618b157fdc20d898e3c38da84db544604903aa"
+            },
+            {
+              "name": "chr_golem_idle_east_b_v001",
+              "frame": 1,
+              "rect": [
+                1664,
+                0,
+                128,
+                128
+              ],
+              "pixel_sha256": "729a8b286d7a68667d9947751a91f6c4ff1372d9337a415cb9646bbcdd3a9dec"
+            },
+            {
+              "name": "chr_golem_idle_east_c_v001",
+              "frame": 2,
+              "rect": [
+                1792,
+                0,
+                128,
+                128
+              ],
+              "pixel_sha256": "247eb9629bd0c7e6c82ec1d92c432a50bc015e0c26695bc64f49851af7d55267"
+            },
+            {
+              "name": "chr_golem_idle_east_d_v001",
+              "frame": 3,
+              "rect": [
+                1920,
+                0,
+                128,
+                128
+              ],
+              "pixel_sha256": "729a8b286d7a68667d9947751a91f6c4ff1372d9337a415cb9646bbcdd3a9dec"
+            }
+          ],
+          "west": [
+            {
+              "name": "chr_golem_idle_west_a_v001",
+              "frame": 0,
+              "rect": [
+                2304,
+                0,
+                128,
+                128
+              ],
+              "pixel_sha256": "b38182440bbb5513d30a0f24b5ce3421cd256741a57a5963696961ac01b1360b"
+            },
+            {
+              "name": "chr_golem_idle_west_b_v001",
+              "frame": 1,
+              "rect": [
+                2432,
+                0,
+                128,
+                128
+              ],
+              "pixel_sha256": "cd3b12439243568971b6ca434b230ff9e6460a55d958a601e98da1bab16b8a23"
+            },
+            {
+              "name": "chr_golem_idle_west_c_v001",
+              "frame": 2,
+              "rect": [
+                2560,
+                0,
+                128,
+                128
+              ],
+              "pixel_sha256": "4e1442768f07b69de7815a5b4af1655e8843ef1b93f24c5a82774fac9b4699e4"
+            },
+            {
+              "name": "chr_golem_idle_west_d_v001",
+              "frame": 3,
+              "rect": [
+                2688,
+                0,
+                128,
+                128
+              ],
+              "pixel_sha256": "cd3b12439243568971b6ca434b230ff9e6460a55d958a601e98da1bab16b8a23"
+            }
+          ],
+          "southeast": [
+            {
+              "name": "chr_golem_idle_southeast_a_v001",
+              "frame": 0,
+              "rect": [
+                3072,
+                0,
+                128,
+                128
+              ],
+              "pixel_sha256": "8e6ed8a5eda1143e37035004d4c30e256ffee816f3d072b5ef65ca87828935d9"
+            },
+            {
+              "name": "chr_golem_idle_southeast_b_v001",
+              "frame": 1,
+              "rect": [
+                3200,
+                0,
+                128,
+                128
+              ],
+              "pixel_sha256": "58314ebb45a2f0dc872a02f4a4e51e468d812891a435ca3c18a90f31670a614a"
+            },
+            {
+              "name": "chr_golem_idle_southeast_c_v001",
+              "frame": 2,
+              "rect": [
+                3328,
+                0,
+                128,
+                128
+              ],
+              "pixel_sha256": "7689b2f91dc5c4b90b5dc7adcf1cd9a7800e13a663f359c00b4ae2558e8f6f03"
+            },
+            {
+              "name": "chr_golem_idle_southeast_d_v001",
+              "frame": 3,
+              "rect": [
+                3456,
+                0,
+                128,
+                128
+              ],
+              "pixel_sha256": "58314ebb45a2f0dc872a02f4a4e51e468d812891a435ca3c18a90f31670a614a"
+            }
+          ],
+          "southwest": [
+            {
+              "name": "chr_golem_idle_southwest_a_v001",
+              "frame": 0,
+              "rect": [
+                3840,
+                0,
+                128,
+                128
+              ],
+              "pixel_sha256": "642dbf00f929f1cd9595d13edf272330c8c5563fd5dbf0d56c0d85f3edcfbcb4"
+            },
+            {
+              "name": "chr_golem_idle_southwest_b_v001",
+              "frame": 1,
+              "rect": [
+                3968,
+                0,
+                128,
+                128
+              ],
+              "pixel_sha256": "02f1f67fb3aedccefa4c683a46d73d66116c43b61a8e4cb9cd45a1b68a596abe"
+            },
+            {
+              "name": "chr_golem_idle_southwest_c_v001",
+              "frame": 2,
+              "rect": [
+                4096,
+                0,
+                128,
+                128
+              ],
+              "pixel_sha256": "6ba116f060327051cad3e954dc6094ee394d992eb014dc0142ee78e59bd81ee9"
+            },
+            {
+              "name": "chr_golem_idle_southwest_d_v001",
+              "frame": 3,
+              "rect": [
+                4224,
+                0,
+                128,
+                128
+              ],
+              "pixel_sha256": "02f1f67fb3aedccefa4c683a46d73d66116c43b61a8e4cb9cd45a1b68a596abe"
+            }
+          ],
+          "northeast": [
+            {
+              "name": "chr_golem_idle_northeast_a_v001",
+              "frame": 0,
+              "rect": [
+                4608,
+                0,
+                128,
+                128
+              ],
+              "pixel_sha256": "df6daec347ac91e32c59f50c3f7e734cf090dd03adf71458c7b807bd109d0ba4"
+            },
+            {
+              "name": "chr_golem_idle_northeast_b_v001",
+              "frame": 1,
+              "rect": [
+                4736,
+                0,
+                128,
+                128
+              ],
+              "pixel_sha256": "034bfc4fdfdc262252fdafb84db8864e1b945ec52649c9fa496a07aac756b6bc"
+            },
+            {
+              "name": "chr_golem_idle_northeast_c_v001",
+              "frame": 2,
+              "rect": [
+                4864,
+                0,
+                128,
+                128
+              ],
+              "pixel_sha256": "d3b0e04bb1197ec4fa91b322ed9463058166ee1038c93ba7f2d5c56598f6fb8a"
+            },
+            {
+              "name": "chr_golem_idle_northeast_d_v001",
+              "frame": 3,
+              "rect": [
+                4992,
+                0,
+                128,
+                128
+              ],
+              "pixel_sha256": "034bfc4fdfdc262252fdafb84db8864e1b945ec52649c9fa496a07aac756b6bc"
+            }
+          ],
+          "northwest": [
+            {
+              "name": "chr_golem_idle_northwest_a_v001",
+              "frame": 0,
+              "rect": [
+                5376,
+                0,
+                128,
+                128
+              ],
+              "pixel_sha256": "e34a2f674bf8f44a083376f4647f4bece446e7e0abc00d4c0cd2c6e943c48381"
+            },
+            {
+              "name": "chr_golem_idle_northwest_b_v001",
+              "frame": 1,
+              "rect": [
+                5504,
+                0,
+                128,
+                128
+              ],
+              "pixel_sha256": "4179c17f8a97e2a31b81b01e3f8b68e3d845e5db0a599c1676278b00170245a9"
+            },
+            {
+              "name": "chr_golem_idle_northwest_c_v001",
+              "frame": 2,
+              "rect": [
+                5632,
+                0,
+                128,
+                128
+              ],
+              "pixel_sha256": "a5096cde52934358fe6c6091dee632c92cc5362ab6c95e6021896471491644ad"
+            },
+            {
+              "name": "chr_golem_idle_northwest_d_v001",
+              "frame": 3,
+              "rect": [
+                5760,
+                0,
+                128,
+                128
+              ],
+              "pixel_sha256": "4179c17f8a97e2a31b81b01e3f8b68e3d845e5db0a599c1676278b00170245a9"
+            }
+          ]
+        }
+      },
+      {
+        "name": "move",
+        "fps": 9.0,
+        "loop": true,
+        "directions": {
+          "south": [
+            {
+              "name": "chr_golem_move_south_a_v001",
+              "frame": 0,
+              "rect": [
+                0,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "d9421eb16c8c2f5487f0e892e626b44380b8760c639f3984d8f5fa71a59cfc07"
+            },
+            {
+              "name": "chr_golem_move_south_b_v001",
+              "frame": 1,
+              "rect": [
+                128,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "9e1ab64681bba908689fb42e0674754ec8deb37a97dfdcbb83a1283f3d6de17a"
+            },
+            {
+              "name": "chr_golem_move_south_c_v001",
+              "frame": 2,
+              "rect": [
+                256,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "cc8a5f9ee89963e688ca3e6a39af8ba5a3c66b7c050511b2d0c29cbb604ec4db"
+            },
+            {
+              "name": "chr_golem_move_south_d_v001",
+              "frame": 3,
+              "rect": [
+                384,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "f9346d916a09880473cb504582cd94cc54a0724787d0b288fc3f7662fc412d5f"
+            },
+            {
+              "name": "chr_golem_move_south_e_v001",
+              "frame": 4,
+              "rect": [
+                512,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "9e1ab64681bba908689fb42e0674754ec8deb37a97dfdcbb83a1283f3d6de17a"
+            },
+            {
+              "name": "chr_golem_move_south_f_v001",
+              "frame": 5,
+              "rect": [
+                640,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "05dca6578a5de2b8e25dca4a048b18f6d7d55e5a014f877de0ab3f04ad68d1c5"
+            }
+          ],
+          "north": [
+            {
+              "name": "chr_golem_move_north_a_v001",
+              "frame": 0,
+              "rect": [
+                768,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "ff8ee92786d172d613c3ee0d7e18319601a0443b29a87ac9d3b55acce497ee48"
+            },
+            {
+              "name": "chr_golem_move_north_b_v001",
+              "frame": 1,
+              "rect": [
+                896,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "0d2a0cbc7a710a8d20c4bae688f5c7194d459b5f8e0429ab400592f67b90b520"
+            },
+            {
+              "name": "chr_golem_move_north_c_v001",
+              "frame": 2,
+              "rect": [
+                1024,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "46d08d9c80b51ce3adfa19e438126b9d9b2736e2d81b7fd1c0773a50ba4dd29b"
+            },
+            {
+              "name": "chr_golem_move_north_d_v001",
+              "frame": 3,
+              "rect": [
+                1152,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "f17e346dc932ffac63d27953d89f0397ee7aeaa0f3a7db666bfd7c1fc5d1523d"
+            },
+            {
+              "name": "chr_golem_move_north_e_v001",
+              "frame": 4,
+              "rect": [
+                1280,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "0d2a0cbc7a710a8d20c4bae688f5c7194d459b5f8e0429ab400592f67b90b520"
+            },
+            {
+              "name": "chr_golem_move_north_f_v001",
+              "frame": 5,
+              "rect": [
+                1408,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "c19816057d87888f6f2091286a80a1d8ac5d5a158813a57257e44b11bc0bc6ca"
+            }
+          ],
+          "east": [
+            {
+              "name": "chr_golem_move_east_a_v001",
+              "frame": 0,
+              "rect": [
+                1536,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "5ddd9a314fab941a334b9f6708c2ac1db3ce35eb98ffadbdbbfdc7e14c7ad0d4"
+            },
+            {
+              "name": "chr_golem_move_east_b_v001",
+              "frame": 1,
+              "rect": [
+                1664,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "247eb9629bd0c7e6c82ec1d92c432a50bc015e0c26695bc64f49851af7d55267"
+            },
+            {
+              "name": "chr_golem_move_east_c_v001",
+              "frame": 2,
+              "rect": [
+                1792,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "cbfabb1600d7018f572de799fa4e724274474e17e1cafc4563f721434a95ecd1"
+            },
+            {
+              "name": "chr_golem_move_east_d_v001",
+              "frame": 3,
+              "rect": [
+                1920,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "11eaccdd98e44f4e0e8b59bc00c753de5da9f1beb4f03de03f884806145f74af"
+            },
+            {
+              "name": "chr_golem_move_east_e_v001",
+              "frame": 4,
+              "rect": [
+                2048,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "247eb9629bd0c7e6c82ec1d92c432a50bc015e0c26695bc64f49851af7d55267"
+            },
+            {
+              "name": "chr_golem_move_east_f_v001",
+              "frame": 5,
+              "rect": [
+                2176,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "98f5ff08c5444af93e340ff31626bb5c4cf3f6f7c1cd01a06b2dec5f9dbdcd5a"
+            }
+          ],
+          "west": [
+            {
+              "name": "chr_golem_move_west_a_v001",
+              "frame": 0,
+              "rect": [
+                2304,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "4e0de2e12c7e0fa023b4d90ae70988650646d582e2c33a91b4e662878216ff2d"
+            },
+            {
+              "name": "chr_golem_move_west_b_v001",
+              "frame": 1,
+              "rect": [
+                2432,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "4e1442768f07b69de7815a5b4af1655e8843ef1b93f24c5a82774fac9b4699e4"
+            },
+            {
+              "name": "chr_golem_move_west_c_v001",
+              "frame": 2,
+              "rect": [
+                2560,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "0c8991f4d04cf0d04e0ae6c9061134f1d72381700cda6a64a3e1c0aa0bfeb0ee"
+            },
+            {
+              "name": "chr_golem_move_west_d_v001",
+              "frame": 3,
+              "rect": [
+                2688,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "b19f34f5c9883ce3c29b3a8119cd44d5fac964d5dd9862ef4c3ee0dfc842080e"
+            },
+            {
+              "name": "chr_golem_move_west_e_v001",
+              "frame": 4,
+              "rect": [
+                2816,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "4e1442768f07b69de7815a5b4af1655e8843ef1b93f24c5a82774fac9b4699e4"
+            },
+            {
+              "name": "chr_golem_move_west_f_v001",
+              "frame": 5,
+              "rect": [
+                2944,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "d8f5ea71ec3ef6a84226ea9fde432645b08044d62ac59801a737e2a5e18f1ef5"
+            }
+          ],
+          "southeast": [
+            {
+              "name": "chr_golem_move_southeast_a_v001",
+              "frame": 0,
+              "rect": [
+                3072,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "d05addb6bfced962da73f3c219b90bac5a1cbcccdf47e0254644b18d0f5dd2cb"
+            },
+            {
+              "name": "chr_golem_move_southeast_b_v001",
+              "frame": 1,
+              "rect": [
+                3200,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "7689b2f91dc5c4b90b5dc7adcf1cd9a7800e13a663f359c00b4ae2558e8f6f03"
+            },
+            {
+              "name": "chr_golem_move_southeast_c_v001",
+              "frame": 2,
+              "rect": [
+                3328,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "572fad794ade800762bb78d1e2eacc64efbf37aff5b28c257553b539b4442ae2"
+            },
+            {
+              "name": "chr_golem_move_southeast_d_v001",
+              "frame": 3,
+              "rect": [
+                3456,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "a8f40a18370322673f5a1ba6734908ea499a46038b983e9aa10a4f0c665ad551"
+            },
+            {
+              "name": "chr_golem_move_southeast_e_v001",
+              "frame": 4,
+              "rect": [
+                3584,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "7689b2f91dc5c4b90b5dc7adcf1cd9a7800e13a663f359c00b4ae2558e8f6f03"
+            },
+            {
+              "name": "chr_golem_move_southeast_f_v001",
+              "frame": 5,
+              "rect": [
+                3712,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "85a0a17ee962689e9d780ecebb94d43dcafae6e85fa4e20af896cb82a09a643d"
+            }
+          ],
+          "southwest": [
+            {
+              "name": "chr_golem_move_southwest_a_v001",
+              "frame": 0,
+              "rect": [
+                3840,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "d46bce4bfda76f0ba2f2ee505c124f06adbaadaf38fdc3c2dcbe7c27c4df1af6"
+            },
+            {
+              "name": "chr_golem_move_southwest_b_v001",
+              "frame": 1,
+              "rect": [
+                3968,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "6ba116f060327051cad3e954dc6094ee394d992eb014dc0142ee78e59bd81ee9"
+            },
+            {
+              "name": "chr_golem_move_southwest_c_v001",
+              "frame": 2,
+              "rect": [
+                4096,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "e4619d25b858ad890f51d20ea9d5ad36b44a2efd1f8e5fa520859b2bdcf99eac"
+            },
+            {
+              "name": "chr_golem_move_southwest_d_v001",
+              "frame": 3,
+              "rect": [
+                4224,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "74a56784e8b4d10a82963d11abd2b24074a3fe7ec51ea7fc9ee02da886c34091"
+            },
+            {
+              "name": "chr_golem_move_southwest_e_v001",
+              "frame": 4,
+              "rect": [
+                4352,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "6ba116f060327051cad3e954dc6094ee394d992eb014dc0142ee78e59bd81ee9"
+            },
+            {
+              "name": "chr_golem_move_southwest_f_v001",
+              "frame": 5,
+              "rect": [
+                4480,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "aeeb4c91f34ab1d4adb4d4fbfbed0644cdc4a6f25e5ed31239db876e83f94e88"
+            }
+          ],
+          "northeast": [
+            {
+              "name": "chr_golem_move_northeast_a_v001",
+              "frame": 0,
+              "rect": [
+                4608,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "3f9522c6725cc4b409aef19901f5d191af184cac7dfad30c68aba45d3de2007b"
+            },
+            {
+              "name": "chr_golem_move_northeast_b_v001",
+              "frame": 1,
+              "rect": [
+                4736,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "d3b0e04bb1197ec4fa91b322ed9463058166ee1038c93ba7f2d5c56598f6fb8a"
+            },
+            {
+              "name": "chr_golem_move_northeast_c_v001",
+              "frame": 2,
+              "rect": [
+                4864,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "db114853b28151ff31efb3393cd5468a02550936b9ce324149ac6208d2a1962d"
+            },
+            {
+              "name": "chr_golem_move_northeast_d_v001",
+              "frame": 3,
+              "rect": [
+                4992,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "57fa5cac064165358692276fab1c853d1fd500f847c92303889d748675f19a36"
+            },
+            {
+              "name": "chr_golem_move_northeast_e_v001",
+              "frame": 4,
+              "rect": [
+                5120,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "d3b0e04bb1197ec4fa91b322ed9463058166ee1038c93ba7f2d5c56598f6fb8a"
+            },
+            {
+              "name": "chr_golem_move_northeast_f_v001",
+              "frame": 5,
+              "rect": [
+                5248,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "d110ae0ffcbeeebee3a37082e3a70107c972b0e8a3de548201a466b5f538c4c0"
+            }
+          ],
+          "northwest": [
+            {
+              "name": "chr_golem_move_northwest_a_v001",
+              "frame": 0,
+              "rect": [
+                5376,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "a148c3f66104b67cbc5eb118392e878062a26633429e4aeb2a178d33add4d90d"
+            },
+            {
+              "name": "chr_golem_move_northwest_b_v001",
+              "frame": 1,
+              "rect": [
+                5504,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "a5096cde52934358fe6c6091dee632c92cc5362ab6c95e6021896471491644ad"
+            },
+            {
+              "name": "chr_golem_move_northwest_c_v001",
+              "frame": 2,
+              "rect": [
+                5632,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "384f176d1a0a76f4ee0445e4d3b918171ea686265713eb1b0ce724b0dede46d3"
+            },
+            {
+              "name": "chr_golem_move_northwest_d_v001",
+              "frame": 3,
+              "rect": [
+                5760,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "85ac45fa281705804a33d5eb2053735de73ecbdd7696f9b1946e895845a8277a"
+            },
+            {
+              "name": "chr_golem_move_northwest_e_v001",
+              "frame": 4,
+              "rect": [
+                5888,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "a5096cde52934358fe6c6091dee632c92cc5362ab6c95e6021896471491644ad"
+            },
+            {
+              "name": "chr_golem_move_northwest_f_v001",
+              "frame": 5,
+              "rect": [
+                6016,
+                128,
+                128,
+                128
+              ],
+              "pixel_sha256": "65d44105ddd2f67d208f3ab41f0a44a2e151dffcc5e44deb936d9265a670f945"
+            }
+          ]
+        }
+      },
+      {
+        "name": "attack_charge",
+        "fps": 8.0,
+        "loop": true,
+        "directions": {
+          "south": [
+            {
+              "name": "chr_golem_attack_charge_south_a_v001",
+              "frame": 0,
+              "rect": [
+                0,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "433022808bd962435ccb0c9e8a0e975e9870f6187882a6735bc959f533a78833"
+            },
+            {
+              "name": "chr_golem_attack_charge_south_b_v001",
+              "frame": 1,
+              "rect": [
+                128,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "d0111be12a1f69b68a61d43b7be625b874d4f58739ef11a63614656a3ca8d664"
+            },
+            {
+              "name": "chr_golem_attack_charge_south_c_v001",
+              "frame": 2,
+              "rect": [
+                256,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "b9661052536b111bcddf74dcf098430c083f51c8ddb7d0d27f3ee6ca095f1c09"
+            },
+            {
+              "name": "chr_golem_attack_charge_south_d_v001",
+              "frame": 3,
+              "rect": [
+                384,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "f3c02609b0a63567fff9036b91ad2d3944419d18748dd91e6575ad84c943b61b"
+            },
+            {
+              "name": "chr_golem_attack_charge_south_e_v001",
+              "frame": 4,
+              "rect": [
+                512,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "cc24f4796f0c6702a67167257335c15f390ffc50f067ddea55d680a31872cb75"
+            },
+            {
+              "name": "chr_golem_attack_charge_south_f_v001",
+              "frame": 5,
+              "rect": [
+                640,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "0ab336155ae890d1dff6ea4e028f5e6b9443137d35cb061ee46d31343c2051df"
+            }
+          ],
+          "north": [
+            {
+              "name": "chr_golem_attack_charge_north_a_v001",
+              "frame": 0,
+              "rect": [
+                768,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "55368222901158cd4d278f64381ccf5fb5c5e701da594060c439bd57c001891e"
+            },
+            {
+              "name": "chr_golem_attack_charge_north_b_v001",
+              "frame": 1,
+              "rect": [
+                896,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "e8b714237cd22936b6d3ae35d5699973420f61f3d8d6a8f8582b5d1014a56a9f"
+            },
+            {
+              "name": "chr_golem_attack_charge_north_c_v001",
+              "frame": 2,
+              "rect": [
+                1024,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "a80aa5f043e78da53c2b30740ff3dfeeadf78476712b4d18b76fa3cb27699adb"
+            },
+            {
+              "name": "chr_golem_attack_charge_north_d_v001",
+              "frame": 3,
+              "rect": [
+                1152,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "61778ea690b05e8c688fe54e24d1d5fba9946cba7b2e9a4721d85bbbe43a6981"
+            },
+            {
+              "name": "chr_golem_attack_charge_north_e_v001",
+              "frame": 4,
+              "rect": [
+                1280,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "bc251f69453bc83965d271a0cccae86636d749ca4b330f090e0e0101a21fca97"
+            },
+            {
+              "name": "chr_golem_attack_charge_north_f_v001",
+              "frame": 5,
+              "rect": [
+                1408,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "9c64bfe3524338b8cbabe60f7eade16733ed42fda1909af7fd473ce7e1b99f17"
+            }
+          ],
+          "east": [
+            {
+              "name": "chr_golem_attack_charge_east_a_v001",
+              "frame": 0,
+              "rect": [
+                1536,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "14aba3562e7e021daab58062d3618b157fdc20d898e3c38da84db544604903aa"
+            },
+            {
+              "name": "chr_golem_attack_charge_east_b_v001",
+              "frame": 1,
+              "rect": [
+                1664,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "a8b428f456258dad3adeeb14e0db0d51c13a0c6eeb8114d120a4a78fd10ac261"
+            },
+            {
+              "name": "chr_golem_attack_charge_east_c_v001",
+              "frame": 2,
+              "rect": [
+                1792,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "9c5681c706e2fcf6fb461f72d8b8dd3fe32a935759b4750ce6dabaa08b542d71"
+            },
+            {
+              "name": "chr_golem_attack_charge_east_d_v001",
+              "frame": 3,
+              "rect": [
+                1920,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "ac3beb67ca759520f24e6d3dcae51252c1b6bdfe3c2c743d63200b95e3462b49"
+            },
+            {
+              "name": "chr_golem_attack_charge_east_e_v001",
+              "frame": 4,
+              "rect": [
+                2048,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "cb7ed7c4e1736e1c0156c1a23713c330fa826fcadd70493cc5d20dd6728d7956"
+            },
+            {
+              "name": "chr_golem_attack_charge_east_f_v001",
+              "frame": 5,
+              "rect": [
+                2176,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "f3e96d733ede075f581c212e0b895ad25136aae3f1a93fe12c68d02618e06249"
+            }
+          ],
+          "west": [
+            {
+              "name": "chr_golem_attack_charge_west_a_v001",
+              "frame": 0,
+              "rect": [
+                2304,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "b38182440bbb5513d30a0f24b5ce3421cd256741a57a5963696961ac01b1360b"
+            },
+            {
+              "name": "chr_golem_attack_charge_west_b_v001",
+              "frame": 1,
+              "rect": [
+                2432,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "e7f91e09bdb87b0b5fc5001677df790be6a14d14ba52d44e9168799cf6beedc5"
+            },
+            {
+              "name": "chr_golem_attack_charge_west_c_v001",
+              "frame": 2,
+              "rect": [
+                2560,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "4cbeb98c59cd3e7ec84bb21588d7c059196650be4a750c6dc8609af7648e64eb"
+            },
+            {
+              "name": "chr_golem_attack_charge_west_d_v001",
+              "frame": 3,
+              "rect": [
+                2688,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "b3c31c6a3ad0070c2cbe93c4acdd3723464eeec38a56a6b99bc305e656a4dbba"
+            },
+            {
+              "name": "chr_golem_attack_charge_west_e_v001",
+              "frame": 4,
+              "rect": [
+                2816,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "66e5f705e614980903f268aa8ce76ae762849085902319a2e041cb823c086b51"
+            },
+            {
+              "name": "chr_golem_attack_charge_west_f_v001",
+              "frame": 5,
+              "rect": [
+                2944,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "cb8f53d0f3ebb7cfe1892ad5c3ec6f545fdd20d9e6d4419bfe4fe7b95fa4b53c"
+            }
+          ],
+          "southeast": [
+            {
+              "name": "chr_golem_attack_charge_southeast_a_v001",
+              "frame": 0,
+              "rect": [
+                3072,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "8e6ed8a5eda1143e37035004d4c30e256ffee816f3d072b5ef65ca87828935d9"
+            },
+            {
+              "name": "chr_golem_attack_charge_southeast_b_v001",
+              "frame": 1,
+              "rect": [
+                3200,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "b900679955517e863aff36e431d4a12aa3d4200c7f3feee5b422fd3cefac180d"
+            },
+            {
+              "name": "chr_golem_attack_charge_southeast_c_v001",
+              "frame": 2,
+              "rect": [
+                3328,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "cc8297556eda5a25dabde7527509e10c242a2347cd6020fe75e2ca46357d24b0"
+            },
+            {
+              "name": "chr_golem_attack_charge_southeast_d_v001",
+              "frame": 3,
+              "rect": [
+                3456,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "6c802a575f8b3dc9dda8017f4abf7bcd245166d180def6f6fb92a8262190a9a5"
+            },
+            {
+              "name": "chr_golem_attack_charge_southeast_e_v001",
+              "frame": 4,
+              "rect": [
+                3584,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "475188dbd488809bd7b774eb28569d26e61df7fcd8b88bfa63caacc061302fcd"
+            },
+            {
+              "name": "chr_golem_attack_charge_southeast_f_v001",
+              "frame": 5,
+              "rect": [
+                3712,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "af8ffb455d81c454ab365f7cbba8b54ade22a5bd054e86fec6a4fa482e93652f"
+            }
+          ],
+          "southwest": [
+            {
+              "name": "chr_golem_attack_charge_southwest_a_v001",
+              "frame": 0,
+              "rect": [
+                3840,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "642dbf00f929f1cd9595d13edf272330c8c5563fd5dbf0d56c0d85f3edcfbcb4"
+            },
+            {
+              "name": "chr_golem_attack_charge_southwest_b_v001",
+              "frame": 1,
+              "rect": [
+                3968,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "a0c39e30edbe903404e0a94bb1b088dfa25bf66c28de16b3bbbd3891c50400e3"
+            },
+            {
+              "name": "chr_golem_attack_charge_southwest_c_v001",
+              "frame": 2,
+              "rect": [
+                4096,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "1d3007721f8f31f15e1ddfea96b9b991037ce71677a815049f4f883ce749fd3b"
+            },
+            {
+              "name": "chr_golem_attack_charge_southwest_d_v001",
+              "frame": 3,
+              "rect": [
+                4224,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "eb92545b4ce3ac34a157b4fea9fdb5c595efa59c7ccb0f18eab4c99536db0f71"
+            },
+            {
+              "name": "chr_golem_attack_charge_southwest_e_v001",
+              "frame": 4,
+              "rect": [
+                4352,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "13bb26a2f3f64d8dfaaf1b0626ef342b73f8673a7691d4e220252b8cf723912e"
+            },
+            {
+              "name": "chr_golem_attack_charge_southwest_f_v001",
+              "frame": 5,
+              "rect": [
+                4480,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "d55023ddf48b62944c66dcea75652a099462d2d37027d7d3eb480a4da8ce6bff"
+            }
+          ],
+          "northeast": [
+            {
+              "name": "chr_golem_attack_charge_northeast_a_v001",
+              "frame": 0,
+              "rect": [
+                4608,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "df6daec347ac91e32c59f50c3f7e734cf090dd03adf71458c7b807bd109d0ba4"
+            },
+            {
+              "name": "chr_golem_attack_charge_northeast_b_v001",
+              "frame": 1,
+              "rect": [
+                4736,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "91981492baf1ce2ee7757f33844e5a828f46c79508b1c32747347e91cde7e52a"
+            },
+            {
+              "name": "chr_golem_attack_charge_northeast_c_v001",
+              "frame": 2,
+              "rect": [
+                4864,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "d4eaa8287184b907e644eb4fc82612653e81dc89957b9a08a51583b948fe9ddc"
+            },
+            {
+              "name": "chr_golem_attack_charge_northeast_d_v001",
+              "frame": 3,
+              "rect": [
+                4992,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "c26139db39328474d8423f997ae080b7cc3a6cb76ac5cb36c20586fdb01e4c7d"
+            },
+            {
+              "name": "chr_golem_attack_charge_northeast_e_v001",
+              "frame": 4,
+              "rect": [
+                5120,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "c46060a43827c30e19d3410d0324a8e59576e39c7ae3700eb14a3083099e9cb9"
+            },
+            {
+              "name": "chr_golem_attack_charge_northeast_f_v001",
+              "frame": 5,
+              "rect": [
+                5248,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "5c66d1aa07ae53a26d6ae3a9ac71752e1ff54972d61a89804accad917e937f6f"
+            }
+          ],
+          "northwest": [
+            {
+              "name": "chr_golem_attack_charge_northwest_a_v001",
+              "frame": 0,
+              "rect": [
+                5376,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "e34a2f674bf8f44a083376f4647f4bece446e7e0abc00d4c0cd2c6e943c48381"
+            },
+            {
+              "name": "chr_golem_attack_charge_northwest_b_v001",
+              "frame": 1,
+              "rect": [
+                5504,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "0ed6c6f2bc14f213d99619d23275193f09eb600ffe6d481875c6d43f77f9b784"
+            },
+            {
+              "name": "chr_golem_attack_charge_northwest_c_v001",
+              "frame": 2,
+              "rect": [
+                5632,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "e5af5b091371c971e37813ac861d0ae3115d6920c957ffb50925da4a897303e7"
+            },
+            {
+              "name": "chr_golem_attack_charge_northwest_d_v001",
+              "frame": 3,
+              "rect": [
+                5760,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "39cfd80bb5214c20e84033b959e146c49f8f5dc90156942510b4a6c1582de505"
+            },
+            {
+              "name": "chr_golem_attack_charge_northwest_e_v001",
+              "frame": 4,
+              "rect": [
+                5888,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "5a7931bbc17fbb91fd05fead013666d928ea5ddecfebbf305af9b2e9275858db"
+            },
+            {
+              "name": "chr_golem_attack_charge_northwest_f_v001",
+              "frame": 5,
+              "rect": [
+                6016,
+                256,
+                128,
+                128
+              ],
+              "pixel_sha256": "ba7874562207ed6aa551b29d4923fcbaa89ef03e4a27eada8f24596945372884"
+            }
+          ]
+        }
+      },
+      {
+        "name": "attack_execute",
+        "fps": 14.0,
+        "loop": false,
+        "directions": {
+          "south": [
+            {
+              "name": "chr_golem_attack_execute_south_a_v001",
+              "frame": 0,
+              "rect": [
+                0,
+                384,
+                128,
+                128
+              ],
+              "pixel_sha256": "433022808bd962435ccb0c9e8a0e975e9870f6187882a6735bc959f533a78833"
+            },
+            {
+              "name": "chr_golem_attack_execute_south_b_v001",
+              "frame": 1,
+              "rect": [
+                128,
+                384,
+                128,
+                128
+              ],
+              "pixel_sha256": "8c9fb8ad7c7951730b61fb89eb832ec8a207966a3450d68b3d49531980bffb58"
+            },
+            {
+              "name": "chr_golem_attack_execute_south_c_v001",
+              "frame": 2,
+              "rect": [
+                256,
+                384,
+                128,
+                128
+              ],
+              "pixel_sha256": "3ce9b0e87f23289bd24eb527d75fc769e9a60f2d382e8077702fcaf56a4d31d4"
+            },
+            {
+              "name": "chr_golem_attack_execute_south_d_v001",
+              "frame": 3,
+              "rect": [
+                384,
+                384,
+                128,
+                128
+              ],
+              "pixel_sha256": "747eb304943cd91a481f142ec2dfa5abe84e5148f2885430e49bc132bb5e74d6"
+            }
+          ],
+          "north": [
+            {
+              "name": "chr_golem_attack_execute_north_a_v001",
+              "frame": 0,
+              "rect": [
+                768,
+                384,
+                128,
+                128
+              ],
+              "pixel_sha256": "55368222901158cd4d278f64381ccf5fb5c5e701da594060c439bd57c001891e"
+            },
+            {
+              "name": "chr_golem_attack_execute_north_b_v001",
+              "frame": 1,
+              "rect": [
+                896,
+                384,
+                128,
+                128
+              ],
+              "pixel_sha256": "07bdb6ee1d6058ee3c0429699191966514616816549e9fb3a8bc70bb25600a94"
+            },
+            {
+              "name": "chr_golem_attack_execute_north_c_v001",
+              "frame": 2,
+              "rect": [
+                1024,
+                384,
+                128,
+                128
+              ],
+              "pixel_sha256": "9571148d6f0f7d5879beb1891ba85fd6d3686a1e5447f06fc0db8b7cba60e37f"
+            },
+            {
+              "name": "chr_golem_attack_execute_north_d_v001",
+              "frame": 3,
+              "rect": [
+                1152,
+                384,
+                128,
+                128
+              ],
+              "pixel_sha256": "68ad9d42610a8d0da52d2e427668ef76dbc8716f317c4a1e2060e694a37a8bef"
+            }
+          ],
+          "east": [
+            {
+              "name": "chr_golem_attack_execute_east_a_v001",
+              "frame": 0,
+              "rect": [
+                1536,
+                384,
+                128,
+                128
+              ],
+              "pixel_sha256": "14aba3562e7e021daab58062d3618b157fdc20d898e3c38da84db544604903aa"
+            },
+            {
+              "name": "chr_golem_attack_execute_east_b_v001",
+              "frame": 1,
+              "rect": [
+                1664,
+                384,
+                128,
+                128
+              ],
+              "pixel_sha256": "319bca91bb0fff31659e704237fd1d120e33107e5a9e60d0824cc465c763f1ab"
+            },
+            {
+              "name": "chr_golem_attack_execute_east_c_v001",
+              "frame": 2,
+              "rect": [
+                1792,
+                384,
+                128,
+                128
+              ],
+              "pixel_sha256": "159aaaefce2d73150706550f28e1a892bac0b252c320bbeb5640f0642f853a35"
+            },
+            {
+              "name": "chr_golem_attack_execute_east_d_v001",
+              "frame": 3,
+              "rect": [
+                1920,
+                384,
+                128,
+                128
+              ],
+              "pixel_sha256": "37f758f087b1a965f045f7a0fddf2b29a1068fc3c7e4f3b7a051b740e95eb25c"
+            }
+          ],
+          "west": [
+            {
+              "name": "chr_golem_attack_execute_west_a_v001",
+              "frame": 0,
+              "rect": [
+                2304,
+                384,
+                128,
+                128
+              ],
+              "pixel_sha256": "b38182440bbb5513d30a0f24b5ce3421cd256741a57a5963696961ac01b1360b"
+            },
+            {
+              "name": "chr_golem_attack_execute_west_b_v001",
+              "frame": 1,
+              "rect": [
+                2432,
+                384,
+                128,
+                128
+              ],
+              "pixel_sha256": "c5b6609eab0ed3acd922bd007d6d1b8b1a026ad861a1d28bb1a61acb1f406ec1"
+            },
+            {
+              "name": "chr_golem_attack_execute_west_c_v001",
+              "frame": 2,
+              "rect": [
+                2560,
+                384,
+                128,
+                128
+              ],
+              "pixel_sha256": "612f1938410b0929f0265888fd0f5f1de83b893739fc2635492d5c2ab3516d7f"
+            },
+            {
+              "name": "chr_golem_attack_execute_west_d_v001",
+              "frame": 3,
+              "rect": [
+                2688,
+                384,
+                128,
+                128
+              ],
+              "pixel_sha256": "ad79dfb18439acddeaa7677a159db91bc9d6eb26ddb0a33eeff4f44f6bfa26e1"
+            }
+          ],
+          "southeast": [
+            {
+              "name": "chr_golem_attack_execute_southeast_a_v001",
+              "frame": 0,
+              "rect": [
+                3072,
+                384,
+                128,
+                128
+              ],
+              "pixel_sha256": "8e6ed8a5eda1143e37035004d4c30e256ffee816f3d072b5ef65ca87828935d9"
+            },
+            {
+              "name": "chr_golem_attack_execute_southeast_b_v001",
+              "frame": 1,
+              "rect": [
+                3200,
+                384,
+                128,
+                128
+              ],
+              "pixel_sha256": "f80b78349bd01794c736cdadfae219ef0bb1d2f5cf7c7e8ac6898c9e323eee12"
+            },
+            {
+              "name": "chr_golem_attack_execute_southeast_c_v001",
+              "frame": 2,
+              "rect": [
+                3328,
+                384,
+                128,
+                128
+              ],
+              "pixel_sha256": "4b1fb3f72cd0d36b3825b795b188276d644f18f10cb84db5abe6675a9b6c976f"
+            },
+            {
+              "name": "chr_golem_attack_execute_southeast_d_v001",
+              "frame": 3,
+              "rect": [
+                3456,
+                384,
+                128,
+                128
+              ],
+              "pixel_sha256": "b4a32b36d262cb665bed609939630229e325b177d9630bcfd1561499de63d03f"
+            }
+          ],
+          "southwest": [
+            {
+              "name": "chr_golem_attack_execute_southwest_a_v001",
+              "frame": 0,
+              "rect": [
+                3840,
+                384,
+                128,
+                128
+              ],
+              "pixel_sha256": "642dbf00f929f1cd9595d13edf272330c8c5563fd5dbf0d56c0d85f3edcfbcb4"
+            },
+            {
+              "name": "chr_golem_attack_execute_southwest_b_v001",
+              "frame": 1,
+              "rect": [
+                3968,
+                384,
+                128,
+                128
+              ],
+              "pixel_sha256": "11aa29cb4a9d89cbda6edbcfca6e7b494d9cb3462706312e2d4f4a7e830b8da5"
+            },
+            {
+              "name": "chr_golem_attack_execute_southwest_c_v001",
+              "frame": 2,
+              "rect": [
+                4096,
+                384,
+                128,
+                128
+              ],
+              "pixel_sha256": "ffee40343b23268262267fce1d9fabc63df133dc5a065b81afc1c585be732a28"
+            },
+            {
+              "name": "chr_golem_attack_execute_southwest_d_v001",
+              "frame": 3,
+              "rect": [
+                4224,
+                384,
+                128,
+                128
+              ],
+              "pixel_sha256": "51b31805df1493998874d5862ed7a961021e0f3949de63786dbe26adbf5fe1fe"
+            }
+          ],
+          "northeast": [
+            {
+              "name": "chr_golem_attack_execute_northeast_a_v001",
+              "frame": 0,
+              "rect": [
+                4608,
+                384,
+                128,
+                128
+              ],
+              "pixel_sha256": "df6daec347ac91e32c59f50c3f7e734cf090dd03adf71458c7b807bd109d0ba4"
+            },
+            {
+              "name": "chr_golem_attack_execute_northeast_b_v001",
+              "frame": 1,
+              "rect": [
+                4736,
+                384,
+                128,
+                128
+              ],
+              "pixel_sha256": "02aa01c3b1d6e69b52de33f24ba6ca9abb5eda6c87af1c4ca98baf1b613e4c0a"
+            },
+            {
+              "name": "chr_golem_attack_execute_northeast_c_v001",
+              "frame": 2,
+              "rect": [
+                4864,
+                384,
+                128,
+                128
+              ],
+              "pixel_sha256": "5d97652f00a23ca59663e0ac29ee2b823841d32d57aaa94c44c0cef48121d331"
+            },
+            {
+              "name": "chr_golem_attack_execute_northeast_d_v001",
+              "frame": 3,
+              "rect": [
+                4992,
+                384,
+                128,
+                128
+              ],
+              "pixel_sha256": "23daca0e6540bb01808e3c779c19797266975fc311d2a0628ab7164e86211d15"
+            }
+          ],
+          "northwest": [
+            {
+              "name": "chr_golem_attack_execute_northwest_a_v001",
+              "frame": 0,
+              "rect": [
+                5376,
+                384,
+                128,
+                128
+              ],
+              "pixel_sha256": "e34a2f674bf8f44a083376f4647f4bece446e7e0abc00d4c0cd2c6e943c48381"
+            },
+            {
+              "name": "chr_golem_attack_execute_northwest_b_v001",
+              "frame": 1,
+              "rect": [
+                5504,
+                384,
+                128,
+                128
+              ],
+              "pixel_sha256": "f9cc3033e02d89a8d9722a41a61d098d5d54e42d50e94badb09e5f978d87e4bd"
+            },
+            {
+              "name": "chr_golem_attack_execute_northwest_c_v001",
+              "frame": 2,
+              "rect": [
+                5632,
+                384,
+                128,
+                128
+              ],
+              "pixel_sha256": "5f2e0a987f648b2eacafa207c47eb51ed3a2077ff10997e7c2647a29d173ba5b"
+            },
+            {
+              "name": "chr_golem_attack_execute_northwest_d_v001",
+              "frame": 3,
+              "rect": [
+                5760,
+                384,
+                128,
+                128
+              ],
+              "pixel_sha256": "2eb1f46f76a0e45df40f17bfce62a2d9dd1786967a07452c068327351ba94d97"
+            }
+          ]
+        }
+      },
+      {
+        "name": "recover",
+        "fps": 7.0,
+        "loop": false,
+        "directions": {
+          "south": [
+            {
+              "name": "chr_golem_recover_south_a_v001",
+              "frame": 0,
+              "rect": [
+                0,
+                512,
+                128,
+                128
+              ],
+              "pixel_sha256": "af240f5f0e75909bf879edd7a6418b42208cf2dcfece26a14364927414bca9ec"
+            },
+            {
+              "name": "chr_golem_recover_south_b_v001",
+              "frame": 1,
+              "rect": [
+                128,
+                512,
+                128,
+                128
+              ],
+              "pixel_sha256": "0fdf70fe06ee9ce27a8e4ddc37bb2dbb721648f4eea838b92219f3cefd687a4c"
+            },
+            {
+              "name": "chr_golem_recover_south_c_v001",
+              "frame": 2,
+              "rect": [
+                256,
+                512,
+                128,
+                128
+              ],
+              "pixel_sha256": "f1789a5bafd3585d16d379e2ad99b1b0a8187704de746c5d251f9ae735dfbc86"
+            },
+            {
+              "name": "chr_golem_recover_south_d_v001",
+              "frame": 3,
+              "rect": [
+                384,
+                512,
+                128,
+                128
+              ],
+              "pixel_sha256": "433022808bd962435ccb0c9e8a0e975e9870f6187882a6735bc959f533a78833"
+            }
+          ],
+          "north": [
+            {
+              "name": "chr_golem_recover_north_a_v001",
+              "frame": 0,
+              "rect": [
+                768,
+                512,
+                128,
+                128
+              ],
+              "pixel_sha256": "ef126c494f5acc12d753da7157fbacdbff39bde525ee36eafc184d436e48e681"
+            },
+            {
+              "name": "chr_golem_recover_north_b_v001",
+              "frame": 1,
+              "rect": [
+                896,
+                512,
+                128,
+                128
+              ],
+              "pixel_sha256": "6cf4990a26d668bd7716c255d5d300cd0a217ffe23749edcd3a785eff99f726d"
+            },
+            {
+              "name": "chr_golem_recover_north_c_v001",
+              "frame": 2,
+              "rect": [
+                1024,
+                512,
+                128,
+                128
+              ],
+              "pixel_sha256": "7c012ad0b7465374bf48e2b03805ef1c3925ef5546977126a271983df41acbac"
+            },
+            {
+              "name": "chr_golem_recover_north_d_v001",
+              "frame": 3,
+              "rect": [
+                1152,
+                512,
+                128,
+                128
+              ],
+              "pixel_sha256": "55368222901158cd4d278f64381ccf5fb5c5e701da594060c439bd57c001891e"
+            }
+          ],
+          "east": [
+            {
+              "name": "chr_golem_recover_east_a_v001",
+              "frame": 0,
+              "rect": [
+                1536,
+                512,
+                128,
+                128
+              ],
+              "pixel_sha256": "8c3f5cec1d440952de64cc8a466371c9f0b3517e52b09f6722e57d7e40758c94"
+            },
+            {
+              "name": "chr_golem_recover_east_b_v001",
+              "frame": 1,
+              "rect": [
+                1664,
+                512,
+                128,
+                128
+              ],
+              "pixel_sha256": "e82ba769f4a4dc1b7d6bd6af10eb39343bee74a06527b5d27a09e95534680457"
+            },
+            {
+              "name": "chr_golem_recover_east_c_v001",
+              "frame": 2,
+              "rect": [
+                1792,
+                512,
+                128,
+                128
+              ],
+              "pixel_sha256": "e0e6649885823e6e03ac8a2f9de02eb60aefb40b8c04796e007c4d19337cd3ad"
+            },
+            {
+              "name": "chr_golem_recover_east_d_v001",
+              "frame": 3,
+              "rect": [
+                1920,
+                512,
+                128,
+                128
+              ],
+              "pixel_sha256": "14aba3562e7e021daab58062d3618b157fdc20d898e3c38da84db544604903aa"
+            }
+          ],
+          "west": [
+            {
+              "name": "chr_golem_recover_west_a_v001",
+              "frame": 0,
+              "rect": [
+                2304,
+                512,
+                128,
+                128
+              ],
+              "pixel_sha256": "9675ec17e9c62ad9289c4fdbbc98ec5389df4b82528d43d105e56df796971315"
+            },
+            {
+              "name": "chr_golem_recover_west_b_v001",
+              "frame": 1,
+              "rect": [
+                2432,
+                512,
+                128,
+                128
+              ],
+              "pixel_sha256": "f842ffb7f9462f5474485078641d721f438a19ea6a51cc65b08e40097d9feb10"
+            },
+            {
+              "name": "chr_golem_recover_west_c_v001",
+              "frame": 2,
+              "rect": [
+                2560,
+                512,
+                128,
+                128
+              ],
+              "pixel_sha256": "ed9569c0e52c7bac40c05e4b9a19f2fe6469777fed180639d9c8266a44ec3dda"
+            },
+            {
+              "name": "chr_golem_recover_west_d_v001",
+              "frame": 3,
+              "rect": [
+                2688,
+                512,
+                128,
+                128
+              ],
+              "pixel_sha256": "b38182440bbb5513d30a0f24b5ce3421cd256741a57a5963696961ac01b1360b"
+            }
+          ],
+          "southeast": [
+            {
+              "name": "chr_golem_recover_southeast_a_v001",
+              "frame": 0,
+              "rect": [
+                3072,
+                512,
+                128,
+                128
+              ],
+              "pixel_sha256": "f55f9afef084256eb3230aef8b78c5d806eb0a824e576a3670e91ae6daa7c98b"
+            },
+            {
+              "name": "chr_golem_recover_southeast_b_v001",
+              "frame": 1,
+              "rect": [
+                3200,
+                512,
+                128,
+                128
+              ],
+              "pixel_sha256": "fdd7d7feed774e47e4d9650642223d2a262298f65d8eaee731009960ecf97a3c"
+            },
+            {
+              "name": "chr_golem_recover_southeast_c_v001",
+              "frame": 2,
+              "rect": [
+                3328,
+                512,
+                128,
+                128
+              ],
+              "pixel_sha256": "286cc652ebf6b6c7de33f8ce5dcfb52df13e765def466a133c816dc09cb49ae0"
+            },
+            {
+              "name": "chr_golem_recover_southeast_d_v001",
+              "frame": 3,
+              "rect": [
+                3456,
+                512,
+                128,
+                128
+              ],
+              "pixel_sha256": "8e6ed8a5eda1143e37035004d4c30e256ffee816f3d072b5ef65ca87828935d9"
+            }
+          ],
+          "southwest": [
+            {
+              "name": "chr_golem_recover_southwest_a_v001",
+              "frame": 0,
+              "rect": [
+                3840,
+                512,
+                128,
+                128
+              ],
+              "pixel_sha256": "f29dd1c0e61322347177da6cbc29b286e8da8e5168f3233865c5912201bffbea"
+            },
+            {
+              "name": "chr_golem_recover_southwest_b_v001",
+              "frame": 1,
+              "rect": [
+                3968,
+                512,
+                128,
+                128
+              ],
+              "pixel_sha256": "3f88b477219850860fbd17b4eda07120aee70d50fd8cd653ab457a67d9ec429c"
+            },
+            {
+              "name": "chr_golem_recover_southwest_c_v001",
+              "frame": 2,
+              "rect": [
+                4096,
+                512,
+                128,
+                128
+              ],
+              "pixel_sha256": "416830b608bd583aa8e36fbb1cb2f5016b251fada06d348120e59b7d26ac6c49"
+            },
+            {
+              "name": "chr_golem_recover_southwest_d_v001",
+              "frame": 3,
+              "rect": [
+                4224,
+                512,
+                128,
+                128
+              ],
+              "pixel_sha256": "642dbf00f929f1cd9595d13edf272330c8c5563fd5dbf0d56c0d85f3edcfbcb4"
+            }
+          ],
+          "northeast": [
+            {
+              "name": "chr_golem_recover_northeast_a_v001",
+              "frame": 0,
+              "rect": [
+                4608,
+                512,
+                128,
+                128
+              ],
+              "pixel_sha256": "e92062d7fd8b62d825cf0fdf3a56cab769672058c4a8c961d7b213f30640fd67"
+            },
+            {
+              "name": "chr_golem_recover_northeast_b_v001",
+              "frame": 1,
+              "rect": [
+                4736,
+                512,
+                128,
+                128
+              ],
+              "pixel_sha256": "cde30dfdeee6d8da9c64de587b756da4242ea4f14c292a5632749ad6595a4219"
+            },
+            {
+              "name": "chr_golem_recover_northeast_c_v001",
+              "frame": 2,
+              "rect": [
+                4864,
+                512,
+                128,
+                128
+              ],
+              "pixel_sha256": "13458590fe98a9e416cd5f7d77ab1e102f61fb8d7a599af187a0606affe561ed"
+            },
+            {
+              "name": "chr_golem_recover_northeast_d_v001",
+              "frame": 3,
+              "rect": [
+                4992,
+                512,
+                128,
+                128
+              ],
+              "pixel_sha256": "df6daec347ac91e32c59f50c3f7e734cf090dd03adf71458c7b807bd109d0ba4"
+            }
+          ],
+          "northwest": [
+            {
+              "name": "chr_golem_recover_northwest_a_v001",
+              "frame": 0,
+              "rect": [
+                5376,
+                512,
+                128,
+                128
+              ],
+              "pixel_sha256": "7da3581cf79dc73d47f06ff85a0624d2bbef3a0e87b15ece9afb84fcae6e33f8"
+            },
+            {
+              "name": "chr_golem_recover_northwest_b_v001",
+              "frame": 1,
+              "rect": [
+                5504,
+                512,
+                128,
+                128
+              ],
+              "pixel_sha256": "2eac7af67cee2db5613bc8151b1eac1a694056a2668ee014f2a8a92cb50e91cb"
+            },
+            {
+              "name": "chr_golem_recover_northwest_c_v001",
+              "frame": 2,
+              "rect": [
+                5632,
+                512,
+                128,
+                128
+              ],
+              "pixel_sha256": "12ba88bb17665d05b558beaf2c7e25ac9fb9e26763f755b08851b84c91708589"
+            },
+            {
+              "name": "chr_golem_recover_northwest_d_v001",
+              "frame": 3,
+              "rect": [
+                5760,
+                512,
+                128,
+                128
+              ],
+              "pixel_sha256": "e34a2f674bf8f44a083376f4647f4bece446e7e0abc00d4c0cd2c6e943c48381"
+            }
+          ]
+        }
+      },
+      {
+        "name": "hit",
+        "fps": 12.0,
+        "loop": false,
+        "directions": {
+          "south": [
+            {
+              "name": "chr_golem_hit_south_a_v001",
+              "frame": 0,
+              "rect": [
+                0,
+                640,
+                128,
+                128
+              ],
+              "pixel_sha256": "98d6cd05c8962c67e622f3cf5d6adcbeb976daf152945643917178e06a9b93e0"
+            },
+            {
+              "name": "chr_golem_hit_south_b_v001",
+              "frame": 1,
+              "rect": [
+                128,
+                640,
+                128,
+                128
+              ],
+              "pixel_sha256": "154452a67cd876e138ba8e96ed873ef68c6856c2a5a486f2b4c90c41d47687d2"
+            },
+            {
+              "name": "chr_golem_hit_south_c_v001",
+              "frame": 2,
+              "rect": [
+                256,
+                640,
+                128,
+                128
+              ],
+              "pixel_sha256": "867665650ae18f834473f18d7adc30e2f8be8ec523e13284a77fc64b87f1cc1f"
+            }
+          ],
+          "north": [
+            {
+              "name": "chr_golem_hit_north_a_v001",
+              "frame": 0,
+              "rect": [
+                768,
+                640,
+                128,
+                128
+              ],
+              "pixel_sha256": "b9bdfef9a986d7b6c4ae745623738cadfdb13e9321dc2f6b7102b8d6cd889bf9"
+            },
+            {
+              "name": "chr_golem_hit_north_b_v001",
+              "frame": 1,
+              "rect": [
+                896,
+                640,
+                128,
+                128
+              ],
+              "pixel_sha256": "f30fa5754f34ca843c52e43ae6456a69e067a43c3ed64923819b049230b05101"
+            },
+            {
+              "name": "chr_golem_hit_north_c_v001",
+              "frame": 2,
+              "rect": [
+                1024,
+                640,
+                128,
+                128
+              ],
+              "pixel_sha256": "6ab413fe4b5d9b602c651f2a1539944d71ec634939348f61ae9f2b729274d351"
+            }
+          ],
+          "east": [
+            {
+              "name": "chr_golem_hit_east_a_v001",
+              "frame": 0,
+              "rect": [
+                1536,
+                640,
+                128,
+                128
+              ],
+              "pixel_sha256": "a59a33a6a82cf7a30322b6d2f431dfb27a78f2449f787130ee1006ce7ca8a87c"
+            },
+            {
+              "name": "chr_golem_hit_east_b_v001",
+              "frame": 1,
+              "rect": [
+                1664,
+                640,
+                128,
+                128
+              ],
+              "pixel_sha256": "4f9c3714d77085fdcc6d7fa7c640327b3067527a81b037f54a118932c4d3e0ef"
+            },
+            {
+              "name": "chr_golem_hit_east_c_v001",
+              "frame": 2,
+              "rect": [
+                1792,
+                640,
+                128,
+                128
+              ],
+              "pixel_sha256": "d5b4d3e16c80d11322a6b4f4e23702eefc3448d387978bdf83d1ad6ce2460c27"
+            }
+          ],
+          "west": [
+            {
+              "name": "chr_golem_hit_west_a_v001",
+              "frame": 0,
+              "rect": [
+                2304,
+                640,
+                128,
+                128
+              ],
+              "pixel_sha256": "e66b52581a87983931b6854b8df868a8954c0707816247dad2b7f872e0f03b20"
+            },
+            {
+              "name": "chr_golem_hit_west_b_v001",
+              "frame": 1,
+              "rect": [
+                2432,
+                640,
+                128,
+                128
+              ],
+              "pixel_sha256": "87eb4bb5fbb9234bf1b625338da5521f6811f80487e4da659df4dcb3df0fb333"
+            },
+            {
+              "name": "chr_golem_hit_west_c_v001",
+              "frame": 2,
+              "rect": [
+                2560,
+                640,
+                128,
+                128
+              ],
+              "pixel_sha256": "5daa35270dc1f3406a45feef6cdb277f829383725c5c6462e8ca9ad7fbf5c2a8"
+            }
+          ],
+          "southeast": [
+            {
+              "name": "chr_golem_hit_southeast_a_v001",
+              "frame": 0,
+              "rect": [
+                3072,
+                640,
+                128,
+                128
+              ],
+              "pixel_sha256": "7b9fcbbf20809d8d8180fe85850fe4ccc3a6c8ce50c90794947f8a2560107a55"
+            },
+            {
+              "name": "chr_golem_hit_southeast_b_v001",
+              "frame": 1,
+              "rect": [
+                3200,
+                640,
+                128,
+                128
+              ],
+              "pixel_sha256": "c773ba2d8cf41ceecc959a8c2dc131abac8cef8c9a8ca03d41eb9bba2ff2cf49"
+            },
+            {
+              "name": "chr_golem_hit_southeast_c_v001",
+              "frame": 2,
+              "rect": [
+                3328,
+                640,
+                128,
+                128
+              ],
+              "pixel_sha256": "220ac1ad7a7c39e44aca591b3031cd2e8cdc42ba2fe5e87f00fc739fa930f77f"
+            }
+          ],
+          "southwest": [
+            {
+              "name": "chr_golem_hit_southwest_a_v001",
+              "frame": 0,
+              "rect": [
+                3840,
+                640,
+                128,
+                128
+              ],
+              "pixel_sha256": "be27f354e66c3dccdd6461d9eab7e36ac5209d9740651fbbc30629f827336ec7"
+            },
+            {
+              "name": "chr_golem_hit_southwest_b_v001",
+              "frame": 1,
+              "rect": [
+                3968,
+                640,
+                128,
+                128
+              ],
+              "pixel_sha256": "1e5cc95ef98c44ebb37a5817969b4fa76727b2adb960ffe3d3ded57a8cefae5f"
+            },
+            {
+              "name": "chr_golem_hit_southwest_c_v001",
+              "frame": 2,
+              "rect": [
+                4096,
+                640,
+                128,
+                128
+              ],
+              "pixel_sha256": "32f0c35162659f0783397fbd08a075f730abdbfa7c9c0eabad1f63133f3e8b5f"
+            }
+          ],
+          "northeast": [
+            {
+              "name": "chr_golem_hit_northeast_a_v001",
+              "frame": 0,
+              "rect": [
+                4608,
+                640,
+                128,
+                128
+              ],
+              "pixel_sha256": "01af09798c5afa064beaa62601298c4dcb9494a7387ad9c5a8f169ad6903574f"
+            },
+            {
+              "name": "chr_golem_hit_northeast_b_v001",
+              "frame": 1,
+              "rect": [
+                4736,
+                640,
+                128,
+                128
+              ],
+              "pixel_sha256": "e36b56dcd9310d2b502bad1b8195250ae5e1d0a6bb0673ffd6b2ac855323bc62"
+            },
+            {
+              "name": "chr_golem_hit_northeast_c_v001",
+              "frame": 2,
+              "rect": [
+                4864,
+                640,
+                128,
+                128
+              ],
+              "pixel_sha256": "668577703585d182dac6e62dcd608b3feb4816b539e14b3b2a1a00e0e4287418"
+            }
+          ],
+          "northwest": [
+            {
+              "name": "chr_golem_hit_northwest_a_v001",
+              "frame": 0,
+              "rect": [
+                5376,
+                640,
+                128,
+                128
+              ],
+              "pixel_sha256": "b37cff067ebce9584175ddef4daa159a621411fe08aa2a2926eb7188ca80c860"
+            },
+            {
+              "name": "chr_golem_hit_northwest_b_v001",
+              "frame": 1,
+              "rect": [
+                5504,
+                640,
+                128,
+                128
+              ],
+              "pixel_sha256": "f7a890270775a9c27fbe15d98ed466c29a68369214dabead6691d3e36a19c177"
+            },
+            {
+              "name": "chr_golem_hit_northwest_c_v001",
+              "frame": 2,
+              "rect": [
+                5632,
+                640,
+                128,
+                128
+              ],
+              "pixel_sha256": "9b463294558592ed02bac44e7e97d9ac39c5e4d5c71e75bf8e256555e91ceaff"
+            }
+          ]
+        }
+      },
+      {
+        "name": "death",
+        "fps": 8.0,
+        "loop": false,
+        "directions": {
+          "south": [
+            {
+              "name": "chr_golem_death_south_a_v001",
+              "frame": 0,
+              "rect": [
+                0,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "6e2712349e3caee3c7d0b07199a316d32a38ca7d4fa266a5289a2415821b0eb7"
+            },
+            {
+              "name": "chr_golem_death_south_b_v001",
+              "frame": 1,
+              "rect": [
+                128,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "a450d6f4a9d496c1066cd30e45aea7f68ecd489d3457be94577e7e44ae513f86"
+            },
+            {
+              "name": "chr_golem_death_south_c_v001",
+              "frame": 2,
+              "rect": [
+                256,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "7fb94309f67ccc362e152615e9a4726cbdc8c2c6003792eab297c37222f41e08"
+            },
+            {
+              "name": "chr_golem_death_south_d_v001",
+              "frame": 3,
+              "rect": [
+                384,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "50c6fc67dd49dd01155285b579386aef79a88cf3b8223422efa2212c7cc27d08"
+            },
+            {
+              "name": "chr_golem_death_south_e_v001",
+              "frame": 4,
+              "rect": [
+                512,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "37535553695461ca6381aac6da2574e2d34e062aade92c6b1037769654003768"
+            },
+            {
+              "name": "chr_golem_death_south_f_v001",
+              "frame": 5,
+              "rect": [
+                640,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "05731b9accec24326849f00d46de10a52a3022b6fe864980bda08e3a3ccce513"
+            }
+          ],
+          "north": [
+            {
+              "name": "chr_golem_death_north_a_v001",
+              "frame": 0,
+              "rect": [
+                768,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "4142f85115a59e699ce52c641f61a5c7822e6c03af1863194800dbd507ca11c6"
+            },
+            {
+              "name": "chr_golem_death_north_b_v001",
+              "frame": 1,
+              "rect": [
+                896,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "cd7f7fb6fff649a0b4db66162a7e497678dbed0aea725e1af0e9cb863b5bf4c9"
+            },
+            {
+              "name": "chr_golem_death_north_c_v001",
+              "frame": 2,
+              "rect": [
+                1024,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "2d2a820fb2f68ed1877dddbac8612a0048a7d29822a7b334634f04ca46aeb36b"
+            },
+            {
+              "name": "chr_golem_death_north_d_v001",
+              "frame": 3,
+              "rect": [
+                1152,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "1fc7e06be293c00e97c426dbb77e80e3b4300bf279dd1bd13341878a05f4b256"
+            },
+            {
+              "name": "chr_golem_death_north_e_v001",
+              "frame": 4,
+              "rect": [
+                1280,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "c3a4e7de1ff8bfa571ffe2d52f78ac050cf669bb7172101c50a1dabad0c8532d"
+            },
+            {
+              "name": "chr_golem_death_north_f_v001",
+              "frame": 5,
+              "rect": [
+                1408,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "9179f0f2a6d4c3c83ca222e5bfa6f1162de074f6f72d5df9aea51cd857fa94f9"
+            }
+          ],
+          "east": [
+            {
+              "name": "chr_golem_death_east_a_v001",
+              "frame": 0,
+              "rect": [
+                1536,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "983c91025fc446195ad76cfd172a2ed76ccd60cba3d875f69d8a03cbd40e159f"
+            },
+            {
+              "name": "chr_golem_death_east_b_v001",
+              "frame": 1,
+              "rect": [
+                1664,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "546fddf78fe6928d7cbe7da8538bfc614386dc96ad6d6629e506d149da4b5f4e"
+            },
+            {
+              "name": "chr_golem_death_east_c_v001",
+              "frame": 2,
+              "rect": [
+                1792,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "ed2dead20296f773c74078872763095475027242303e8b4dc19a1867d98f3490"
+            },
+            {
+              "name": "chr_golem_death_east_d_v001",
+              "frame": 3,
+              "rect": [
+                1920,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "53e2faa9582ecaac117a39c8de50feeb80f0b300f6641e91e0c5a608ec2188da"
+            },
+            {
+              "name": "chr_golem_death_east_e_v001",
+              "frame": 4,
+              "rect": [
+                2048,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "046c5f3ba6656ecc53b970b800e5834f6e4fc66140e2a3b5c4122a88b5dd5c0b"
+            },
+            {
+              "name": "chr_golem_death_east_f_v001",
+              "frame": 5,
+              "rect": [
+                2176,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "14a4c0742680e6009a6a09779fe0e3fcbb428ac118c75e49c832f661dbc4117e"
+            }
+          ],
+          "west": [
+            {
+              "name": "chr_golem_death_west_a_v001",
+              "frame": 0,
+              "rect": [
+                2304,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "5ce8c966394ee89a71b86c7a34b79a1b7bc70c518bcc46aca137b2343e9f1941"
+            },
+            {
+              "name": "chr_golem_death_west_b_v001",
+              "frame": 1,
+              "rect": [
+                2432,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "a7cde640abb8632287f3671f7d3a92132c07a95ab46d1146b81a75fb0474519f"
+            },
+            {
+              "name": "chr_golem_death_west_c_v001",
+              "frame": 2,
+              "rect": [
+                2560,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "474b8a39702c2701a00fc26ee1bbbed1272ed4c0b4a8cf7dcdb6fb0db21fb6bd"
+            },
+            {
+              "name": "chr_golem_death_west_d_v001",
+              "frame": 3,
+              "rect": [
+                2688,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "3cd840c88e2008faede0666bc93883075e5548ab9ee43869a7022570b5d4e2ac"
+            },
+            {
+              "name": "chr_golem_death_west_e_v001",
+              "frame": 4,
+              "rect": [
+                2816,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "568c0bac501f322d718da1a4b05db500cfc3aa152c3bf6aa16bb19215bf50028"
+            },
+            {
+              "name": "chr_golem_death_west_f_v001",
+              "frame": 5,
+              "rect": [
+                2944,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "e56ceb41a769d6c11a08a97169d2d2c9612164fadf4bfb09d4e5ed237ba2e234"
+            }
+          ],
+          "southeast": [
+            {
+              "name": "chr_golem_death_southeast_a_v001",
+              "frame": 0,
+              "rect": [
+                3072,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "da0027f190c0a61fdb164a612fbc6e7a3b695b09a5a2c1168f50cdd029ecc35d"
+            },
+            {
+              "name": "chr_golem_death_southeast_b_v001",
+              "frame": 1,
+              "rect": [
+                3200,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "2f52ff1aaaca2d379c96f16ebe72911757acdd14f370ea7e2336b91335c35258"
+            },
+            {
+              "name": "chr_golem_death_southeast_c_v001",
+              "frame": 2,
+              "rect": [
+                3328,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "3c6b4e314bc7f4a84216a41ed02c6688b76e27946967cfdc3702fc3e254f7372"
+            },
+            {
+              "name": "chr_golem_death_southeast_d_v001",
+              "frame": 3,
+              "rect": [
+                3456,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "ea6bb427a0b24a77981087c3104ee897273d3fbc8c55186397d701b7980e9b07"
+            },
+            {
+              "name": "chr_golem_death_southeast_e_v001",
+              "frame": 4,
+              "rect": [
+                3584,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "80e0be880938eef884354a5c19e0a30c3010db74022f1b08ae74959378b42a3f"
+            },
+            {
+              "name": "chr_golem_death_southeast_f_v001",
+              "frame": 5,
+              "rect": [
+                3712,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "1a631abf386f9a5a003aa849079b1cb28b29e8b726891fa71da0d8c7c64d1ba6"
+            }
+          ],
+          "southwest": [
+            {
+              "name": "chr_golem_death_southwest_a_v001",
+              "frame": 0,
+              "rect": [
+                3840,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "a6b8a5e44fb9edbd7c150919b0ed985db68fbe456068b24aee3547867509a929"
+            },
+            {
+              "name": "chr_golem_death_southwest_b_v001",
+              "frame": 1,
+              "rect": [
+                3968,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "56f65054e1255e588be03849b7dcf308f8b56340985eeaaed1a53cef99ef8b8d"
+            },
+            {
+              "name": "chr_golem_death_southwest_c_v001",
+              "frame": 2,
+              "rect": [
+                4096,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "2e441abf3f378cbef5af8f706f682b86e442d4fa08bdfd408c5769b57764b025"
+            },
+            {
+              "name": "chr_golem_death_southwest_d_v001",
+              "frame": 3,
+              "rect": [
+                4224,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "706cd0bee8b3e8377c1df55fb9737aaafc30e568b7780cdb6c506f60932531e2"
+            },
+            {
+              "name": "chr_golem_death_southwest_e_v001",
+              "frame": 4,
+              "rect": [
+                4352,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "3aa8d197603880a74899a3bfc32e71239485abd4f4cbab34afe95d5a3adcebe3"
+            },
+            {
+              "name": "chr_golem_death_southwest_f_v001",
+              "frame": 5,
+              "rect": [
+                4480,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "99c96841c198a0d1791ae7c43285fad60fcdc192cfdd0e38e71186f7684d8282"
+            }
+          ],
+          "northeast": [
+            {
+              "name": "chr_golem_death_northeast_a_v001",
+              "frame": 0,
+              "rect": [
+                4608,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "c59378713863a05b632ee2de740b30dc428be0079d21ddeaef4bd6a98d2bf162"
+            },
+            {
+              "name": "chr_golem_death_northeast_b_v001",
+              "frame": 1,
+              "rect": [
+                4736,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "a17cc6dcd759a17eb91efeb9772c309bb6e19e4dfb71e1ac5860dd1e62a75ae8"
+            },
+            {
+              "name": "chr_golem_death_northeast_c_v001",
+              "frame": 2,
+              "rect": [
+                4864,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "fb45f45eaf4b6b44e4dd7e2c307e14f4ae3a90d0b5814da5cf962e3824b28c0b"
+            },
+            {
+              "name": "chr_golem_death_northeast_d_v001",
+              "frame": 3,
+              "rect": [
+                4992,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "c84adde62209d618bbd35406ee121db1baf239c5323598907774cff687029eb9"
+            },
+            {
+              "name": "chr_golem_death_northeast_e_v001",
+              "frame": 4,
+              "rect": [
+                5120,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "22e8cb60dfee49e3338e4f61379bfdbb0be318c1d30810fd6cc409b757ea3076"
+            },
+            {
+              "name": "chr_golem_death_northeast_f_v001",
+              "frame": 5,
+              "rect": [
+                5248,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "b2728f83bb4c54ae57710295c4d6af1ba81cc2ad86bd1a3f98273f7f15736a11"
+            }
+          ],
+          "northwest": [
+            {
+              "name": "chr_golem_death_northwest_a_v001",
+              "frame": 0,
+              "rect": [
+                5376,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "517bc8fa8219d7165f56cbe97a792864b8b0b2d75a2b6aa1597c6adcebffc9d8"
+            },
+            {
+              "name": "chr_golem_death_northwest_b_v001",
+              "frame": 1,
+              "rect": [
+                5504,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "ae8e74e2e9f02ad06cd2e40d756d1d2408f854be76671795a54d205e54b32c18"
+            },
+            {
+              "name": "chr_golem_death_northwest_c_v001",
+              "frame": 2,
+              "rect": [
+                5632,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "d66177c46796cd4eeda71f28891e28c6ce49c80d9ff4f0ee57e8bf35aff0f149"
+            },
+            {
+              "name": "chr_golem_death_northwest_d_v001",
+              "frame": 3,
+              "rect": [
+                5760,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "9db022f8ef5bc3ce2dc16236f9327fdd5e310a1b4c2208171a038a8e4e328c31"
+            },
+            {
+              "name": "chr_golem_death_northwest_e_v001",
+              "frame": 4,
+              "rect": [
+                5888,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "e6bd6a82e63e874dcff9b2bc1b2131972d67830dc3ce6b29d808f22ffc0fba96"
+            },
+            {
+              "name": "chr_golem_death_northwest_f_v001",
+              "frame": 5,
+              "rect": [
+                6016,
+                768,
+                128,
+                128
+              ],
+              "pixel_sha256": "14e5bc3a91f555fced1d52660f04f83560185c736a54a33b1c2c5914eeeeb309"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "sprites": [
+    {
+      "output_file": "Assets/_Project/Art/M2Preproduction/UI/ui_icon_bless_echo_a_v001.png",
+      "output_sha256": "f4623e7e9333055cb194d1f410d3e0c13705f5afd2d263f8ba27f68915328501",
+      "source_file": "Docs/AI_Usage/sources/m2_assets_v001/echo_vfx_sheet_source.png",
+      "source_sha256": "4017f9badd6d291028599a290e22f2a7cf860654db679e52c5b082b5ca3d5044",
+      "source_grid": [
+        4,
+        2
+      ],
+      "source_cell": [
+        0,
+        0
+      ],
+      "source_rect": [
+        32,
+        42,
+        352,
+        470
+      ],
+      "placement": [
+        38,
+        16,
+        52,
+        96
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha": "binary"
+    },
+    {
+      "output_file": "Assets/_Project/Art/M2Preproduction/UI/ui_icon_echo_status_a_v001.png",
+      "output_sha256": "b89721f3c5c84e813669a9050a6743dcc96175b162485db39f4122abbccc0a17",
+      "source_file": "Docs/AI_Usage/sources/m2_assets_v001/echo_vfx_sheet_source.png",
+      "source_sha256": "4017f9badd6d291028599a290e22f2a7cf860654db679e52c5b082b5ca3d5044",
+      "source_grid": [
+        4,
+        2
+      ],
+      "source_cell": [
+        1,
+        0
+      ],
+      "source_rect": [
+        416,
+        42,
+        736,
+        470
+      ],
+      "placement": [
+        50,
+        40,
+        27,
+        48
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha": "binary"
+    },
+    {
+      "output_file": "Assets/_Project/Art/M2Preproduction/VFX/vfx_echo_double_silhouette_a_v001.png",
+      "output_sha256": "21d4a09117d1d31923604a163bc5d76e1c5981e02812d2a3e52183bc260e4390",
+      "source_file": "Docs/AI_Usage/sources/m2_assets_v001/echo_vfx_sheet_source.png",
+      "source_sha256": "4017f9badd6d291028599a290e22f2a7cf860654db679e52c5b082b5ca3d5044",
+      "source_grid": [
+        4,
+        2
+      ],
+      "source_cell": [
+        2,
+        0
+      ],
+      "source_rect": [
+        800,
+        42,
+        1120,
+        470
+      ],
+      "placement": [
+        22,
+        8,
+        84,
+        112
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha": "binary"
+    },
+    {
+      "output_file": "Assets/_Project/Art/M2Preproduction/VFX/vfx_echo_line_telegraph_a_v001.png",
+      "output_sha256": "5d95f7cc1498201175f9dc053d246d628fda6861d96622a94a800497a2cbed2d",
+      "source_file": "Docs/AI_Usage/sources/m2_assets_v001/echo_vfx_sheet_source.png",
+      "source_sha256": "4017f9badd6d291028599a290e22f2a7cf860654db679e52c5b082b5ca3d5044",
+      "source_grid": [
+        4,
+        2
+      ],
+      "source_cell": [
+        3,
+        0
+      ],
+      "source_rect": [
+        1184,
+        42,
+        1504,
+        470
+      ],
+      "placement": [
+        4,
+        41,
+        120,
+        45
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha": "binary"
+    },
+    {
+      "output_file": "Assets/_Project/Art/M2Preproduction/VFX/vfx_echo_ring_telegraph_a_v001.png",
+      "output_sha256": "2930fbe9c509a2f6b65ef5a11041a8363ea885ba1b26affd2588d45c23a007d7",
+      "source_file": "Docs/AI_Usage/sources/m2_assets_v001/echo_vfx_sheet_source.png",
+      "source_sha256": "4017f9badd6d291028599a290e22f2a7cf860654db679e52c5b082b5ca3d5044",
+      "source_grid": [
+        4,
+        2
+      ],
+      "source_cell": [
+        0,
+        1
+      ],
+      "source_rect": [
+        32,
+        554,
+        352,
+        982
+      ],
+      "placement": [
+        5,
+        4,
+        117,
+        120
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha": "binary"
+    },
+    {
+      "output_file": "Assets/_Project/Art/M2Preproduction/VFX/vfx_echo_apply_burst_a_v001.png",
+      "output_sha256": "12be51e7c71b04879fc43d279ab53ac0625c3d8fca70ff397034ade5b7091998",
+      "source_file": "Docs/AI_Usage/sources/m2_assets_v001/echo_vfx_sheet_source.png",
+      "source_sha256": "4017f9badd6d291028599a290e22f2a7cf860654db679e52c5b082b5ca3d5044",
+      "source_grid": [
+        4,
+        2
+      ],
+      "source_cell": [
+        1,
+        1
+      ],
+      "source_rect": [
+        416,
+        554,
+        736,
+        982
+      ],
+      "placement": [
+        8,
+        11,
+        112,
+        106
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha": "binary"
+    },
+    {
+      "output_file": "Assets/_Project/Art/M2Preproduction/VFX/vfx_resonance_aura_a_v001.png",
+      "output_sha256": "d26ad34bf5ad75df34b0b5fda5a916aebed0f2079f2a79fb247127803b1761f2",
+      "source_file": "Docs/AI_Usage/sources/m2_assets_v001/echo_vfx_sheet_source.png",
+      "source_sha256": "4017f9badd6d291028599a290e22f2a7cf860654db679e52c5b082b5ca3d5044",
+      "source_grid": [
+        4,
+        2
+      ],
+      "source_cell": [
+        2,
+        1
+      ],
+      "source_rect": [
+        800,
+        554,
+        1120,
+        982
+      ],
+      "placement": [
+        7,
+        4,
+        114,
+        120
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha": "binary"
+    },
+    {
+      "output_file": "Assets/_Project/Art/M2Preproduction/VFX/vfx_resonance_arrival_sigil_a_v001.png",
+      "output_sha256": "22fb2a7b0704a12a109e55cb9604e1e946803aa7f6ab2a407f46d3c1ba088270",
+      "source_file": "Docs/AI_Usage/sources/m2_assets_v001/echo_vfx_sheet_source.png",
+      "source_sha256": "4017f9badd6d291028599a290e22f2a7cf860654db679e52c5b082b5ca3d5044",
+      "source_grid": [
+        4,
+        2
+      ],
+      "source_cell": [
+        3,
+        1
+      ],
+      "source_rect": [
+        1184,
+        554,
+        1504,
+        982
+      ],
+      "placement": [
+        9,
+        4,
+        110,
+        120
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha": "binary"
+    },
+    {
+      "output_file": "Assets/_Project/Art/M2Preproduction/Environment/env_cliff_edge_tile_a_v001.png",
+      "output_sha256": "6b04af36d41e9643f9a5ce247203e25e14fba31761890a38ebc2b79b1e8629c7",
+      "source_file": "Docs/AI_Usage/sources/m2_assets_v001/environment_mechanics_sheet_source.png",
+      "source_sha256": "411b0e30c04e97b5078cec18e1237f8e84d787328e19ce357692db24e97322fd",
+      "source_grid": [
+        4,
+        3
+      ],
+      "source_cell": [
+        0,
+        0
+      ],
+      "source_rect": [
+        6,
+        8,
+        307,
+        410
+      ],
+      "placement": [
+        10,
+        0,
+        108,
+        128
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha": "binary"
+    },
+    {
+      "output_file": "Assets/_Project/Art/M2Preproduction/Environment/env_cliff_inner_corner_tile_a_v001.png",
+      "output_sha256": "12302ca38e1aaa9bca82383bafe93596b7ac173ec4b3b5d358faac0376193257",
+      "source_file": "Docs/AI_Usage/sources/m2_assets_v001/environment_mechanics_sheet_source.png",
+      "source_sha256": "411b0e30c04e97b5078cec18e1237f8e84d787328e19ce357692db24e97322fd",
+      "source_grid": [
+        4,
+        3
+      ],
+      "source_cell": [
+        1,
+        0
+      ],
+      "source_rect": [
+        319,
+        8,
+        621,
+        410
+      ],
+      "placement": [
+        12,
+        0,
+        104,
+        128
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha": "binary"
+    },
+    {
+      "output_file": "Assets/_Project/Art/M2Preproduction/Environment/env_destructible_pillar_intact_a_v001.png",
+      "output_sha256": "9c09f9737500b5fd88aa122f515eb95ecea4b3955741e1b26de507d51de7015b",
+      "source_file": "Docs/AI_Usage/sources/m2_assets_v001/environment_mechanics_sheet_source.png",
+      "source_sha256": "411b0e30c04e97b5078cec18e1237f8e84d787328e19ce357692db24e97322fd",
+      "source_grid": [
+        4,
+        3
+      ],
+      "source_cell": [
+        2,
+        0
+      ],
+      "source_rect": [
+        633,
+        8,
+        934,
+        410
+      ],
+      "placement": [
+        34,
+        10,
+        59,
+        118
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha": "binary"
+    },
+    {
+      "output_file": "Assets/_Project/Art/M2Preproduction/Environment/env_destructible_pillar_damaged_a_v001.png",
+      "output_sha256": "40c3f8adaa8a401003b9b0e1bc74d370b37dbef5d56aa1abf93ed11bc7c1cce2",
+      "source_file": "Docs/AI_Usage/sources/m2_assets_v001/environment_mechanics_sheet_source.png",
+      "source_sha256": "411b0e30c04e97b5078cec18e1237f8e84d787328e19ce357692db24e97322fd",
+      "source_grid": [
+        4,
+        3
+      ],
+      "source_cell": [
+        3,
+        0
+      ],
+      "source_rect": [
+        946,
+        8,
+        1248,
+        410
+      ],
+      "placement": [
+        22,
+        10,
+        83,
+        118
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha": "binary"
+    },
+    {
+      "output_file": "Assets/_Project/Art/M2Preproduction/Environment/env_destructible_pillar_rubble_a_v001.png",
+      "output_sha256": "d0b4d04cff41a8a8aec490dab604610304db3b4f2682affa1afb5b239206a270",
+      "source_file": "Docs/AI_Usage/sources/m2_assets_v001/environment_mechanics_sheet_source.png",
+      "source_sha256": "411b0e30c04e97b5078cec18e1237f8e84d787328e19ce357692db24e97322fd",
+      "source_grid": [
+        4,
+        3
+      ],
+      "source_cell": [
+        0,
+        1
+      ],
+      "source_rect": [
+        6,
+        426,
+        307,
+        828
+      ],
+      "placement": [
+        8,
+        41,
+        112,
+        87
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha": "binary"
+    },
+    {
+      "output_file": "Assets/_Project/Art/M2Preproduction/Environment/env_spike_trap_inactive_a_v001.png",
+      "output_sha256": "7a4121920e8876b94c6c5b17f03af3eb34808a2f14f9796e609159bd89793ada",
+      "source_file": "Docs/AI_Usage/sources/m2_assets_v001/environment_mechanics_sheet_source.png",
+      "source_sha256": "411b0e30c04e97b5078cec18e1237f8e84d787328e19ce357692db24e97322fd",
+      "source_grid": [
+        4,
+        3
+      ],
+      "source_cell": [
+        1,
+        1
+      ],
+      "source_rect": [
+        319,
+        426,
+        621,
+        828
+      ],
+      "placement": [
+        8,
+        37,
+        112,
+        91
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha": "binary"
+    },
+    {
+      "output_file": "Assets/_Project/Art/M2Preproduction/Environment/env_spike_trap_warning_a_v001.png",
+      "output_sha256": "b19ab9dcbcdfbbe3f0d24ce291092e367f77bb715279e150682145707fa5db8f",
+      "source_file": "Docs/AI_Usage/sources/m2_assets_v001/environment_mechanics_sheet_source.png",
+      "source_sha256": "411b0e30c04e97b5078cec18e1237f8e84d787328e19ce357692db24e97322fd",
+      "source_grid": [
+        4,
+        3
+      ],
+      "source_cell": [
+        2,
+        1
+      ],
+      "source_rect": [
+        633,
+        426,
+        934,
+        828
+      ],
+      "placement": [
+        8,
+        36,
+        112,
+        92
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha": "binary"
+    },
+    {
+      "output_file": "Assets/_Project/Art/M2Preproduction/Environment/env_spike_trap_active_a_v001.png",
+      "output_sha256": "09c320a3ed4660858c4b7d359bdbca4ccd9a51402dca8d715bdd8dee304a0c36",
+      "source_file": "Docs/AI_Usage/sources/m2_assets_v001/environment_mechanics_sheet_source.png",
+      "source_sha256": "411b0e30c04e97b5078cec18e1237f8e84d787328e19ce357692db24e97322fd",
+      "source_grid": [
+        4,
+        3
+      ],
+      "source_cell": [
+        3,
+        1
+      ],
+      "source_rect": [
+        946,
+        426,
+        1248,
+        828
+      ],
+      "placement": [
+        5,
+        16,
+        118,
+        112
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha": "binary"
+    },
+    {
+      "output_file": "Assets/_Project/Art/M2Preproduction/Environment/env_broken_wall_rubble_a_v001.png",
+      "output_sha256": "dda9d3c98671664deb34ef4b99d018a3745f203bec88dbc8adee9f94c94f7917",
+      "source_file": "Docs/AI_Usage/sources/m2_assets_v001/environment_mechanics_sheet_source.png",
+      "source_sha256": "411b0e30c04e97b5078cec18e1237f8e84d787328e19ce357692db24e97322fd",
+      "source_grid": [
+        4,
+        3
+      ],
+      "source_cell": [
+        0,
+        2
+      ],
+      "source_rect": [
+        6,
+        844,
+        307,
+        1246
+      ],
+      "placement": [
+        13,
+        12,
+        101,
+        116
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha": "binary"
+    },
+    {
+      "output_file": "Assets/_Project/Art/M2Preproduction/Environment/env_fractured_floor_tile_a_v001.png",
+      "output_sha256": "8bf587bd9d73029b7dd01647193aaeea87f4c9a5973b4bfd3a9fb8b21dd8b7b5",
+      "source_file": "Docs/AI_Usage/sources/m2_assets_v001/environment_mechanics_sheet_source.png",
+      "source_sha256": "411b0e30c04e97b5078cec18e1237f8e84d787328e19ce357692db24e97322fd",
+      "source_grid": [
+        4,
+        3
+      ],
+      "source_cell": [
+        1,
+        2
+      ],
+      "source_rect": [
+        319,
+        844,
+        621,
+        1246
+      ],
+      "placement": [
+        0,
+        1,
+        128,
+        126
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha": "binary"
+    },
+    {
+      "output_file": "Assets/_Project/Art/M2Preproduction/Environment/env_final_room_floor_tile_a_v001.png",
+      "output_sha256": "576a7bcf6dd551e74347dff83d4f08e12a53d4537e394b5319df83ba8016ded0",
+      "source_file": "Docs/AI_Usage/sources/m2_assets_v001/environment_mechanics_sheet_source.png",
+      "source_sha256": "411b0e30c04e97b5078cec18e1237f8e84d787328e19ce357692db24e97322fd",
+      "source_grid": [
+        4,
+        3
+      ],
+      "source_cell": [
+        2,
+        2
+      ],
+      "source_rect": [
+        633,
+        844,
+        934,
+        1246
+      ],
+      "placement": [
+        0,
+        1,
+        128,
+        126
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha": "binary"
+    },
+    {
+      "output_file": "Assets/_Project/Art/M2Preproduction/Environment/env_exit_open_pedestal_a_v001.png",
+      "output_sha256": "fba74b46ad154bec5a91199c614603b44d1d041f9c431b5519223bd6cf83798e",
+      "source_file": "Docs/AI_Usage/sources/m2_assets_v001/environment_mechanics_sheet_source.png",
+      "source_sha256": "411b0e30c04e97b5078cec18e1237f8e84d787328e19ce357692db24e97322fd",
+      "source_grid": [
+        4,
+        3
+      ],
+      "source_cell": [
+        3,
+        2
+      ],
+      "source_rect": [
+        946,
+        844,
+        1248,
+        1246
+      ],
+      "placement": [
+        6,
+        16,
+        116,
+        112
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha": "binary"
+    },
+    {
+      "output_file": "Assets/_Project/Art/M2Preproduction/Environment/env_final_portal_closed_a_v001.png",
+      "output_sha256": "469770a6985da78eba490251906fbf5559af1075061cd232258355d05f424d33",
+      "source_file": "Docs/AI_Usage/sources/m2_assets_v001/final_room_sheet_source.png",
+      "source_sha256": "0a46b96d853914ee8526fb466cc0a107bcac9971ebb7dfffd0e4be2bb4f314ce",
+      "source_grid": [
+        4,
+        2
+      ],
+      "source_cell": [
+        0,
+        0
+      ],
+      "source_rect": [
+        7,
+        10,
+        377,
+        502
+      ],
+      "placement": [
+        11,
+        12,
+        105,
+        116
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha": "binary"
+    },
+    {
+      "output_file": "Assets/_Project/Art/M2Preproduction/Environment/env_final_portal_opening_a_v001.png",
+      "output_sha256": "1c33d1e62a34ab41de6f6d2ec7ce12d1a0c046c572b77892eac7556a0ceab935",
+      "source_file": "Docs/AI_Usage/sources/m2_assets_v001/final_room_sheet_source.png",
+      "source_sha256": "0a46b96d853914ee8526fb466cc0a107bcac9971ebb7dfffd0e4be2bb4f314ce",
+      "source_grid": [
+        4,
+        2
+      ],
+      "source_cell": [
+        1,
+        0
+      ],
+      "source_rect": [
+        391,
+        10,
+        761,
+        502
+      ],
+      "placement": [
+        15,
+        12,
+        97,
+        116
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha": "binary"
+    },
+    {
+      "output_file": "Assets/_Project/Art/M2Preproduction/Environment/env_final_portal_open_a_v001.png",
+      "output_sha256": "a583bcf3bd2a0f832868b67698b1b7d71b7e3b39104e88d166ccb8a7c2b5f009",
+      "source_file": "Docs/AI_Usage/sources/m2_assets_v001/final_room_sheet_source.png",
+      "source_sha256": "0a46b96d853914ee8526fb466cc0a107bcac9971ebb7dfffd0e4be2bb4f314ce",
+      "source_grid": [
+        4,
+        2
+      ],
+      "source_cell": [
+        2,
+        0
+      ],
+      "source_rect": [
+        775,
+        10,
+        1145,
+        502
+      ],
+      "placement": [
+        17,
+        12,
+        93,
+        116
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha": "binary"
+    },
+    {
+      "output_file": "Assets/_Project/Art/M2Preproduction/UI/ui_icon_resonance_enemy_badge_a_v001.png",
+      "output_sha256": "ce97e488e89f9a293b615646919f26bb654de35759f32c6299d6ac1ee3636632",
+      "source_file": "Docs/AI_Usage/sources/m2_assets_v001/final_room_sheet_source.png",
+      "source_sha256": "0a46b96d853914ee8526fb466cc0a107bcac9971ebb7dfffd0e4be2bb4f314ce",
+      "source_grid": [
+        4,
+        2
+      ],
+      "source_cell": [
+        3,
+        0
+      ],
+      "source_rect": [
+        1159,
+        10,
+        1529,
+        502
+      ],
+      "placement": [
+        33,
+        28,
+        62,
+        72
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha": "binary"
+    },
+    {
+      "output_file": "Assets/_Project/Art/M2Preproduction/VFX/vfx_resonance_spawn_burst_a_v001.png",
+      "output_sha256": "cc2dc1d844d780494794e6bdde3ea5e911d94c003dd0923298d34ee62ea1a684",
+      "source_file": "Docs/AI_Usage/sources/m2_assets_v001/final_room_sheet_source.png",
+      "source_sha256": "0a46b96d853914ee8526fb466cc0a107bcac9971ebb7dfffd0e4be2bb4f314ce",
+      "source_grid": [
+        4,
+        2
+      ],
+      "source_cell": [
+        0,
+        1
+      ],
+      "source_rect": [
+        7,
+        522,
+        377,
+        1014
+      ],
+      "placement": [
+        7,
+        4,
+        114,
+        120
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha": "binary"
+    },
+    {
+      "output_file": "Assets/_Project/Art/M2Preproduction/UI/ui_icon_final_objective_crest_a_v001.png",
+      "output_sha256": "ca00393c2a9f8395b2e428bfcf90d83df3d65bbb5f179a598440d3819cd3ba98",
+      "source_file": "Docs/AI_Usage/sources/m2_assets_v001/final_room_sheet_source.png",
+      "source_sha256": "0a46b96d853914ee8526fb466cc0a107bcac9971ebb7dfffd0e4be2bb4f314ce",
+      "source_grid": [
+        4,
+        2
+      ],
+      "source_cell": [
+        1,
+        1
+      ],
+      "source_rect": [
+        391,
+        522,
+        761,
+        1014
+      ],
+      "placement": [
+        29,
+        16,
+        70,
+        96
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha": "binary"
+    },
+    {
+      "output_file": "Assets/_Project/Art/M2Preproduction/UI/ui_icon_run_victory_crest_a_v001.png",
+      "output_sha256": "cfb4e7b471654671500bec82ddd42ff99a8109c6ca92c9e7f59e33c6478a2188",
+      "source_file": "Docs/AI_Usage/sources/m2_assets_v001/final_room_sheet_source.png",
+      "source_sha256": "0a46b96d853914ee8526fb466cc0a107bcac9971ebb7dfffd0e4be2bb4f314ce",
+      "source_grid": [
+        4,
+        2
+      ],
+      "source_cell": [
+        2,
+        1
+      ],
+      "source_rect": [
+        775,
+        522,
+        1145,
+        1014
+      ],
+      "placement": [
+        27,
+        16,
+        73,
+        96
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha": "binary"
+    },
+    {
+      "output_file": "Assets/_Project/Art/M2Preproduction/UI/ui_icon_run_defeat_crest_a_v001.png",
+      "output_sha256": "21c29831f1a73f2eb972c6bc4060a0e3bb41e953d757ffa3e041428e1d2905ca",
+      "source_file": "Docs/AI_Usage/sources/m2_assets_v001/final_room_sheet_source.png",
+      "source_sha256": "0a46b96d853914ee8526fb466cc0a107bcac9971ebb7dfffd0e4be2bb4f314ce",
+      "source_grid": [
+        4,
+        2
+      ],
+      "source_cell": [
+        3,
+        1
+      ],
+      "source_rect": [
+        1159,
+        522,
+        1529,
+        1014
+      ],
+      "placement": [
+        27,
+        16,
+        74,
+        96
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha": "binary"
+    }
+  ]
+}

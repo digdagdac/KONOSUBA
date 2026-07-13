@@ -1,0 +1,53 @@
+{
+  "url": "https://chatgpt.com/backend-api/codex/responses",
+  "headers": {
+    "Authorization": "Bearer [REDACTED]",
+    "ChatGPT-Account-ID": "[REDACTED_ACCOUNT_ID]",
+    "Content-Type": "application/json",
+    "Accept": "text/event-stream",
+    "originator": "codex_cli_rs",
+    "session_id": "[REDACTED_SESSION_ID]"
+  },
+  "body": {
+    "model": "gpt-5.4",
+    "instructions": "",
+    "input": [
+      {
+        "type": "message",
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Production-ready 2D pixel art for a fixed-camera three-quarter top-down dark fantasy dungeon game. Match the supplied Overbless pixel-art references: crisp hard pixel clusters, readable silhouette at 128 pixels, dark navy outlines, restrained cyan/purple/orange accents, no antialiasing, no blur, no text, no letters, no numbers, no watermark. Use a perfectly flat pure magenta #ff00ff background around every isolated object. Create a strict 4-column by 3-row sprite sheet with twelve separate isolated dungeon mechanic assets, one centered in each equal cell with wide magenta gutters. Three-quarter top-down pixel art matching the reference dungeon. Row 1: 1) seamless cliff-edge floor tile with a clear safe stone lip and black-blue void below; 2) cliff inner-corner tile; 3) cracked destructible stone pillar intact with bright readable fissures; 4) same pillar heavily damaged. Row 2: 5) destroyed pillar rubble pile; 6) spike trap inactive and flush with floor; 7) same spike trap warning with partially raised spikes and amber rune; 8) same spike trap active with fully raised spikes. Row 3: 9) broken wall rubble; 10) fractured dungeon floor tile; 11) final-room dark stone floor tile with restrained purple inlay; 12) open exit pedestal with cyan-gold core. Keep collision silhouettes unambiguous. Every cell exactly one asset, no text, no borders, no labels."
+          },
+          {
+            "type": "input_image",
+            "image_url": "[REDACTED_IMAGE_DATA]"
+          },
+          {
+            "type": "input_image",
+            "image_url": "[REDACTED_IMAGE_DATA]"
+          }
+        ]
+      }
+    ],
+    "tools": [
+      {
+        "type": "image_generation",
+        "output_format": "png",
+        "size": "2048x2048"
+      }
+    ],
+    "tool_choice": "auto",
+    "parallel_tool_calls": false,
+    "reasoning": null,
+    "store": false,
+    "stream": true,
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "client_metadata": {
+      "x-codex-installation-id": "[REDACTED_INSTALLATION_ID]"
+    }
+  }
+}

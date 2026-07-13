@@ -1,0 +1,23 @@
+{
+  "asset_id": "chr_relative_scale_v001",
+  "category": "character-scale-reference",
+  "status": "review-required",
+  "tool": "god-tibo-imagen",
+  "tool_version": "0.3.1",
+  "provider": "private-codex",
+  "model": "gpt-5.4",
+  "created_at": "2026-07-12",
+  "prompt_file": "Docs/AI_Usage/prompts/visual_reference_prompts_v001.json",
+  "prompt_key": "character_scale_reference",
+  "input_images": ["Docs/Style/References/chr_player_reference_v001.png","Docs/Style/References/chr_dasher_reference_v001.png","Docs/Style/References/chr_archer_reference_v001.png","Docs/Style/References/chr_minion_reference_v001.png"],
+  "source_file": "Docs/Style/References/chr_relative_scale_v001.png",
+  "final_file": "Docs/Style/References/chr_relative_scale_v001.png",
+  "requested_size": "1536x1024",
+  "actual_size": "1536x1024",
+  "manual_edits": [],
+  "license": "project-generated original; final licensing review pending",
+  "approved_by": "pending-user-review",
+  "response_id": "resp_03c11851c498f768016a53c1de321481919e31fa0a77a21202",
+  "sha256": "b1034f9aba76e9034ac6992191121211b0f6d01ad9358e163e18faf332e71cba",
+  "review": {"style_consistency":"pass-draft","humanoid_relative_scale":"pass-draft","minion_relative_scale":"pass-draft","shared_grounding":"pass","text_or_watermark":"pass","final_scale_approval":"pending-user-review"}
+}

@@ -1,0 +1,31 @@
+{
+  "review_id": "visual_reference_review_v001",
+  "reviewed_at": "2026-07-12",
+  "scope": "10 M1 visual reference PNG files",
+  "status": "review-required",
+  "automated_checks": {
+    "png_signature": "pass 10/10",
+    "sha256_manifest_match": "pass 10/10",
+    "generation_record_match": "pass 10/10",
+    "prompt_key_resolution": "pass 10/10",
+    "csv_schema_parse": "pass 16/16 rows"
+  },
+  "visual_checks": {
+    "pixel_art_style_consistency": "pass-draft",
+    "fixed_three_quarter_view": "pass-draft",
+    "upper_left_lighting": "pass-draft",
+    "character_role_silhouettes": "pass-draft",
+    "palette_role_separation": "pass-draft",
+    "text_labels_or_watermarks": "none observed",
+    "m1_scope_exclusions": "pass: no Echo sheet, Golem, hazards, destructible pillars, final rooms or marketing capture generated"
+  },
+  "review_required": [
+    "Human style approval is still required before any M3 bulk sprite production.",
+    "Reference sheets have opaque presentation backgrounds and are not Unity-ready transparent sprites.",
+    "Sprite extraction, exact 128x128 frame normalization, stable pivots and animation continuity remain unperformed.",
+    "1280x720 in-game readability and grayscale distinction require Unity validation after approved extraction.",
+    "Environment tiles require a real seamless-repeat test after individual tile extraction.",
+    "The requested size was not honored for style_reference_master_v001 and vfx_telegraph_m1_reference_v001; actual dimensions are recorded in their generation files."
+  ],
+  "integration_decision": "Keep all generated images under Docs/Style/References. Do not import into Assets/_Project or replace current M1Representative assets before human approval."
+}
