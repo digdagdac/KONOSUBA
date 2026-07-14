@@ -646,9 +646,36 @@ namespace Overbless.Editor.Bootstrap
             var presenterSerialized = new SerializedObject(presenter);
             SetObject(presenterSerialized, "line", line);
             Apply(presenterSerialized, presenter);
+            if (enemyType == typeof(ArcherAI))
+            {
+                CreateArcherProjectileVisual(root.transform);
+            }
             CreateEnemyHealthBar(root.transform, health);
             CreateEnemyBlessingIndicator(root.transform, hasteSprite, giantSprite);
             return root;
+        }
+        private static void CreateArcherProjectileVisual(Transform parent)
+        {
+            var projectile = new GameObject("ArcherProjectileVisual", typeof(LineRenderer), typeof(ArcherProjectilePresenter));
+            projectile.transform.SetParent(parent, false);
+            var line = projectile.GetComponent<LineRenderer>();
+            line.sharedMaterial = GetOrCreateUiLineMaterial();
+            line.useWorldSpace = true;
+            line.loop = false;
+            line.positionCount = 2;
+            line.SetPosition(0, parent.position);
+            line.SetPosition(1, parent.position + Vector3.up);
+            line.startWidth = 0.08f;
+            line.endWidth = 0.08f;
+            line.startColor = new Color32(91, 235, 255, 255);
+            line.endColor = Color.white;
+            line.sortingLayerName = "VFX";
+            line.sortingOrder = 19;
+            line.enabled = false;
+            var presenter = projectile.GetComponent<ArcherProjectilePresenter>();
+            var serialized = new SerializedObject(presenter);
+            SetObject(serialized, "line", line);
+            Apply(serialized, presenter);
         }
 
         private static void CreateEnemyBlessingIndicator(

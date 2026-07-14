@@ -87,6 +87,14 @@ namespace Overbless.Runtime
             {
                 attackPresenter.Bind(this);
             }
+            if (this is ArcherAI archer)
+            {
+                var projectilePresenter = GetComponentInChildren<ArcherProjectilePresenter>(true);
+                if (projectilePresenter != null)
+                {
+                    projectilePresenter.Bind(archer);
+                }
+            }
             health.Died += HandleDeath;
             ApplyRuntimeStats(EnemyRuntimeStats.Recompute(definition, NoBlessings), HealthRatio);
             var blessingIndicator = GetComponentInChildren<BlessingIndicator>(true);

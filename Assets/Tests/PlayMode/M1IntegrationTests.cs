@@ -378,6 +378,19 @@ namespace Overbless.Tests.PlayMode
             Assert.That(archer, Is.Not.Null);
             Assert.That(archerB, Is.Not.Null);
             Assert.That(dash, Is.Not.Null);
+            var archerProjectilePresenter = archer.GetComponentInChildren<ArcherProjectilePresenter>(true);
+            var archerProjectileLine = archerProjectilePresenter == null
+                ? null
+                : archerProjectilePresenter.GetComponentInChildren<LineRenderer>(true);
+            Assert.That(archerProjectilePresenter, Is.Not.Null);
+            Assert.That(archerProjectileLine, Is.Not.Null);
+            Assert.That(archerProjectilePresenter.IsVisible, Is.False);
+            Assert.That(archerProjectilePresenter.CurrentContext, Is.Null);
+            Assert.That(archerProjectileLine.enabled, Is.False);
+            Assert.That(archerProjectileLine.useWorldSpace, Is.True);
+            Assert.That(archerProjectileLine.positionCount, Is.EqualTo(2));
+            Assert.That(archerProjectileLine.gameObject.GetComponent<Collider2D>(), Is.Null);
+            Assert.That(archerProjectileLine.gameObject.GetComponent<Rigidbody2D>(), Is.Null);
 
             yield return SetTrustedGestureState(webGate, mouse, false);
             yield return SetTrustedGestureState(webGate, mouse, true);
@@ -499,6 +512,118 @@ namespace Overbless.Tests.PlayMode
             var beforeRestartAttackIds = new HashSet<long>();
             var afterRestartAttackIds = new HashSet<long>();
             var capturePostRestartAttacks = false;
+            var projectilePresentationMismatches = new List<string>();
+            var projectileFiredSamples = 0;
+            var projectileMovedSamples = 0;
+            var projectileStoppedSamples = 0;
+            Action<string, AttackContext, Vector2> observeActiveProjectile = (eventName, context, position) =>
+            {
+                try
+                {
+                    if (context == null)
+                    {
+                        projectilePresentationMismatches.Add(
+                            $"Archer projectile {eventName} callback did not provide an attack context.");
+                        return;
+                    }
+
+                    if (!archerProjectilePresenter.IsVisible)
+                    {
+                        projectilePresentationMismatches.Add(
+                            $"Archer projectile presenter was hidden during a {eventName} callback.");
+                    }
+
+                    if (!object.ReferenceEquals(archerProjectilePresenter.CurrentContext, context))
+                    {
+                        projectilePresentationMismatches.Add(
+                            $"Archer projectile presenter context did not match the {eventName} callback.");
+                    }
+
+                    if (!object.ReferenceEquals(archer.ProjectileContext, context))
+                    {
+                        projectilePresentationMismatches.Add(
+                            $"Archer authoritative context did not match the {eventName} callback.");
+                    }
+
+                    if (Vector2.Distance(archerProjectilePresenter.CurrentPosition, position) > 0.01f)
+                    {
+                        projectilePresentationMismatches.Add(
+                            $"Archer projectile presenter position did not match the {eventName} callback.");
+                    }
+
+                    if (Vector2.Distance(archer.ProjectilePosition, position) > 0.01f)
+                    {
+                        projectilePresentationMismatches.Add(
+                            $"Archer authoritative position did not match the {eventName} callback.");
+                    }
+
+                    if (archerProjectileLine.positionCount != 2)
+                    {
+                        projectilePresentationMismatches.Add(
+                            $"Archer projectile line did not have two points during a {eventName} callback.");
+                        return;
+                    }
+
+                    var firstPoint = archerProjectileLine.GetPosition(0);
+                    var secondPoint = archerProjectileLine.GetPosition(1);
+                    var midpoint = (firstPoint + secondPoint) * 0.5f;
+                    var lineDirection = new Vector2(
+                        secondPoint.x - firstPoint.x,
+                        secondPoint.y - firstPoint.y).normalized;
+                    var lineLength = Vector3.Distance(firstPoint, secondPoint);
+                    if (Vector2.Distance(new Vector2(midpoint.x, midpoint.y), position) > 0.01f)
+                    {
+                        projectilePresentationMismatches.Add(
+                            $"Archer projectile line midpoint did not match the {eventName} callback.");
+                    }
+
+                    if (Vector2.Distance(lineDirection, context.NormalizedDirection) > 0.01f)
+                    {
+                        projectilePresentationMismatches.Add(
+                            $"Archer projectile line direction did not match the {eventName} callback.");
+                    }
+
+                    if (Mathf.Abs(archerProjectileLine.startWidth - context.Width) > 0.001f ||
+                        Mathf.Abs(archerProjectileLine.endWidth - context.Width) > 0.001f)
+                    {
+                        projectilePresentationMismatches.Add(
+                            $"Archer projectile line width did not match the locked {eventName} context.");
+                    }
+
+                    if (Mathf.Abs(lineLength - context.Width * 2f) > 0.01f)
+                    {
+                        projectilePresentationMismatches.Add(
+                            $"Archer projectile line length did not match the locked {eventName} context.");
+                    }
+                }
+                catch (Exception exception)
+                {
+                    projectilePresentationMismatches.Add(
+                        $"Archer projectile {eventName} observer failed: {exception.Message}");
+                }
+            };
+            Action<AttackContext, Vector2> observeStoppedProjectile = (context, position) =>
+            {
+                try
+                {
+                    if (archerProjectilePresenter.IsVisible)
+                    {
+                        projectilePresentationMismatches.Add(
+                            "Archer projectile presenter remained visible during a stopped callback.");
+                    }
+
+                    if (archerProjectileLine.enabled)
+                    {
+                        projectilePresentationMismatches.Add(
+                            "Archer projectile line remained enabled during a stopped callback.");
+                    }
+                }
+                catch (Exception exception)
+                {
+                    projectilePresentationMismatches.Add(
+                        $"Archer projectile stopped observer failed: {exception.Message}");
+                }
+            };
             Action<AttackContext> recordAttack = context =>
             {
                 if (capturePostRestartAttacks)
@@ -521,6 +646,21 @@ namespace Overbless.Tests.PlayMode
                 {
                     hastedDamageEvents.Add(damageEvent);
                 }
+            };
+            archer.ProjectileFired += (context, position) =>
+            {
+                projectileFiredSamples++;
+                observeActiveProjectile("fired", context, position);
+            };
+            archer.ProjectileMoved += (context, position) =>
+            {
+                projectileMovedSamples++;
+                observeActiveProjectile("moved", context, position);
+            };
+            archer.ProjectileStopped += (context, position) =>
+            {
+                projectileStoppedSamples++;
+                observeStoppedProjectile(context, position);
             };
             archer.ProjectileMoved += (context, position) =>
             {
@@ -634,6 +774,13 @@ namespace Overbless.Tests.PlayMode
                 archer.RuntimeStats.AttackCooldown,
                 Is.LessThan(archer.Definition.AttackCooldown));
             Assert.That(ContainsAudioEvent(emittedEvents, FunctionalAudioEvent.AttackLocked), Is.True);
+            Assert.That(projectileFiredSamples, Is.GreaterThanOrEqualTo(1));
+            Assert.That(projectileMovedSamples, Is.GreaterThanOrEqualTo(1));
+            Assert.That(projectileStoppedSamples, Is.GreaterThanOrEqualTo(1));
+            Assert.That(
+                projectilePresentationMismatches,
+                Is.Empty,
+                string.Join("\n", projectilePresentationMismatches));
 
             yield return WaitForConditionWhileDriving(
                 () => archer.IsProjectileActive,
@@ -652,6 +799,13 @@ namespace Overbless.Tests.PlayMode
             var pausedContext = archer.ProjectileContext;
             var pausedProjectilePosition = archer.ProjectilePosition;
             Assert.That(pausedContext, Is.Not.Null);
+            var pausedPresenterPosition = archerProjectilePresenter.CurrentPosition;
+            Assert.That(archerProjectilePresenter.IsVisible, Is.True);
+            Assert.That(archerProjectileLine.enabled, Is.True);
+            Assert.That(archerProjectilePresenter.CurrentContext, Is.SameAs(pausedContext));
+            Assert.That(
+                Vector2.Distance(archerProjectilePresenter.CurrentPosition, pausedProjectilePosition),
+                Is.LessThanOrEqualTo(0.01f));
             yield return SetKeyboardState(keyboard);
             yield return AdvanceRealtimeFrames(4);
 
@@ -660,6 +814,15 @@ namespace Overbless.Tests.PlayMode
             Assert.That(archer.CurrentAttackPhase, Is.EqualTo(pausedPhase));
             Assert.That(archer.ProjectileContext, Is.SameAs(pausedContext));
             Assert.That(archer.ProjectilePosition, Is.EqualTo(pausedProjectilePosition));
+            Assert.That(archerProjectilePresenter.IsVisible, Is.True);
+            Assert.That(archerProjectileLine.enabled, Is.True);
+            Assert.That(archerProjectilePresenter.CurrentContext, Is.SameAs(pausedContext));
+            Assert.That(
+                Vector2.Distance(archerProjectilePresenter.CurrentPosition, pausedPresenterPosition),
+                Is.LessThanOrEqualTo(0.01f));
+            Assert.That(
+                Vector2.Distance(archerProjectilePresenter.CurrentPosition, archer.ProjectilePosition),
+                Is.LessThanOrEqualTo(0.01f));
 
             yield return SetKeyboardState(keyboard, Key.Escape);
             Assert.That(pause.IsPaused, Is.False);
@@ -813,6 +976,13 @@ namespace Overbless.Tests.PlayMode
             Assert.That(archer.RuntimeStats.HasHaste, Is.False);
             Assert.That(giantTarget.RuntimeStats.HasGiant, Is.False);
             Assert.That(Vector2.Distance(dasher.transform.position, initialDasherPosition), Is.LessThanOrEqualTo(0.001f));
+            Assert.That(archerProjectilePresenter.IsVisible, Is.False);
+            Assert.That(archerProjectileLine.enabled, Is.False);
+            Assert.That(archerProjectilePresenter.CurrentContext, Is.Null);
+            Assert.That(
+                projectilePresentationMismatches,
+                Is.Empty,
+                string.Join("\n", projectilePresentationMismatches));
 
             capturePostRestartAttacks = true;
             var secondCycleSoulStart = spawnedSouls.Count;
@@ -906,6 +1076,92 @@ namespace Overbless.Tests.PlayMode
             Assert.That(inputRouter.IsInputEnabled, Is.True);
             Assert.That(room.SoulCount, Is.Zero);
             Assert.That(room.IsExitOpen, Is.False);
+            var reentrantRestartObserved = false;
+            var reentrantRestartFailures = new List<Exception>();
+            archerProjectilePresenter.enabled = false;
+            yield return null;
+            Action<AttackContext, Vector2> restartDuringProjectilePublication = (context, position) =>
+            {
+                if (reentrantRestartObserved)
+                {
+                    return;
+                }
+
+                reentrantRestartObserved = true;
+                try
+                {
+                    restart.RestartRoom();
+                }
+                catch (Exception exception)
+                {
+                    reentrantRestartFailures.Add(exception);
+                }
+            };
+            archer.ProjectileFired += restartDuringProjectilePublication;
+            archerProjectilePresenter.enabled = true;
+            yield return null;
+
+            yield return WaitForConditionWhileDriving(
+                () => reentrantRestartObserved,
+                keyboard,
+                player,
+                dash,
+                15f,
+                "The Archer did not publish a projectile for the reentrant restart check.");
+            archer.ProjectileFired -= restartDuringProjectilePublication;
+            yield return null;
+
+            Assert.That(reentrantRestartFailures, Is.Empty);
+            Assert.That(restartCount, Is.EqualTo(3));
+            Assert.That(archer.IsProjectileActive, Is.False);
+            Assert.That(archer.ProjectileContext, Is.Null);
+            Assert.That(archerProjectilePresenter.IsVisible, Is.False);
+            Assert.That(archerProjectilePresenter.CurrentContext, Is.Null);
+            Assert.That(archerProjectileLine.enabled, Is.False);
+            var reentrantDisableObserved = false;
+            archerProjectilePresenter.enabled = false;
+            yield return null;
+            Action<AttackContext, Vector2> disableDuringProjectilePublication = (context, position) =>
+            {
+                if (reentrantDisableObserved)
+                {
+                    return;
+                }
+
+                reentrantDisableObserved = true;
+                archerProjectilePresenter.enabled = false;
+            };
+            archer.ProjectileFired += disableDuringProjectilePublication;
+            archerProjectilePresenter.enabled = true;
+            yield return null;
+
+            yield return WaitForConditionWhileDriving(
+                () => reentrantDisableObserved,
+                keyboard,
+                player,
+                dash,
+                15f,
+                "The Archer did not publish a projectile for the reentrant disable check.");
+            archer.ProjectileFired -= disableDuringProjectilePublication;
+
+            Assert.That(archer.IsProjectileActive, Is.True);
+            Assert.That(archerProjectilePresenter.enabled, Is.False);
+            Assert.That(archerProjectilePresenter.IsVisible, Is.False);
+            Assert.That(archerProjectilePresenter.CurrentContext, Is.Null);
+            Assert.That(archerProjectileLine.enabled, Is.False);
+
+            archerProjectilePresenter.enabled = true;
+            Assert.That(archerProjectilePresenter.IsVisible, Is.True);
+            Assert.That(archerProjectilePresenter.CurrentContext, Is.SameAs(archer.ProjectileContext));
+            Assert.That(
+                Vector2.Distance(archerProjectilePresenter.CurrentPosition, archer.ProjectilePosition),
+                Is.LessThanOrEqualTo(0.01f));
+
+            restart.RestartRoom();
+            Assert.That(restartCount, Is.EqualTo(4));
+            Assert.That(archer.IsProjectileActive, Is.False);
+            Assert.That(archerProjectilePresenter.IsVisible, Is.False);
+            Assert.That(archerProjectileLine.enabled, Is.False);
         }
 
         [UnityTest]
