@@ -15,6 +15,17 @@
       "name": "Static non-damaging line-of-fire pillar",
       "contract": "Reuse authoritative World collision, create at least two readable routes, stop Archer sweeps and presentation at the same endpoint, and add no contact damage, movement, destruction, or trap behavior."
     },
+    "characterDirection": {
+      "benchmark": "Original modern anime ensemble appeal using memorable silhouettes, contrasting personalities, relationship hooks, and decision-timed portraits without copying proprietary characters.",
+      "player": "Rivella, age 22, a cynical former saint who overblesses enemies instead of attacking directly.",
+      "rivals": [
+        "Vera, age 24, a red-lightning charge knight mapped to Dasher behavior.",
+        "Lume, age 23, an eclipse archer mapped to locked projectile and Echo behavior.",
+        "Moko, a non-human cursed-doll swarm mapped to Minion behavior.",
+        "Atra, a non-human ancient guardian whose core and posture express emotion."
+      ],
+      "presentation": "Pixel-art combat sprites retain authoritative readability; high-resolution cel-anime portraits and expression sets appear only at first encounter, blessing choice, victory, and defeat."
+    },
     "roomScope": [
       {
         "room": "Room_02",
@@ -26,6 +37,7 @@
       }
     ],
     "assets": [
+      "Rivella, Vera, Lume, Moko, and Atra original key visuals, four-expression portrait sets, and signature-prop sheets",
       "Echo status icon and repeat telegraph/VFX from the provenance-recorded M2 resource set",
       "Static pillar and matching floor/environment sprites from the provenance-recorded M2 resource set",
       "Existing observer-only Archer projectile presentation"
@@ -41,7 +53,8 @@
       "Focused PlayMode Echo, obstacle, cancellation, restart, wall-stop, and composition tests",
       "WebGL captures at 1920x1080 and 1280x720",
       "Supported-browser runtime QA with every measured one-second bucket at or above 45 FPS",
-      "Fresh no-coaching playtest observations separated from interpretation"
+      "Fresh no-coaching playtest observations separated from interpretation",
+      "Unaided testers can distinguish the protagonist and two major rivals by name or visual motif and connect each rival's personality to its attack habit"
     ]
   },
   "excluded": [
