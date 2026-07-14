@@ -295,6 +295,30 @@ namespace Overbless.Editor.Build
             WriteTransitionLogNew(transitionLogPath, sourceTransition);
             return candidateDirectory;
         }
+        /// <summary>Batch-mode entry point. Requires -candidateId and writes only the initial SOURCE_SEALED candidate state.</summary>
+        public static void CreateCandidateForBatchMode()
+        {
+            string candidateId = null;
+            var arguments = Environment.GetCommandLineArgs();
+            for (var index = 0; index < arguments.Length - 1; index++)
+            {
+                if (!string.Equals(arguments[index], "-candidateId", StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                candidateId = arguments[index + 1];
+                break;
+            }
+
+            if (string.IsNullOrEmpty(candidateId))
+            {
+                throw new InvalidOperationException("-candidateId is required.");
+            }
+
+            var candidateDirectory = CreateCandidate(candidateId);
+            UnityEngine.Debug.Log("Created source-sealed M2 entry candidate at '" + candidateDirectory + "'.");
+        }
         /// <summary>
         /// Acquires the candidate-bound source capability immediately before BuildPlayer. It includes every
         /// materialized Unity input and rejects ignored, missing, extra, or reparse-point inputs.
