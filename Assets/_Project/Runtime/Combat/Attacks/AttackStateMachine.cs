@@ -156,6 +156,27 @@ namespace Overbless.Runtime
             EnsureContext();
             SetPhase(AttackPhase.Executing);
         }
+        public AttackContext CreateIndependentContextCopy()
+        {
+            if (Phase != AttackPhase.Locked && Phase != AttackPhase.Executing)
+            {
+                throw new InvalidOperationException(
+                    $"Independent attack contexts can only be created while locked or executing, but was {Phase}.");
+            }
+
+            EnsureContext();
+            return new AttackContext(
+                IssueAttackInstanceId(),
+                currentContext.AttackerEntityId,
+                currentContext.LockedAt,
+                currentContext.Origin,
+                currentContext.NormalizedDirection,
+                currentContext.Shape,
+                currentContext.Range,
+                currentContext.Width,
+                currentContext.Damage,
+                currentContext.TargetMask);
+        }
 
         public void BeginRecovery()
         {

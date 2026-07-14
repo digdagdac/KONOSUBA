@@ -228,11 +228,16 @@ namespace Overbless.Runtime
                 return;
             }
 
-            var soul = SpawnSoul(enemyHealth.transform.position);
+            SoulFragment soul = null;
+            if (spawnedSouls.Count < M1RoomDefinition.RequiredSoulCount)
+            {
+                soul = SpawnSoul(enemyHealth.transform.position);
+            }
+
             processedDeathTokens.Add(deathToken);
 
             var observerErrors = new List<Exception>();
-            if (!InvokeObservers(SoulSpawned, soul, eventGeneration, observerErrors) ||
+            if ((soul != null && !InvokeObservers(SoulSpawned, soul, eventGeneration, observerErrors)) ||
                 !InvokeObservers(SealReturnRequested, deathEvent, eventGeneration, observerErrors) ||
                 !InvokeObservers(EnemyDeathProcessed, deathEvent, eventGeneration, observerErrors))
             {

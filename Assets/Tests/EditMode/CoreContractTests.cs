@@ -214,6 +214,73 @@ namespace Overbless.Tests.EditMode
         }
 
         [Test]
+        public void AttackStateMachine_IndependentCopiesPreservePayloadWithoutMutatingThePrimaryContext()
+        {
+            var machine = new AttackStateMachine(14);
+            var phaseChanges = new List<AttackPhase>();
+            var lockedContexts = new List<AttackContext>();
+            var disposedContexts = new List<AttackContext>();
+            machine.PhaseChanged += phaseChanges.Add;
+            machine.ContextLocked += lockedContexts.Add;
+            machine.ContextDisposed += disposedContexts.Add;
+
+            Assert.Throws<InvalidOperationException>(() => machine.CreateIndependentContextCopy());
+            Assert.That(phaseChanges, Is.Empty);
+            Assert.That(lockedContexts, Is.Empty);
+            Assert.That(disposedContexts, Is.Empty);
+
+            machine.BeginWarning(0f);
+            Assert.That(machine.AdvanceWarning(1f), Is.True);
+            var primaryContext = Lock(machine);
+            var lockedPhaseChangeCount = phaseChanges.Count;
+            var lockedContextCount = lockedContexts.Count;
+            var lockedDisposedCount = disposedContexts.Count;
+
+            var lockedCopy = machine.CreateIndependentContextCopy();
+
+            Assert.That(lockedCopy, Is.Not.SameAs(primaryContext));
+            Assert.That(lockedCopy.AttackInstanceId, Is.GreaterThan(0));
+            Assert.That(primaryContext.AttackInstanceId, Is.GreaterThan(0));
+            Assert.That(lockedCopy.AttackInstanceId, Is.Not.EqualTo(primaryContext.AttackInstanceId));
+            AssertEquivalentAttackPayload(primaryContext, lockedCopy);
+            Assert.That(machine.Phase, Is.EqualTo(AttackPhase.Locked));
+            Assert.That(machine.CurrentContext, Is.SameAs(primaryContext));
+            Assert.That(phaseChanges.Count, Is.EqualTo(lockedPhaseChangeCount));
+            Assert.That(lockedContexts.Count, Is.EqualTo(lockedContextCount));
+            Assert.That(disposedContexts.Count, Is.EqualTo(lockedDisposedCount));
+
+            machine.BeginExecuting();
+            var executingPhaseChangeCount = phaseChanges.Count;
+            var executingContextCount = lockedContexts.Count;
+            var executingDisposedCount = disposedContexts.Count;
+
+            var executingCopy = machine.CreateIndependentContextCopy();
+
+            Assert.That(executingCopy, Is.Not.SameAs(primaryContext));
+            Assert.That(executingCopy.AttackInstanceId, Is.GreaterThan(0));
+            Assert.That(executingCopy.AttackInstanceId, Is.Not.EqualTo(primaryContext.AttackInstanceId));
+            Assert.That(executingCopy.AttackInstanceId, Is.Not.EqualTo(lockedCopy.AttackInstanceId));
+            AssertEquivalentAttackPayload(primaryContext, executingCopy);
+            Assert.That(machine.Phase, Is.EqualTo(AttackPhase.Executing));
+            Assert.That(machine.CurrentContext, Is.SameAs(primaryContext));
+            Assert.That(phaseChanges.Count, Is.EqualTo(executingPhaseChangeCount));
+            Assert.That(lockedContexts.Count, Is.EqualTo(executingContextCount));
+            Assert.That(disposedContexts.Count, Is.EqualTo(executingDisposedCount));
+
+            machine.BeginRecovery();
+            var recoveryPhaseChangeCount = phaseChanges.Count;
+            var recoveryContextCount = lockedContexts.Count;
+            var recoveryDisposedCount = disposedContexts.Count;
+
+            Assert.Throws<InvalidOperationException>(() => machine.CreateIndependentContextCopy());
+            Assert.That(machine.Phase, Is.EqualTo(AttackPhase.Recovery));
+            Assert.That(machine.CurrentContext, Is.Null);
+            Assert.That(phaseChanges.Count, Is.EqualTo(recoveryPhaseChangeCount));
+            Assert.That(lockedContexts.Count, Is.EqualTo(recoveryContextCount));
+            Assert.That(disposedContexts.Count, Is.EqualTo(recoveryDisposedCount));
+        }
+
+        [Test]
         public void AttackStateMachine_ReentrantObserversCannotPublishStaleLockOrCorruptRecovery()
         {
             var cancelledMachine = new AttackStateMachine(10);
@@ -306,6 +373,57 @@ namespace Overbless.Tests.EditMode
         }
 
         [Test]
+        public void BlessingTypeAndEchoDefinition_UseStableOrdinalsIdentityMultipliersAndExactDelay()
+        {
+            Assert.That((int)BlessingType.Haste, Is.EqualTo(0));
+            Assert.That((int)BlessingType.Giant, Is.EqualTo(1));
+            Assert.That((int)BlessingType.Echo, Is.EqualTo(2));
+
+            var echo = BlessingDefinition.Echo;
+
+            Assert.That(BlessingDefinition.Get(BlessingType.Echo), Is.SameAs(echo));
+            Assert.That(echo.Type, Is.EqualTo(BlessingType.Echo));
+            Assert.That(echo.Id, Is.EqualTo("Echo"));
+            Assert.That(echo.MovementSpeedMultiplier, Is.EqualTo(1f));
+            Assert.That(echo.AttackSpeedMultiplier, Is.EqualTo(1f));
+            Assert.That(echo.AttackCooldownMultiplier, Is.EqualTo(1f));
+            Assert.That(echo.ProjectileSpeedMultiplier, Is.EqualTo(1f));
+            Assert.That(echo.ScaleMultiplier, Is.EqualTo(1f));
+            Assert.That(echo.MaximumHealthMultiplier, Is.EqualTo(1f));
+            Assert.That(echo.AttackRangeMultiplier, Is.EqualTo(1f));
+            Assert.That(echo.MassMultiplier, Is.EqualTo(1f));
+            Assert.That(BlessingDefinition.EchoRepeatDelaySeconds, Is.EqualTo(0.65f));
+        }
+
+        [Test]
+        public void EnemyRuntimeStats_EchoSetsOnlyItsBehaviorFlag()
+        {
+            var definition = Track(ScriptableObject.CreateInstance<EnemyDefinition>());
+            var baseline = EnemyRuntimeStats.Recompute(definition, Array.Empty<BlessingType>());
+            var echo = EnemyRuntimeStats.Recompute(definition, new[] { BlessingType.Echo });
+
+            Assert.That(baseline.HasEcho, Is.False);
+            Assert.That(echo.HasEcho, Is.True);
+            Assert.That(echo.HasHaste, Is.EqualTo(baseline.HasHaste));
+            Assert.That(echo.HasGiant, Is.EqualTo(baseline.HasGiant));
+            Assert.That(echo.MaximumHealth, Is.EqualTo(baseline.MaximumHealth));
+            Assert.That(echo.MovementSpeed, Is.EqualTo(baseline.MovementSpeed));
+            Assert.That(echo.AttackCooldown, Is.EqualTo(baseline.AttackCooldown));
+            Assert.That(echo.WarningDuration, Is.EqualTo(baseline.WarningDuration));
+            Assert.That(echo.RecoveryDuration, Is.EqualTo(baseline.RecoveryDuration));
+            Assert.That(echo.AttackDamage, Is.EqualTo(baseline.AttackDamage));
+            Assert.That(echo.EngagementRange, Is.EqualTo(baseline.EngagementRange));
+            Assert.That(echo.AttackRange, Is.EqualTo(baseline.AttackRange));
+            Assert.That(echo.AttackWidth, Is.EqualTo(baseline.AttackWidth));
+            Assert.That(echo.ChargeSpeed, Is.EqualTo(baseline.ChargeSpeed));
+            Assert.That(echo.ProjectileSpeed, Is.EqualTo(baseline.ProjectileSpeed));
+            Assert.That(echo.PreferredDistance, Is.EqualTo(baseline.PreferredDistance));
+            Assert.That(echo.AttackSpeedMultiplier, Is.EqualTo(baseline.AttackSpeedMultiplier));
+            Assert.That(echo.ScaleMultiplier, Is.EqualTo(baseline.ScaleMultiplier));
+            Assert.That(echo.MassMultiplier, Is.EqualTo(baseline.MassMultiplier));
+        }
+
+        [Test]
         public void Blessings_RejectDuplicatesOrderEffectsDeterministicallyAndUseExactMultipliers()
         {
             var definition = Track(ScriptableObject.CreateInstance<EnemyDefinition>());
@@ -372,6 +490,52 @@ namespace Overbless.Tests.EditMode
             }
 
         }
+        [Test]
+        public void BlessingSystem_EchoRequiresSupportingEnemyAndRestoresOrderedBlessingsOnRemoval()
+        {
+            var definition = Track(ScriptableObject.CreateInstance<EnemyDefinition>());
+            var unsupportedHealth = CreateHealth(13, definition.MaximumHealth);
+            var unsupportedTarget = new RecordingBlessingTarget(13, definition, unsupportedHealth);
+            var archer = CreateArcher(14, definition, out var archerHealth);
+            var system = new BlessingSystem();
+            var unsupportedEchoSlot = new BlessingSlot(BlessingDefinition.Echo);
+            var echoSlot = new BlessingSlot(BlessingDefinition.Echo);
+            var hasteSlot = new BlessingSlot(BlessingDefinition.Haste);
+
+            try
+            {
+                Assert.That(system.CanApply(BlessingType.Echo, unsupportedTarget), Is.False);
+                Assert.That(system.TryApply(unsupportedEchoSlot, unsupportedTarget, unsupportedHealth, out _), Is.False);
+                Assert.That(system.GetActiveBlessings(unsupportedTarget.EntityId), Is.Empty);
+                Assert.That(unsupportedEchoSlot.IsAvailable, Is.True);
+
+                Assert.That(system.CanApply(BlessingType.Echo, archer), Is.True);
+                Assert.That(system.TryApply(echoSlot, archer, archerHealth, out var echoApplication), Is.True);
+                Assert.That(echoApplication.Type, Is.EqualTo(BlessingType.Echo));
+                Assert.That(echoApplication.ActiveBlessings, Is.EqualTo(new[] { BlessingType.Echo }));
+                Assert.That(archer.RuntimeStats.HasEcho, Is.True);
+                Assert.That(system.TryApply(echoSlot, archer, archerHealth, out _), Is.False);
+
+                Assert.That(system.TryApply(hasteSlot, archer, archerHealth, out var hasteApplication), Is.True);
+                Assert.That(hasteApplication.ActiveBlessings, Is.EqualTo(new[] { BlessingType.Haste, BlessingType.Echo }));
+                Assert.That(system.GetActiveBlessings(archer.EntityId), Is.EqualTo(
+                    new[] { BlessingType.Haste, BlessingType.Echo }));
+
+                Assert.That(system.RemoveTarget(archer), Is.True);
+                Assert.That(system.GetActiveBlessings(archer.EntityId), Is.Empty);
+                Assert.That(archer.RuntimeStats.HasEcho, Is.False);
+                Assert.That(echoSlot.IsAvailable, Is.True);
+                Assert.That(hasteSlot.IsAvailable, Is.True);
+                Assert.That(system.RemoveTarget(archer), Is.False);
+            }
+            finally
+            {
+                unsupportedEchoSlot.Dispose();
+                echoSlot.Dispose();
+                hasteSlot.Dispose();
+            }
+        }
+
         [Test]
         public void BlessingSystem_RejectsReentrantMutationAndRetainsOwnershipWhenRestoreFails()
         {
@@ -469,6 +633,19 @@ namespace Overbless.Tests.EditMode
             bar.Refresh();
             Assert.That(fill.GetPosition(1).x, Is.EqualTo(0f).Within(0.0001f));
         }
+        private static void AssertEquivalentAttackPayload(AttackContext expected, AttackContext actual)
+        {
+            Assert.That(actual.AttackerEntityId, Is.EqualTo(expected.AttackerEntityId));
+            Assert.That(actual.LockedAt, Is.EqualTo(expected.LockedAt));
+            Assert.That(actual.Origin, Is.EqualTo(expected.Origin));
+            Assert.That(actual.NormalizedDirection, Is.EqualTo(expected.NormalizedDirection));
+            Assert.That(actual.Shape, Is.EqualTo(expected.Shape));
+            Assert.That(actual.Range, Is.EqualTo(expected.Range));
+            Assert.That(actual.Width, Is.EqualTo(expected.Width));
+            Assert.That(actual.Damage, Is.EqualTo(expected.Damage));
+            Assert.That(actual.TargetMask, Is.EqualTo(expected.TargetMask));
+        }
+
         private static AttackContext Lock(AttackStateMachine machine)
         {
             return machine.Lock(1f, Vector2.zero, Vector2.right, AttackShape.Line, 2f, 1f, 1, 1 << 8);
@@ -486,6 +663,7 @@ namespace Overbless.Tests.EditMode
             Assert.That(actual.MassMultiplier, Is.EqualTo(expected.MassMultiplier));
             Assert.That(actual.HasHaste, Is.EqualTo(expected.HasHaste));
             Assert.That(actual.HasGiant, Is.EqualTo(expected.HasGiant));
+            Assert.That(actual.HasEcho, Is.EqualTo(expected.HasEcho));
         }
 
         private Health CreateHealth(int entityId, int maximumHealth)
@@ -500,6 +678,23 @@ namespace Overbless.Tests.EditMode
             return health;
         }
 
+        private ArcherAI CreateArcher(int entityId, EnemyDefinition definition, out Health health)
+        {
+            var gameObject = Track(new GameObject($"Archer-{entityId}"));
+            gameObject.SetActive(false);
+            health = gameObject.AddComponent<Health>();
+            gameObject.AddComponent<Rigidbody2D>();
+            gameObject.AddComponent<CircleCollider2D>();
+            var archer = gameObject.AddComponent<ArcherAI>();
+            SetPrivateField(health, "entityId", entityId);
+            SetPrivateField(health, "maximumHealth", definition.MaximumHealth);
+            SetPrivateField(archer, "health", health);
+            SetPrivateField(archer, "definition", definition);
+            InvokeNonPublicMethod(archer, "Awake");
+            health.ResetHealth();
+            return archer;
+        }
+
         private T Track<T>(T value) where T : UnityEngine.Object
         {
             objectsToDestroy.Add(value);
@@ -508,9 +703,30 @@ namespace Overbless.Tests.EditMode
 
         private static void SetPrivateField<T>(object target, string fieldName, T value)
         {
-            var field = target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+            FieldInfo field = null;
+            for (var type = target.GetType(); type != null && field == null; type = type.BaseType)
+            {
+                field = type.GetField(
+                    fieldName,
+                    BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
+            }
+
             Assert.That(field, Is.Not.Null, $"Expected serialized field '{fieldName}'.");
             field.SetValue(target, value);
+        }
+
+        private static void InvokeNonPublicMethod(object target, string methodName)
+        {
+            MethodInfo method = null;
+            for (var type = target.GetType(); type != null && method == null; type = type.BaseType)
+            {
+                method = type.GetMethod(
+                    methodName,
+                    BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
+            }
+
+            Assert.That(method, Is.Not.Null, $"Expected non-public method '{methodName}'.");
+            method.Invoke(target, null);
         }
 
         private sealed class RecordingDamageable : IDamageable

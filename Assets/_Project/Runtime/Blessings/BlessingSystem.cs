@@ -37,7 +37,8 @@ namespace Overbless.Runtime
         private static readonly BlessingType[] ImplementedBlessingTypes =
         {
             BlessingType.Haste,
-            BlessingType.Giant
+            BlessingType.Giant,
+            BlessingType.Echo
         };
         private bool isMutating;
 
@@ -50,7 +51,11 @@ namespace Overbless.Runtime
 
             RequireDefinition(target);
 
-            if ((type != BlessingType.Haste && type != BlessingType.Giant) || target.EntityId == 0)
+            if ((type != BlessingType.Haste &&
+                 type != BlessingType.Giant &&
+                 type != BlessingType.Echo) ||
+                target.EntityId == 0 ||
+                !SupportsBlessing(type, target))
             {
                 return false;
             }
@@ -145,26 +150,17 @@ namespace Overbless.Runtime
             try
             {
                 var orderedActiveBlessings = GetOrderedActiveBlessings(activeBlessings);
-                var stats = EnemyRuntimeStats.Recompute(target.Definition, orderedActiveBlessings);
-                var currentHealthRatio = preservedHealthRatio;
-                target.ApplyBlessingRuntimeStats(stats, currentHealthRatio);
+                ApplyBlessingProjection(target, orderedActiveBlessings, preservedHealthRatio);
                 application = new BlessingApplication(type, targetEntityId, orderedActiveBlessings);
                 return true;
             }
             catch (Exception primaryException)
             {
                 var failures = new List<Exception> { primaryException };
-                var rollbackSucceeded = false;
-                try
-                {
-                    var rollbackStats = EnemyRuntimeStats.Recompute(target.Definition, priorActiveBlessings);
-                    target.ApplyBlessingRuntimeStats(rollbackStats, preservedHealthRatio);
-                    rollbackSucceeded = true;
-                }
-                catch (Exception rollbackException)
-                {
-                    failures.Add(rollbackException);
-                }
+                var rollbackFailures = new List<Exception>();
+                RestoreBlessingProjection(target, priorActiveBlessings, preservedHealthRatio, rollbackFailures);
+                var rollbackSucceeded = rollbackFailures.Count == 0;
+                failures.AddRange(rollbackFailures);
 
                 if (rollbackSucceeded)
                 {
@@ -239,7 +235,6 @@ namespace Overbless.Runtime
 
             try
             {
-                var stats = EnemyRuntimeStats.Recompute(target.Definition, NoBlessings);
                 var preservedHealthRatio = target.HealthRatio;
                 if (!IsValidHealthRatio(preservedHealthRatio))
                 {
@@ -247,7 +242,11 @@ namespace Overbless.Runtime
                         "Blessing targets must expose a finite health ratio within [0,1].");
                 }
 
-                target.ApplyBlessingRuntimeStats(stats, preservedHealthRatio);
+                var restorationFailures = new List<Exception>();
+                RestoreBlessingProjection(target, NoBlessings, preservedHealthRatio, restorationFailures);
+                ThrowFailures(
+                    restorationFailures,
+                    "Blessing target baseline restoration failed.");
             }
             catch (Exception restorationException)
             {
@@ -333,6 +332,63 @@ namespace Overbless.Runtime
                 throw new ArgumentException("Blessing runtimes require an EnemyDefinition.", nameof(target));
             }
         }
+
+        private static bool SupportsBlessing(BlessingType type, IEnemyBlessingRuntime target)
+        {
+            if (type != BlessingType.Echo)
+            {
+                return true;
+            }
+
+            return target is EnemyBase enemy && enemy.SupportsBehavioralBlessing(type);
+        }
+
+        private static void ApplyBlessingProjection(
+            IEnemyBlessingRuntime target,
+            IReadOnlyList<BlessingType> activeBlessings,
+            float healthRatio)
+        {
+            var stats = EnemyRuntimeStats.Recompute(target.Definition, activeBlessings);
+            target.ApplyBlessingRuntimeStats(stats, healthRatio);
+            ApplyBehavioralBlessings(target, activeBlessings);
+        }
+
+        private static void RestoreBlessingProjection(
+            IEnemyBlessingRuntime target,
+            IReadOnlyList<BlessingType> activeBlessings,
+            float healthRatio,
+            List<Exception> failures)
+        {
+            try
+            {
+                var stats = EnemyRuntimeStats.Recompute(target.Definition, activeBlessings);
+                target.ApplyBlessingRuntimeStats(stats, healthRatio);
+            }
+            catch (Exception exception)
+            {
+                failures.Add(exception);
+            }
+
+            try
+            {
+                ApplyBehavioralBlessings(target, activeBlessings);
+            }
+            catch (Exception exception)
+            {
+                failures.Add(exception);
+            }
+        }
+
+        private static void ApplyBehavioralBlessings(
+            IEnemyBlessingRuntime target,
+            IReadOnlyList<BlessingType> activeBlessings)
+        {
+            if (target is EnemyBase enemy)
+            {
+                enemy.ApplyBehavioralBlessings(activeBlessings);
+            }
+        }
+
         private static bool IsLiveTarget(IEnemyBlessingRuntime target, Health health, int expectedEntityId)
         {
             return !(target is UnityEngine.Object targetObject && targetObject == null) &&

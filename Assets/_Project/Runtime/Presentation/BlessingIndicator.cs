@@ -7,6 +7,7 @@ namespace Overbless.Runtime
     {
         [SerializeField] private SpriteRenderer hasteRenderer;
         [SerializeField] private SpriteRenderer giantRenderer;
+        [SerializeField] private SpriteRenderer echoRenderer;
 
         private EnemyBase owner;
 
@@ -44,6 +45,7 @@ namespace Overbless.Runtime
             RequireRenderers();
             hasteRenderer.enabled = stats.HasHaste;
             giantRenderer.enabled = stats.HasGiant;
+            echoRenderer.enabled = stats.HasEcho;
         }
 
         private void Unsubscribe()
@@ -58,9 +60,10 @@ namespace Overbless.Runtime
 
         private void RequireRenderers()
         {
-            if (hasteRenderer == null || giantRenderer == null)
+            if (hasteRenderer == null || giantRenderer == null || echoRenderer == null)
             {
-                throw new System.InvalidOperationException("Blessing indicator requires independent Haste and Giant renderers.");
+                throw new System.InvalidOperationException(
+                    "Blessing indicator requires independent Haste, Giant, and Echo renderers.");
             }
         }
     }

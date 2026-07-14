@@ -23,7 +23,8 @@ namespace Overbless.Runtime
             float scaleMultiplier,
             float massMultiplier,
             bool hasHaste,
-            bool hasGiant)
+            bool hasGiant,
+            bool hasEcho)
         {
             MaximumHealth = maximumHealth;
             MovementSpeed = movementSpeed;
@@ -42,6 +43,7 @@ namespace Overbless.Runtime
             MassMultiplier = massMultiplier;
             HasHaste = hasHaste;
             HasGiant = hasGiant;
+            HasEcho = hasEcho;
         }
 
         public int MaximumHealth { get; }
@@ -61,6 +63,7 @@ namespace Overbless.Runtime
         public float MassMultiplier { get; }
         public bool HasHaste { get; }
         public bool HasGiant { get; }
+        public bool HasEcho { get; }
 
         public static EnemyRuntimeStats Recompute(
             EnemyDefinition definition,
@@ -80,6 +83,7 @@ namespace Overbless.Runtime
 
             var hasHaste = false;
             var hasGiant = false;
+            var hasEcho = false;
 
             foreach (var blessingId in activeBlessingIds)
             {
@@ -90,6 +94,10 @@ namespace Overbless.Runtime
                 else if (blessingId == BlessingType.Giant)
                 {
                     hasGiant = true;
+                }
+                else if (blessingId == BlessingType.Echo)
+                {
+                    hasEcho = true;
                 }
             }
 
@@ -166,7 +174,8 @@ namespace Overbless.Runtime
                 scaleMultiplier,
                 massMultiplier,
                 hasHaste,
-                hasGiant);
+                hasGiant,
+                hasEcho);
         }
 
         private static void RequirePositiveFinite(float value, string name)

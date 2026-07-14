@@ -155,6 +155,15 @@ namespace Overbless.Runtime
             ApplyRuntimeStats(stats, healthRatio);
         }
 
+        public virtual bool SupportsBehavioralBlessing(BlessingType type)
+        {
+            return false;
+        }
+
+        public virtual void ApplyBehavioralBlessings(IReadOnlyList<BlessingType> activeBlessings)
+        {
+        }
+
         public void Restart()
         {
             var failures = new List<Exception>();
@@ -206,7 +215,7 @@ namespace Overbless.Runtime
                 }
             }
 
-            ThrowFailures(failures);
+            ThrowFailures(failures, "Enemy restart observers failed.");
         }
 
         public void ResetForRoom()
@@ -230,7 +239,7 @@ namespace Overbless.Runtime
                 failures.Add(exception);
             }
 
-            ThrowFailures(failures);
+            ThrowFailures(failures, "Enemy room reset failed.");
         }
 
         protected bool TryGetPlayerTargetPosition(out Vector2 position)
@@ -430,7 +439,7 @@ namespace Overbless.Runtime
         {
         }
 
-        private static void ThrowFailures(List<Exception> failures)
+        private static void ThrowFailures(List<Exception> failures, string aggregateMessage)
         {
             if (failures.Count == 1)
             {
@@ -439,15 +448,33 @@ namespace Overbless.Runtime
 
             if (failures.Count > 1)
             {
-                throw new AggregateException("Enemy reset observers failed.", failures);
+                throw new AggregateException(aggregateMessage, failures);
             }
         }
         protected abstract void TickBehavior(float deltaTime);
 
         private void HandleDeath(DeathEvent deathEvent)
         {
-            attackState.HandleOwnerDeath();
-            OnEnemyDied(deathEvent);
+            var failures = new List<Exception>();
+            try
+            {
+                attackState.HandleOwnerDeath();
+            }
+            catch (Exception exception)
+            {
+                failures.Add(exception);
+            }
+
+            try
+            {
+                OnEnemyDied(deathEvent);
+            }
+            catch (Exception exception)
+            {
+                failures.Add(exception);
+            }
+
+            ThrowFailures(failures, "Enemy death cleanup failed.");
         }
     }
 

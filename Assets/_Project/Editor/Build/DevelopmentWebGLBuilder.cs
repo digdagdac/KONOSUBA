@@ -15,6 +15,9 @@ namespace Overbless.Editor.Build
     {
         public const string OutputDirectory = "Builds/M1_GuidedValidation_WebGL";
         private const string ScenePath = M1ContentBootstrap.ScenePath;
+        public const string M2OutputDirectory = "Builds/M2_Rooms_WebGL";
+        private const string Room02ScenePath = "Assets/_Project/Scenes/Room_02.unity";
+        private const string Room03ScenePath = "Assets/_Project/Scenes/Room_03.unity";
 
         [MenuItem("Overbless/M1/Build Development WebGL")]
         public static void Build()
@@ -86,6 +89,53 @@ namespace Overbless.Editor.Build
         public static void BuildForBatchMode()
         {
             Build();
+        }
+
+        [MenuItem("Overbless/M2/Build Development WebGL")]
+        public static void BuildM2()
+        {
+            M1ContentBootstrap.CreateOrUpdateM2();
+            var previousSettings = TemporaryBuildSettings.Capture();
+            try
+            {
+                EnsureWebGlTarget();
+                ConfigureDevelopmentSettings();
+
+                var outputDirectory = Path.GetFullPath(M2OutputDirectory);
+                DeleteDirectoryIfPresent(outputDirectory);
+                Directory.CreateDirectory(Path.GetDirectoryName(outputDirectory));
+
+                var options = new BuildPlayerOptions
+                {
+                    scenes = new[] { Room02ScenePath, Room03ScenePath },
+                    locationPathName = outputDirectory,
+                    target = BuildTarget.WebGL,
+                    targetGroup = BuildTargetGroup.WebGL,
+                    options = BuildOptions.Development
+                };
+
+                var report = BuildPipeline.BuildPlayer(options);
+                if (report == null || report.summary.result != BuildResult.Succeeded)
+                {
+                    var result = report == null ? "no build report" : report.summary.result.ToString();
+                    throw new InvalidOperationException($"M2 Development WebGL build failed: {result}.");
+                }
+
+                PostprocessWebTemplate(outputDirectory);
+                Debug.Log(
+                    $"M2 Development WebGL technical-QA build completed at '{M2OutputDirectory}'. " +
+                    "This unsealed build does not create or imply an M2EntryGate decision.");
+            }
+            finally
+            {
+                previousSettings.Restore();
+            }
+        }
+
+        // Intended for -executeMethod in Unity batch mode.
+        public static void BuildM2ForBatchMode()
+        {
+            BuildM2();
         }
         // Existing output cannot establish the BuildReport provenance required for a sealed manifest.
         public static void PostprocessExistingForBatchMode()
@@ -264,6 +314,68 @@ namespace Overbless.Editor.Build
             }
 
             Directory.Delete(path, true);
+        }
+
+        private readonly struct TemporaryBuildSettings
+        {
+            private TemporaryBuildSettings(
+                BuildTarget activeTarget,
+                bool development,
+                bool connectProfiler,
+                bool deepProfiling,
+                WebGLCompressionFormat compressionFormat,
+                bool decompressionFallback,
+                WebGLExceptionSupport exceptionSupport)
+            {
+                ActiveTarget = activeTarget;
+                Development = development;
+                ConnectProfiler = connectProfiler;
+                DeepProfiling = deepProfiling;
+                CompressionFormat = compressionFormat;
+                DecompressionFallback = decompressionFallback;
+                ExceptionSupport = exceptionSupport;
+            }
+
+            private BuildTarget ActiveTarget { get; }
+            private bool Development { get; }
+            private bool ConnectProfiler { get; }
+            private bool DeepProfiling { get; }
+            private WebGLCompressionFormat CompressionFormat { get; }
+            private bool DecompressionFallback { get; }
+            private WebGLExceptionSupport ExceptionSupport { get; }
+
+            public static TemporaryBuildSettings Capture()
+            {
+                return new TemporaryBuildSettings(
+                    EditorUserBuildSettings.activeBuildTarget,
+                    EditorUserBuildSettings.development,
+                    EditorUserBuildSettings.connectProfiler,
+                    EditorUserBuildSettings.buildWithDeepProfilingSupport,
+                    PlayerSettings.WebGL.compressionFormat,
+                    PlayerSettings.WebGL.decompressionFallback,
+                    PlayerSettings.WebGL.exceptionSupport);
+            }
+
+            public void Restore()
+            {
+                PlayerSettings.WebGL.compressionFormat = CompressionFormat;
+                PlayerSettings.WebGL.decompressionFallback = DecompressionFallback;
+                PlayerSettings.WebGL.exceptionSupport = ExceptionSupport;
+                EditorUserBuildSettings.development = Development;
+                EditorUserBuildSettings.connectProfiler = ConnectProfiler;
+                EditorUserBuildSettings.buildWithDeepProfilingSupport = DeepProfiling;
+
+                if (ActiveTarget != BuildTarget.NoTarget &&
+                    EditorUserBuildSettings.activeBuildTarget != ActiveTarget)
+                {
+                    var targetGroup = BuildPipeline.GetBuildTargetGroup(ActiveTarget);
+                    if (!EditorUserBuildSettings.SwitchActiveBuildTarget(targetGroup, ActiveTarget))
+                    {
+                        throw new InvalidOperationException(
+                            $"Unity failed to restore the active build target to '{ActiveTarget}'.");
+                    }
+                }
+            }
         }
     }
 }

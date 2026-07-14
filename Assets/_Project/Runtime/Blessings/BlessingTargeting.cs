@@ -79,6 +79,7 @@ namespace Overbless.Runtime
         private BlessingSystem blessingSystem;
         private BlessingSlot hasteSlot;
         private BlessingSlot giantSlot;
+        private BlessingSlot echoSlot;
         private Health ownerHealth;
         private int enemyBodyLayer;
         private int enemyBodyLayerMask;
@@ -140,6 +141,7 @@ namespace Overbless.Runtime
             EnsureInitialized();
             hasteSlot.Advance(Time.time);
             giantSlot.Advance(Time.time);
+            echoSlot.Advance(Time.time);
             HandleInput();
         }
 
@@ -604,6 +606,10 @@ namespace Overbless.Runtime
                 {
                     Select(BlessingType.Giant);
                 }
+                else if (keyboard.digit3Key.wasPressedThisFrame || keyboard.numpad3Key.wasPressedThisFrame)
+                {
+                    Select(BlessingType.Echo);
+                }
                 else if (keyboard.escapeKey.wasPressedThisFrame)
                 {
                     CancelSelection();
@@ -693,6 +699,8 @@ namespace Overbless.Runtime
                     return hasteSlot;
                 case BlessingType.Giant:
                     return giantSlot;
+                case BlessingType.Echo:
+                    return echoSlot;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(type), type, "Only implemented blessing types have slots.");
             }
@@ -862,8 +870,10 @@ namespace Overbless.Runtime
             blessingSystem = new BlessingSystem();
             hasteSlot = new BlessingSlot(BlessingDefinition.Haste);
             giantSlot = new BlessingSlot(BlessingDefinition.Giant);
+            echoSlot = new BlessingSlot(BlessingDefinition.Echo);
             hasteSlot.AvailabilityChanged += HandleSlotAvailabilityChanged;
             giantSlot.AvailabilityChanged += HandleSlotAvailabilityChanged;
+            echoSlot.AvailabilityChanged += HandleSlotAvailabilityChanged;
             selectedType = BlessingType.Haste;
             hoveredTargetEntityId = NoTarget;
             isInitialized = true;
@@ -1064,6 +1074,18 @@ namespace Overbless.Runtime
                 failures.Add(exception);
             }
 
+            try
+            {
+                if (echoSlot.LockedTargetEntityId == targetEntityId)
+                {
+                    echoSlot.PinForRestorationRetry();
+                }
+            }
+            catch (Exception exception)
+            {
+                failures.Add(exception);
+            }
+
             ThrowFailures(failures);
         }
 
@@ -1082,6 +1104,15 @@ namespace Overbless.Runtime
             try
             {
                 giantSlot.ReleaseAfterRestoration(targetEntityId);
+            }
+            catch (Exception exception)
+            {
+                failures.Add(exception);
+            }
+
+            try
+            {
+                echoSlot.ReleaseAfterRestoration(targetEntityId);
             }
             catch (Exception exception)
             {
@@ -1112,6 +1143,15 @@ namespace Overbless.Runtime
                 failures.Add(exception);
             }
 
+            try
+            {
+                echoSlot.ForceForgetTarget(targetEntityId);
+            }
+            catch (Exception exception)
+            {
+                failures.Add(exception);
+            }
+
             ThrowFailures(failures);
         }
         private void CancelAllSlots()
@@ -1129,6 +1169,15 @@ namespace Overbless.Runtime
             try
             {
                 giantSlot.CancelLock();
+            }
+            catch (Exception exception)
+            {
+                failures.Add(exception);
+            }
+
+            try
+            {
+                echoSlot.CancelLock();
             }
             catch (Exception exception)
             {
@@ -1203,6 +1252,7 @@ namespace Overbless.Runtime
 
                 hasteSlot.AvailabilityChanged -= HandleSlotAvailabilityChanged;
                 giantSlot.AvailabilityChanged -= HandleSlotAvailabilityChanged;
+                echoSlot.AvailabilityChanged -= HandleSlotAvailabilityChanged;
 
                 var targetSnapshot = new List<KeyValuePair<int, TargetBinding>>(targetsByEntityId);
                 for (var index = 0; index < targetSnapshot.Count; index++)
@@ -1295,6 +1345,15 @@ namespace Overbless.Runtime
                         try
                         {
                             giantSlot.Dispose();
+                        }
+                        catch (Exception exception)
+                        {
+                            failures.Add(exception);
+                        }
+
+                        try
+                        {
+                            echoSlot.Dispose();
                         }
                         catch (Exception exception)
                         {

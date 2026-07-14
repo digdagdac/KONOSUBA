@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 82b8e52050040ea44b7782b0b9e61927, type: 3}
-  m_Name: Room_M1_GuidedValidation
+  m_Name: Room_02
   m_EditorClassIdentifier:
   seed: 104729
   fixedTimeStep: 0.02
@@ -28,27 +28,27 @@ MonoBehaviour:
   firstDasherTarget: 0
   spawns:
   - actor: 0
-    position: {x: 0, y: -2.5}
-    facing: {x: 0, y: 1}
-    hasFacing: 1
-  - actor: 1
-    position: {x: 0, y: 3}
-    facing: {x: 0, y: -1}
-    hasFacing: 1
-  - actor: 2
-    position: {x: 0, y: -0.5}
-    facing: {x: 0, y: -1}
-    hasFacing: 1
-  - actor: 3
-    position: {x: -4, y: 1.5}
+    position: {x: -6.4, y: -2}
     facing: {x: 1, y: 0}
     hasFacing: 1
+  - actor: 2
+    position: {x: -1.2, y: -2}
+    facing: {x: -1, y: 0}
+    hasFacing: 1
   - actor: 4
-    position: {x: 4, y: 1.5}
+    position: {x: -3.4, y: -2}
     facing: {x: 0, y: 0}
     hasFacing: 0
+  - actor: 1
+    position: {x: 4.2, y: -1.4}
+    facing: {x: -1, y: 0}
+    hasFacing: 1
+  - actor: 3
+    position: {x: 5.8, y: 2.5}
+    facing: {x: -1, y: 0}
+    hasFacing: 1
   - actor: 5
-    position: {x: 4, y: -1.5}
+    position: {x: 3.5, y: 1.2}
     facing: {x: 0, y: 0}
     hasFacing: 0
-  roomVariant: 0
+  roomVariant: 1

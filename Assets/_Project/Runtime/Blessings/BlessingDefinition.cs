@@ -4,6 +4,8 @@ namespace Overbless.Runtime
 {
     public sealed class BlessingDefinition
     {
+        public const float EchoRepeatDelaySeconds = 0.65f;
+
         public static readonly BlessingDefinition Haste = new BlessingDefinition(
             BlessingType.Haste,
             "Haste",
@@ -27,6 +29,18 @@ namespace Overbless.Runtime
             1.75f,
             1.4f,
             1.5f);
+
+        public static readonly BlessingDefinition Echo = new BlessingDefinition(
+            BlessingType.Echo,
+            "Echo",
+            1f,
+            1f,
+            1f,
+            1f,
+            1f,
+            1f,
+            1f,
+            1f);
 
         private BlessingDefinition(
             BlessingType type,
@@ -71,6 +85,8 @@ namespace Overbless.Runtime
                     return Haste;
                 case BlessingType.Giant:
                     return Giant;
+                case BlessingType.Echo:
+                    return Echo;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(type), type, "Only implemented blessing types have definitions.");
             }

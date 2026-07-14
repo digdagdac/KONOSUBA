@@ -39,12 +39,26 @@ namespace Overbless.Editor.Bootstrap
         private const string HasteProductionSpritePath = ProductionUiRoot + "/ui_icon_bless_haste_a_v001.png";
         private const string GiantProductionSpritePath = ProductionUiRoot + "/ui_icon_bless_giant_a_v001.png";
         private const string UiLineMaterialPath = ProductionUiRoot + "/mat_m1_ui_line_unlit_v001.mat";
+        private const string M2ArtRoot = ProjectRoot + "/Art/M2Preproduction";
+        private const string M2UiRoot = M2ArtRoot + "/UI";
+        private const string M2VfxRoot = M2ArtRoot + "/VFX";
+        private const string M2EnvironmentRoot = M2ArtRoot + "/Environment";
+        private const string EchoProductionSpritePath = M2UiRoot + "/ui_icon_bless_echo_a_v001.png";
+        private const string EchoStatusProductionSpritePath = M2UiRoot + "/ui_icon_echo_status_a_v001.png";
+        private const string EchoLineProductionSpritePath = M2VfxRoot + "/vfx_echo_line_telegraph_a_v001.png";
+        private const string EchoDoubleProductionSpritePath = M2VfxRoot + "/vfx_echo_double_silhouette_a_v001.png";
+        private const string WorldPillarProductionSpritePath = M2EnvironmentRoot + "/env_destructible_pillar_intact_a_v001.png";
         private const string DataRoot = ProjectRoot + "/Data";
         private const string PrefabRoot = ProjectRoot + "/Prefabs/M1";
         private const string BlessingDataRoot = DataRoot + "/Blessings";
         private const string EnemyDataRoot = DataRoot + "/Enemies";
         private const string RoomDataRoot = DataRoot + "/Rooms";
         private const string AudioDataRoot = DataRoot + "/Audio";
+        private const string M2PrefabRoot = ProjectRoot + "/Prefabs/M2";
+        private const string Room02DataPath = RoomDataRoot + "/Room_02.asset";
+        private const string Room03DataPath = RoomDataRoot + "/Room_03.asset";
+        private const string Room02ScenePath = ProjectRoot + "/Scenes/Room_02.unity";
+        private const string Room03ScenePath = ProjectRoot + "/Scenes/Room_03.unity";
         private const string AudioRoot = ProjectRoot + "/Audio/M1Functional";
         private const string SettingsRoot = "Assets/Settings";
         private const string RenderingSettingsRoot = SettingsRoot + "/Rendering";
@@ -149,6 +163,74 @@ namespace Overbless.Editor.Bootstrap
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
         }
+        [MenuItem("Overbless/M2/Create Or Update Two-Room Content")]
+        public static void CreateOrUpdateM2()
+        {
+            GuardOpenScenes();
+            EnsureM2Directories();
+
+            var sprites = CreateRepresentativeSprites();
+            var animations = M1DirectionalAnimationBootstrap.CreateOrUpdate();
+            var playerConfig = CreatePlayerConfig();
+            var enemyDefinitions = CreateEnemyDefinitions();
+            var guidedRoom = CreateRoomDefinition();
+            var room02 = CreateRoomDefinition(Room02DataPath, M1RoomVariant.Room02);
+            var room03 = CreateRoomDefinition(Room03DataPath, M1RoomVariant.Room03);
+            var audioCatalog = CreateAudioCatalog();
+            var prefabs = CreatePrefabs(sprites, animations, playerConfig, enemyDefinitions);
+            var pillar = SavePrefab(
+                M2PrefabRoot + "/WorldPillar.prefab",
+                () => CreateWorldPillarPrefab(sprites.WorldPillar));
+
+            AssetDatabase.SaveAssets();
+
+            guidedRoom = RequireAsset<M1RoomDefinition>(RoomDataRoot + "/Room_M1_GuidedValidation.asset");
+            audioCatalog = RequireAsset<FunctionalAudioCatalog>(AudioDataRoot + "/FunctionalAudioCatalog.asset");
+            prefabs = LoadPrefabSet();
+            guidedRoom.Validate();
+            CreateScene(sprites, guidedRoom, audioCatalog, prefabs);
+
+            room02 = RequireAsset<M1RoomDefinition>(Room02DataPath);
+            audioCatalog = RequireAsset<FunctionalAudioCatalog>(AudioDataRoot + "/FunctionalAudioCatalog.asset");
+            prefabs = LoadPrefabSet();
+            room02.Validate();
+            CreateM2Scene(
+                Room02ScenePath,
+                "Room_02",
+                "ROOM  02",
+                room02,
+                audioCatalog,
+                prefabs,
+                sprites,
+                "Room_03",
+                null);
+
+            room03 = RequireAsset<M1RoomDefinition>(Room03DataPath);
+            audioCatalog = RequireAsset<FunctionalAudioCatalog>(AudioDataRoot + "/FunctionalAudioCatalog.asset");
+            prefabs = LoadPrefabSet();
+            pillar = RequireAsset<GameObject>(M2PrefabRoot + "/WorldPillar.prefab");
+            room03.Validate();
+            CreateM2Scene(
+                Room03ScenePath,
+                "Room_03",
+                "ROOM  03",
+                room03,
+                audioCatalog,
+                prefabs,
+                sprites,
+                string.Empty,
+                pillar);
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+        }
+
+        // Intended for -executeMethod in Unity batch mode.
+        public static void CreateM2ForBatchMode()
+        {
+            CreateOrUpdateM2();
+        }
+
 
         // Intended for -executeMethod in Unity batch mode.
         public static void CreateForBatchMode()
@@ -183,6 +265,14 @@ namespace Overbless.Editor.Bootstrap
                 EnsureAssetDirectory(directory);
             }
         }
+        private static void EnsureM2Directories()
+        {
+            EnsureAssetDirectory(ProjectRoot + "/Prefabs");
+            EnsureAssetDirectory(M2PrefabRoot);
+            EnsureAssetDirectory(RoomDataRoot);
+            EnsureAssetDirectory(ProjectRoot + "/Scenes");
+        }
+
 
         private static void EnsureAssetDirectory(string assetPath)
         {
@@ -316,7 +406,12 @@ namespace Overbless.Editor.Bootstrap
                 LoadRequiredProductionSprite(ExitProductionSpritePath, CenteredSpritePivot),
                 LoadRequiredProductionSprite(TileProductionSpritePath, CenteredSpritePivot),
                 LoadRequiredProductionSprite(HasteProductionSpritePath, CenteredSpritePivot),
-                LoadRequiredProductionSprite(GiantProductionSpritePath, CenteredSpritePivot));
+                LoadRequiredProductionSprite(GiantProductionSpritePath, CenteredSpritePivot),
+                LoadRequiredProductionSprite(EchoProductionSpritePath, CenteredSpritePivot),
+                LoadRequiredProductionSprite(EchoStatusProductionSpritePath, CenteredSpritePivot),
+                LoadRequiredProductionSprite(EchoLineProductionSpritePath, CenteredSpritePivot),
+                LoadRequiredProductionSprite(EchoDoubleProductionSpritePath, CenteredSpritePivot),
+                LoadRequiredProductionSprite(WorldPillarProductionSpritePath, CharacterSpritePivot));
         }
 
         private static Sprite LoadRequiredProductionSprite(string assetPath, Vector2 pivot)
@@ -445,7 +540,14 @@ namespace Overbless.Editor.Bootstrap
 
         private static M1RoomDefinition CreateRoomDefinition()
         {
-            var room = GetOrCreateAsset<M1RoomDefinition>(RoomDataRoot + "/Room_M1_GuidedValidation.asset");
+            return CreateRoomDefinition(
+                RoomDataRoot + "/Room_M1_GuidedValidation.asset",
+                M1RoomVariant.M1GuidedValidation);
+        }
+
+        private static M1RoomDefinition CreateRoomDefinition(string assetPath, M1RoomVariant roomVariant)
+        {
+            var room = GetOrCreateAsset<M1RoomDefinition>(assetPath);
             var serialized = new SerializedObject(room);
             SetInt(serialized, "seed", Seed);
             SetFloat(serialized, "fixedTimeStep", M1RoomDefinition.RequiredFixedTimeStep);
@@ -456,18 +558,50 @@ namespace Overbless.Editor.Bootstrap
             SetEnum(serialized, "archerAInitialPhase", AttackPhase.Idle);
             SetEnum(serialized, "archerBInitialPhase", AttackPhase.Idle);
             SetEnum(serialized, "firstDasherTarget", M1RoomActor.Player);
+            SetEnum(serialized, "roomVariant", roomVariant);
 
             var spawns = RequireProperty(serialized, "spawns");
             spawns.arraySize = 6;
-            ConfigureSpawn(spawns.GetArrayElementAtIndex(0), M1RoomActor.Player, new Vector2(0f, -2.5f), Vector2.up, true);
-            ConfigureSpawn(spawns.GetArrayElementAtIndex(1), M1RoomActor.Dasher, new Vector2(0f, 3f), Vector2.down, true);
-            ConfigureSpawn(spawns.GetArrayElementAtIndex(2), M1RoomActor.ArcherA, new Vector2(0f, -0.5f), Vector2.down, true);
-            ConfigureSpawn(spawns.GetArrayElementAtIndex(3), M1RoomActor.ArcherB, new Vector2(-4f, 1.5f), Vector2.right, true);
-            ConfigureSpawn(spawns.GetArrayElementAtIndex(4), M1RoomActor.MinionA, new Vector2(4f, 1.5f), Vector2.zero, false);
-            ConfigureSpawn(spawns.GetArrayElementAtIndex(5), M1RoomActor.MinionB, new Vector2(4f, -1.5f), Vector2.zero, false);
+            ConfigureRoomSpawns(spawns, roomVariant);
             Apply(serialized, room);
             room.Validate();
             return room;
+        }
+
+        private static void ConfigureRoomSpawns(SerializedProperty spawns, M1RoomVariant roomVariant)
+        {
+            switch (roomVariant)
+            {
+                case M1RoomVariant.M1GuidedValidation:
+                    ConfigureSpawn(spawns.GetArrayElementAtIndex(0), M1RoomActor.Player, new Vector2(0f, -2.5f), Vector2.up, true);
+                    ConfigureSpawn(spawns.GetArrayElementAtIndex(1), M1RoomActor.Dasher, new Vector2(0f, 3f), Vector2.down, true);
+                    ConfigureSpawn(spawns.GetArrayElementAtIndex(2), M1RoomActor.ArcherA, new Vector2(0f, -0.5f), Vector2.down, true);
+                    ConfigureSpawn(spawns.GetArrayElementAtIndex(3), M1RoomActor.ArcherB, new Vector2(-4f, 1.5f), Vector2.right, true);
+                    ConfigureSpawn(spawns.GetArrayElementAtIndex(4), M1RoomActor.MinionA, new Vector2(4f, 1.5f), Vector2.zero, false);
+                    ConfigureSpawn(spawns.GetArrayElementAtIndex(5), M1RoomActor.MinionB, new Vector2(4f, -1.5f), Vector2.zero, false);
+                    return;
+
+                case M1RoomVariant.Room02:
+                    ConfigureSpawn(spawns.GetArrayElementAtIndex(0), M1RoomActor.Player, new Vector2(-6.4f, -2f), Vector2.right, true);
+                    ConfigureSpawn(spawns.GetArrayElementAtIndex(1), M1RoomActor.ArcherA, new Vector2(-1.2f, -2f), Vector2.left, true);
+                    ConfigureSpawn(spawns.GetArrayElementAtIndex(2), M1RoomActor.MinionA, new Vector2(-3.4f, -2f), Vector2.zero, false);
+                    ConfigureSpawn(spawns.GetArrayElementAtIndex(3), M1RoomActor.Dasher, new Vector2(4.2f, -1.4f), Vector2.left, true);
+                    ConfigureSpawn(spawns.GetArrayElementAtIndex(4), M1RoomActor.ArcherB, new Vector2(5.8f, 2.5f), Vector2.left, true);
+                    ConfigureSpawn(spawns.GetArrayElementAtIndex(5), M1RoomActor.MinionB, new Vector2(3.5f, 1.2f), Vector2.zero, false);
+                    return;
+
+                case M1RoomVariant.Room03:
+                    ConfigureSpawn(spawns.GetArrayElementAtIndex(0), M1RoomActor.Player, new Vector2(-6.4f, -1.8f), Vector2.right, true);
+                    ConfigureSpawn(spawns.GetArrayElementAtIndex(1), M1RoomActor.ArcherA, new Vector2(-1.2f, -1.8f), Vector2.left, true);
+                    ConfigureSpawn(spawns.GetArrayElementAtIndex(2), M1RoomActor.Dasher, new Vector2(4.2f, -1.5f), Vector2.left, true);
+                    ConfigureSpawn(spawns.GetArrayElementAtIndex(3), M1RoomActor.ArcherB, new Vector2(5.8f, 2.4f), Vector2.left, true);
+                    ConfigureSpawn(spawns.GetArrayElementAtIndex(4), M1RoomActor.MinionA, new Vector2(3.4f, 1.1f), Vector2.zero, false);
+                    ConfigureSpawn(spawns.GetArrayElementAtIndex(5), M1RoomActor.MinionB, new Vector2(5.4f, -0.1f), Vector2.zero, false);
+                    return;
+
+                default:
+                    throw new InvalidOperationException($"Unsupported room variant {roomVariant}.");
+            }
         }
 
         private static void ConfigureSpawn(
@@ -542,13 +676,13 @@ namespace Overbless.Editor.Bootstrap
                 () => CreatePlayerPrefab(sprites.Player, animations.Player, playerConfig));
             var dasher = SavePrefab(
                 PrefabRoot + "/Dasher.prefab",
-                () => CreateEnemyPrefab("Dasher", sprites.Dasher, sprites.Haste, sprites.Giant, animations.Dasher, CharacterAnimationDriver.MajorEnemy, enemyDefinitions.Dasher, typeof(DasherAI)));
+                () => CreateEnemyPrefab("Dasher", sprites.Dasher, sprites.Haste, sprites.Giant, sprites.EchoStatus, sprites.EchoLine, sprites.EchoDouble, animations.Dasher, CharacterAnimationDriver.MajorEnemy, enemyDefinitions.Dasher, typeof(DasherAI)));
             var archer = SavePrefab(
                 PrefabRoot + "/Archer.prefab",
-                () => CreateEnemyPrefab("Archer", sprites.Archer, sprites.Haste, sprites.Giant, animations.Archer, CharacterAnimationDriver.MajorEnemy, enemyDefinitions.Archer, typeof(ArcherAI)));
+                () => CreateEnemyPrefab("Archer", sprites.Archer, sprites.Haste, sprites.Giant, sprites.EchoStatus, sprites.EchoLine, sprites.EchoDouble, animations.Archer, CharacterAnimationDriver.MajorEnemy, enemyDefinitions.Archer, typeof(ArcherAI)));
             var minion = SavePrefab(
                 PrefabRoot + "/Minion.prefab",
-                () => CreateEnemyPrefab("Minion", sprites.Minion, sprites.Haste, sprites.Giant, animations.Minion, CharacterAnimationDriver.Minion, enemyDefinitions.Minion, typeof(MinionAI)));
+                () => CreateEnemyPrefab("Minion", sprites.Minion, sprites.Haste, sprites.Giant, sprites.EchoStatus, sprites.EchoLine, sprites.EchoDouble, animations.Minion, CharacterAnimationDriver.Minion, enemyDefinitions.Minion, typeof(MinionAI)));
             var soul = SavePrefab(PrefabRoot + "/SoulFragment.prefab", () => CreateSoulPrefab(sprites.Soul));
             var exit = SavePrefab(PrefabRoot + "/ExitGate.prefab", () => CreateExitPrefab(sprites.Exit));
             return new PrefabSet(player, dasher, archer, minion, soul, exit);
@@ -594,6 +728,9 @@ namespace Overbless.Editor.Bootstrap
             Sprite sprite,
             Sprite hasteSprite,
             Sprite giantSprite,
+            Sprite echoSprite,
+            Sprite echoLineSprite,
+            Sprite echoProjectileSprite,
             DirectionalAnimationSet animationSet,
             CharacterAnimationDriver animationDriver,
             EnemyDefinition definition,
@@ -649,9 +786,11 @@ namespace Overbless.Editor.Bootstrap
             if (enemyType == typeof(ArcherAI))
             {
                 CreateArcherProjectileVisual(root.transform);
+                CreateEchoProjectileVisual(root.transform, echoLineSprite, echoProjectileSprite);
             }
+
             CreateEnemyHealthBar(root.transform, health);
-            CreateEnemyBlessingIndicator(root.transform, hasteSprite, giantSprite);
+            CreateEnemyBlessingIndicator(root.transform, hasteSprite, giantSprite, echoSprite);
             return root;
         }
         private static void CreateArcherProjectileVisual(Transform parent)
@@ -677,11 +816,38 @@ namespace Overbless.Editor.Bootstrap
             SetObject(serialized, "line", line);
             Apply(serialized, presenter);
         }
+        private static void CreateEchoProjectileVisual(
+            Transform parent,
+            Sprite lineSprite,
+            Sprite projectileSprite)
+        {
+            var root = new GameObject("EchoProjectileVisual", typeof(EchoProjectilePresenter));
+            root.transform.SetParent(parent, false);
+
+            var pendingLineObject = new GameObject("PendingLine", typeof(SpriteRenderer));
+            pendingLineObject.transform.SetParent(root.transform, false);
+            var pendingLineRenderer = pendingLineObject.GetComponent<SpriteRenderer>();
+            ConfigureSprite(pendingLineRenderer, lineSprite, "Telegraph", 24);
+            pendingLineRenderer.enabled = false;
+
+            var projectileObject = new GameObject("ProjectileBody", typeof(SpriteRenderer));
+            projectileObject.transform.SetParent(root.transform, false);
+            var projectileRenderer = projectileObject.GetComponent<SpriteRenderer>();
+            ConfigureSprite(projectileRenderer, projectileSprite, "VFX", 25);
+            projectileRenderer.enabled = false;
+
+            var serialized = new SerializedObject(root.GetComponent<EchoProjectilePresenter>());
+            SetObject(serialized, "pendingLineRenderer", pendingLineRenderer);
+            SetObject(serialized, "projectileRenderer", projectileRenderer);
+            Apply(serialized, root.GetComponent<EchoProjectilePresenter>());
+        }
+
 
         private static void CreateEnemyBlessingIndicator(
             Transform parent,
             Sprite hasteSprite,
-            Sprite giantSprite)
+            Sprite giantSprite,
+            Sprite echoSprite)
         {
             var root = new GameObject("BlessingIndicator", typeof(BlessingIndicator));
             root.transform.SetParent(parent, false);
@@ -701,9 +867,16 @@ namespace Overbless.Editor.Bootstrap
             ConfigureSprite(giantRenderer, giantSprite, "VFX", 22);
             giantRenderer.enabled = false;
 
+            var echoObject = new GameObject("Echo", typeof(SpriteRenderer));
+            echoObject.transform.SetParent(root.transform, false);
+            var echoRenderer = echoObject.GetComponent<SpriteRenderer>();
+            ConfigureSprite(echoRenderer, echoSprite, "VFX", 23);
+            echoRenderer.enabled = false;
+
             var serialized = new SerializedObject(root.GetComponent<BlessingIndicator>());
             SetObject(serialized, "hasteRenderer", hasteRenderer);
             SetObject(serialized, "giantRenderer", giantRenderer);
+            SetObject(serialized, "echoRenderer", echoRenderer);
             Apply(serialized, root.GetComponent<BlessingIndicator>());
         }
         private static void CreateEnemyHealthBar(Transform parent, Health health)
@@ -795,6 +968,21 @@ namespace Overbless.Editor.Bootstrap
             var serialized = new SerializedObject(root.GetComponent<ExitGate>());
             SetObject(serialized, "entryTrigger", trigger);
             Apply(serialized, root.GetComponent<ExitGate>());
+            return root;
+        }
+        private static GameObject CreateWorldPillarPrefab(Sprite sprite)
+        {
+            var root = new GameObject("WorldPillar", typeof(SpriteRenderer), typeof(BoxCollider2D));
+            root.layer = WorldLayer;
+
+            var renderer = root.GetComponent<SpriteRenderer>();
+            ConfigureSprite(renderer, sprite, "World", 10);
+            renderer.drawMode = SpriteDrawMode.Tiled;
+            renderer.size = new Vector2(1.2f, 1.8f);
+
+            var collider = root.GetComponent<BoxCollider2D>();
+            collider.size = new Vector2(1.2f, 1.8f);
+            collider.isTrigger = false;
             return root;
         }
 
@@ -911,6 +1099,8 @@ namespace Overbless.Editor.Bootstrap
             FunctionalAudioCatalog audioCatalog,
             PrefabSet prefabs)
         {
+            var roomDefinitionPath = AssetDatabase.GetAssetPath(roomDefinition);
+            var audioCatalogPath = AssetDatabase.GetAssetPath(audioCatalog);
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
             var root = new GameObject("M1_GuidedValidation");
@@ -972,12 +1162,159 @@ namespace Overbless.Editor.Bootstrap
                 blessingTargeting,
                 room,
                 camera,
-                sprites);
+                sprites,
+                "ROOM  01");
 
             ValidateSceneAudioListener(scene, camera);
             if (!EditorSceneManager.SaveScene(scene, ScenePath))
             {
                 throw new InvalidOperationException($"Unity failed to save the M1 scene to '{ScenePath}'.");
+            }
+
+            BindPersistentSceneAssets(
+                scene,
+                ScenePath,
+                room,
+                roomDefinitionPath,
+                audioEmitter,
+                audioCatalogPath);
+        }
+        private static void CreateM2Scene(
+            string scenePath,
+            string sceneName,
+            string roomLabel,
+            M1RoomDefinition roomDefinition,
+            FunctionalAudioCatalog audioCatalog,
+            PrefabSet prefabs,
+            SpriteSet sprites,
+            string nextScene,
+            GameObject pillarPrefab)
+        {
+            var roomDefinitionPath = AssetDatabase.GetAssetPath(roomDefinition);
+            var audioCatalogPath = AssetDatabase.GetAssetPath(audioCatalog);
+            roomDefinition.Validate();
+            var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+            var root = new GameObject(sceneName);
+            var world = new GameObject("World");
+            world.transform.SetParent(root.transform, false);
+            CreateWorldPresentation(world.transform, sprites.Tile);
+            CreateBounds(world.transform);
+
+            if (pillarPrefab != null)
+            {
+                var pillar = InstantiatePrefab(
+                    pillarPrefab,
+                    world.transform,
+                    "WorldPillar",
+                    new Vector2(-3.8f, -1.8f));
+                pillar.isStatic = true;
+            }
+
+            var camera = CreateCamera(root.transform);
+            var playerSpawn = roomDefinition.GetSpawn(M1RoomActor.Player);
+            var player = InstantiatePrefab(prefabs.Player, root.transform, "Player", playerSpawn.Position);
+            var playerAnimator = player.GetComponent<DirectionalSpriteAnimator>();
+            if (playerSpawn.HasFacing)
+            {
+                playerAnimator.SetInitialFacing(playerSpawn.Facing);
+                EditorUtility.SetDirty(playerAnimator);
+            }
+
+            var playerHealth = player.GetComponent<Health>();
+            var playerInput = player.GetComponent<PlayerInputRouter>();
+            var playerLifeCycle = player.GetComponent<PlayerLifeCycle>();
+            var blessingTargeting = player.GetComponent<BlessingTargeting>();
+
+            var dasherSpawn = roomDefinition.GetSpawn(M1RoomActor.Dasher);
+            var archerASpawn = roomDefinition.GetSpawn(M1RoomActor.ArcherA);
+            var archerBSpawn = roomDefinition.GetSpawn(M1RoomActor.ArcherB);
+            var minionASpawn = roomDefinition.GetSpawn(M1RoomActor.MinionA);
+            var minionBSpawn = roomDefinition.GetSpawn(M1RoomActor.MinionB);
+            var dasher = InstantiateEnemy(prefabs.Dasher, root.transform, "Dasher", 101, player.transform, dasherSpawn.Position, dasherSpawn.HasFacing ? dasherSpawn.Facing : Vector2.zero);
+            var archerA = InstantiateEnemy(prefabs.Archer, root.transform, "Archer_A", 102, player.transform, archerASpawn.Position, archerASpawn.HasFacing ? archerASpawn.Facing : Vector2.zero);
+            var archerB = InstantiateEnemy(prefabs.Archer, root.transform, "Archer_B", 103, player.transform, archerBSpawn.Position, archerBSpawn.HasFacing ? archerBSpawn.Facing : Vector2.zero);
+            var minionA = InstantiateEnemy(prefabs.Minion, root.transform, "Minion_A", 104, player.transform, minionASpawn.Position, minionASpawn.HasFacing ? minionASpawn.Facing : Vector2.zero);
+            var minionB = InstantiateEnemy(prefabs.Minion, root.transform, "Minion_B", 105, player.transform, minionBSpawn.Position, minionBSpawn.HasFacing ? minionBSpawn.Facing : Vector2.zero);
+            var enemies = new[] { dasher, archerA, archerB, minionA, minionB };
+            ConfigureBlessingOwnerAndTargets(blessingTargeting, playerHealth, enemies);
+
+            var exit = InstantiatePrefab(prefabs.Exit, root.transform, "ExitGate", new Vector2(7f, -3.5f)).GetComponent<ExitGate>();
+            var souls = new GameObject("Souls");
+            souls.transform.SetParent(root.transform, false);
+            var systems = new GameObject("Systems");
+            systems.transform.SetParent(root.transform, false);
+            var room = ConfigureRoomLifecycle(
+                systems,
+                roomDefinition,
+                enemies,
+                prefabs.Soul.GetComponent<SoulFragment>(),
+                souls.transform,
+                exit,
+                blessingTargeting);
+            var restartController = ConfigureRestartController(systems, playerLifeCycle, enemies, blessingTargeting, room);
+            ConfigureRoomSequence(systems, exit, nextScene);
+            var audioEmitter = ConfigureAudioAndWebStart(systems, audioCatalog, playerInput);
+            ConfigureRuntimeBinder(systems, playerHealth, blessingTargeting, enemies, room);
+            ConfigureFunctionalAudioBridge(systems, audioEmitter, playerHealth, enemies, room, restartController);
+            ConfigurePauseController(systems, playerInput, blessingTargeting, restartController);
+            CreateHud(
+                root.transform,
+                playerHealth,
+                player.GetComponent<DashAbility>(),
+                blessingTargeting,
+                room,
+                camera,
+                sprites,
+                roomLabel);
+
+            ValidateSceneAudioListener(scene, camera);
+            if (!EditorSceneManager.SaveScene(scene, scenePath))
+            {
+                throw new InvalidOperationException($"Unity failed to save the M2 scene to '{scenePath}'.");
+            }
+
+            BindPersistentSceneAssets(
+                scene,
+                scenePath,
+                room,
+                roomDefinitionPath,
+                audioEmitter,
+                audioCatalogPath);
+        }
+
+        private static void BindPersistentSceneAssets(
+            Scene scene,
+            string scenePath,
+            M1RoomLifecycle room,
+            string roomDefinitionPath,
+            FunctionalAudioEmitter audioEmitter,
+            string audioCatalogPath)
+        {
+            var persistedDefinition = RequireAsset<M1RoomDefinition>(roomDefinitionPath);
+            var persistedCatalog = RequireAsset<FunctionalAudioCatalog>(audioCatalogPath);
+
+            var roomSerialized = new SerializedObject(room);
+            SetObject(roomSerialized, "definition", persistedDefinition);
+            Apply(roomSerialized, room);
+
+            var audioSerialized = new SerializedObject(audioEmitter);
+            SetObject(audioSerialized, "catalog", persistedCatalog);
+            Apply(audioSerialized, audioEmitter);
+
+            if (!EditorSceneManager.SaveScene(scene, scenePath))
+            {
+                throw new InvalidOperationException(
+                    $"Unity failed to persist external data references in scene '{scenePath}'.");
+            }
+
+            roomSerialized.Update();
+            audioSerialized.Update();
+            if (RequireProperty(roomSerialized, "definition").objectReferenceValue == null ||
+                RequireProperty(audioSerialized, "catalog").objectReferenceValue == null)
+            {
+                throw new InvalidOperationException(
+                    $"Scene '{scenePath}' lost a required persistent data reference during serialization.");
             }
         }
         private static void ValidateSceneAudioListener(Scene scene, Camera intendedCamera)
@@ -1170,6 +1507,17 @@ namespace Overbless.Editor.Bootstrap
             Apply(serialized, controller);
             return controller;
         }
+        private static void ConfigureRoomSequence(GameObject systems, ExitGate exit, string nextScene)
+        {
+            var controller = systems.AddComponent<RoomSequenceController>();
+            var serialized = new SerializedObject(controller);
+            SetObject(serialized, "exitGate", exit);
+            var nextSceneProperty = RequireProperty(serialized, "nextScene");
+            RequireType(nextSceneProperty, SerializedPropertyType.String, "nextScene");
+            nextSceneProperty.stringValue = nextScene ?? string.Empty;
+            Apply(serialized, controller);
+        }
+
 
         private static FunctionalAudioEmitter ConfigureAudioAndWebStart(
             GameObject systems,
@@ -1250,7 +1598,8 @@ namespace Overbless.Editor.Bootstrap
             BlessingTargeting blessingTargeting,
             M1RoomLifecycle roomLifecycle,
             Camera worldCamera,
-            SpriteSet sprites)
+            SpriteSet sprites,
+            string roomLabel)
         {
             var hud = new GameObject(
                 "HUD",
@@ -1286,6 +1635,7 @@ namespace Overbless.Editor.Bootstrap
             var mutedText = new Color32(148, 173, 186, 255);
             var cyan = new Color32(55, 211, 242, 255);
             var orange = new Color32(255, 137, 72, 255);
+            var purple = new Color32(179, 121, 255, 255);
 
             var playerPanel = CreateHudPanel(
                 hud.transform,
@@ -1320,7 +1670,7 @@ namespace Overbless.Editor.Bootstrap
                 new Vector2(-24f, -24f),
                 new Vector2(390f, 170f),
                 panelColor);
-            CreateHudText(roomPanel, "RoomText", "ROOM  01", font, 28, TextAnchor.MiddleRight, paleText, new Vector2(24f, -18f), new Vector2(342f, 36f));
+            CreateHudText(roomPanel, "RoomText", roomLabel, font, 28, TextAnchor.MiddleRight, paleText, new Vector2(24f, -18f), new Vector2(342f, 36f));
             CreateHudIcon(roomPanel, "SoulIcon", sprites.Soul, new Vector2(24f, -63f), new Vector2(58f, 58f), paleText);
             var soulText = CreateHudText(roomPanel, "SoulText", "SOULS  0 / 3", font, 25, TextAnchor.MiddleLeft, paleText, new Vector2(96f, -69f), new Vector2(270f, 42f));
             var exitText = CreateHudText(roomPanel, "ExitText", "EXIT  LOCKED  0/3", font, 21, TextAnchor.MiddleRight, orange, new Vector2(24f, -122f), new Vector2(342f, 30f));
@@ -1341,7 +1691,7 @@ namespace Overbless.Editor.Bootstrap
                 "1",
                 "HASTE",
                 "SPEED + ATTACK RATE",
-                new Vector2(20f, -18f),
+                new Vector2(16f, -18f),
                 cyan,
                 font,
                 out hasteStatusText);
@@ -1353,14 +1703,26 @@ namespace Overbless.Editor.Bootstrap
                 "2",
                 "GIANT",
                 "SIZE + ATTACK POWER",
-                new Vector2(430f, -18f),
+                new Vector2(284f, -18f),
                 orange,
                 font,
                 out giantStatusText);
+            Text echoStatusText;
+            var echoFrame = CreateBlessingCard(
+                blessingPanel,
+                "EchoCard",
+                sprites.Echo,
+                "3 ECHO",
+                string.Empty,
+                "REPEAT LOCKED ATTACK",
+                new Vector2(552f, -18f),
+                purple,
+                font,
+                out echoStatusText);
             var selectionText = CreateHudText(
                 blessingPanel,
                 "SelectionHint",
-                "1 / 2 SELECT BLESSING  |  SPACE DASH  |  R RESTART",
+                "1 / 2 / 3 SELECT BLESSING  |  SPACE DASH  |  R RESTART",
                 font,
                 18,
                 TextAnchor.MiddleCenter,
@@ -1383,8 +1745,10 @@ namespace Overbless.Editor.Bootstrap
             SetObject(serialized, "selectionText", selectionText);
             SetObject(serialized, "hasteStatusText", hasteStatusText);
             SetObject(serialized, "giantStatusText", giantStatusText);
+            SetObject(serialized, "echoStatusText", echoStatusText);
             SetObject(serialized, "hasteFrame", hasteFrame);
             SetObject(serialized, "giantFrame", giantFrame);
+            SetObject(serialized, "echoFrame", echoFrame);
             Apply(serialized, controller);
         }
 
@@ -1463,7 +1827,7 @@ namespace Overbless.Editor.Bootstrap
                 new Vector2(0f, 1f),
                 new Vector2(0f, 1f),
                 position,
-                new Vector2(370f, 100f),
+                new Vector2(252f, 100f),
                 frameColor);
             var frameImage = frame.GetComponent<Image>();
 
@@ -1478,11 +1842,10 @@ namespace Overbless.Editor.Bootstrap
             inset.color = new Color32(15, 24, 39, 250);
             inset.raycastTarget = false;
 
-            CreateHudIcon(frame, "Icon", icon, new Vector2(14f, -12f), new Vector2(76f, 76f), Color.white);
-            CreateHudText(frame, "Key", key, font, 30, TextAnchor.MiddleCenter, frameColor, new Vector2(94f, -14f), new Vector2(44f, 40f));
-            CreateHudText(frame, "Name", title, font, 28, TextAnchor.MiddleLeft, Color.white, new Vector2(140f, -12f), new Vector2(110f, 38f));
-            CreateHudText(frame, "Detail", detail, font, 15, TextAnchor.MiddleLeft, new Color32(148, 173, 186, 255), new Vector2(98f, -52f), new Vector2(252f, 28f));
-            statusText = CreateHudText(frame, "Status", "READY", font, 16, TextAnchor.MiddleRight, frameColor, new Vector2(258f, -14f), new Vector2(92f, 38f));
+            CreateHudIcon(frame, "Icon", icon, new Vector2(10f, -14f), new Vector2(60f, 60f), Color.white);
+            CreateHudText(frame, "Title", string.IsNullOrEmpty(title) ? key : key + " " + title, font, 20, TextAnchor.MiddleLeft, Color.white, new Vector2(80f, -10f), new Vector2(156f, 30f));
+            CreateHudText(frame, "Detail", detail, font, 12, TextAnchor.MiddleLeft, new Color32(148, 173, 186, 255), new Vector2(80f, -40f), new Vector2(156f, 36f));
+            statusText = CreateHudText(frame, "Status", "READY", font, 12, TextAnchor.MiddleRight, frameColor, new Vector2(80f, -76f), new Vector2(156f, 16f));
             return frameImage;
         }
 
@@ -1576,6 +1939,29 @@ namespace Overbless.Editor.Bootstrap
 
             asset = ScriptableObject.CreateInstance<T>();
             AssetDatabase.CreateAsset(asset, assetPath);
+            return asset;
+        }
+
+        private static PrefabSet LoadPrefabSet()
+        {
+            return new PrefabSet(
+                RequireAsset<GameObject>(PrefabRoot + "/Player.prefab"),
+                RequireAsset<GameObject>(PrefabRoot + "/Dasher.prefab"),
+                RequireAsset<GameObject>(PrefabRoot + "/Archer.prefab"),
+                RequireAsset<GameObject>(PrefabRoot + "/Minion.prefab"),
+                RequireAsset<GameObject>(PrefabRoot + "/SoulFragment.prefab"),
+                RequireAsset<GameObject>(PrefabRoot + "/ExitGate.prefab"));
+        }
+
+        private static T RequireAsset<T>(string assetPath) where T : UnityEngine.Object
+        {
+            var asset = AssetDatabase.LoadAssetAtPath<T>(assetPath);
+            if (asset == null)
+            {
+                throw new InvalidOperationException(
+                    $"Required {typeof(T).Name} asset '{assetPath}' did not reload after persistence.");
+            }
+
             return asset;
         }
 
@@ -1751,7 +2137,21 @@ namespace Overbless.Editor.Bootstrap
         }
         private readonly struct SpriteSet
         {
-            public SpriteSet(Sprite player, Sprite dasher, Sprite archer, Sprite minion, Sprite soul, Sprite exit, Sprite tile, Sprite haste, Sprite giant)
+            public SpriteSet(
+                Sprite player,
+                Sprite dasher,
+                Sprite archer,
+                Sprite minion,
+                Sprite soul,
+                Sprite exit,
+                Sprite tile,
+                Sprite haste,
+                Sprite giant,
+                Sprite echo,
+                Sprite echoStatus,
+                Sprite echoLine,
+                Sprite echoDouble,
+                Sprite worldPillar)
             {
                 Player = player;
                 Dasher = dasher;
@@ -1762,6 +2162,11 @@ namespace Overbless.Editor.Bootstrap
                 Tile = tile;
                 Haste = haste;
                 Giant = giant;
+                Echo = echo;
+                EchoStatus = echoStatus;
+                EchoLine = echoLine;
+                EchoDouble = echoDouble;
+                WorldPillar = worldPillar;
             }
 
             public Sprite Player { get; }
@@ -1773,6 +2178,11 @@ namespace Overbless.Editor.Bootstrap
             public Sprite Tile { get; }
             public Sprite Haste { get; }
             public Sprite Giant { get; }
+            public Sprite Echo { get; }
+            public Sprite EchoStatus { get; }
+            public Sprite EchoLine { get; }
+            public Sprite EchoDouble { get; }
+            public Sprite WorldPillar { get; }
         }
 
         private readonly struct EnemyDefinitions

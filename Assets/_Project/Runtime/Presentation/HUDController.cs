@@ -16,6 +16,31 @@ namespace Overbless.Runtime
             bool giantAvailable,
             int souls,
             bool exitOpen)
+            : this(
+                health,
+                maximumHealth,
+                dash01,
+                dashAvailable,
+                dashCooldownRemaining,
+                hasteAvailable,
+                giantAvailable,
+                false,
+                souls,
+                exitOpen)
+        {
+        }
+
+        public HudState(
+            int health,
+            int maximumHealth,
+            float dash01,
+            bool dashAvailable,
+            float dashCooldownRemaining,
+            bool hasteAvailable,
+            bool giantAvailable,
+            bool echoAvailable,
+            int souls,
+            bool exitOpen)
         {
             Health = health;
             MaximumHealth = maximumHealth;
@@ -24,6 +49,7 @@ namespace Overbless.Runtime
             DashCooldownRemaining = dashCooldownRemaining;
             HasteAvailable = hasteAvailable;
             GiantAvailable = giantAvailable;
+            EchoAvailable = echoAvailable;
             Souls = souls;
             ExitOpen = exitOpen;
         }
@@ -35,6 +61,7 @@ namespace Overbless.Runtime
         public float DashCooldownRemaining { get; }
         public bool HasteAvailable { get; }
         public bool GiantAvailable { get; }
+        public bool EchoAvailable { get; }
         public int Souls { get; }
         public bool ExitOpen { get; }
     }
@@ -46,6 +73,7 @@ namespace Overbless.Runtime
 
         private static readonly Color AvailableHasteColor = new Color32(55, 211, 242, 255);
         private static readonly Color AvailableGiantColor = new Color32(255, 137, 72, 255);
+        private static readonly Color AvailableEchoColor = new Color32(179, 121, 255, 255);
         private static readonly Color SelectedColor = new Color32(255, 238, 143, 255);
         private static readonly Color UnavailableColor = new Color32(66, 76, 92, 255);
         private static readonly Color HealthyColor = new Color32(70, 224, 205, 255);
@@ -69,10 +97,12 @@ namespace Overbless.Runtime
         [SerializeField] private Text selectionText;
         [SerializeField] private Text hasteStatusText;
         [SerializeField] private Text giantStatusText;
+        [SerializeField] private Text echoStatusText;
 
         [Header("Blessing cards")]
         [SerializeField] private Image hasteFrame;
         [SerializeField] private Image giantFrame;
+        [SerializeField] private Image echoFrame;
 
         private HudState state;
         private bool hasState;
@@ -86,8 +116,8 @@ namespace Overbless.Runtime
             healthFill != null && healthFill.sprite != null && healthFill.type == Image.Type.Filled &&
             dashFill != null && dashFill.sprite != null && dashFill.type == Image.Type.Filled &&
             healthText != null && dashText != null && soulText != null && exitText != null &&
-            selectionText != null && hasteStatusText != null && giantStatusText != null &&
-            hasteFrame != null && giantFrame != null;
+            selectionText != null && hasteStatusText != null && giantStatusText != null && echoStatusText != null &&
+            hasteFrame != null && giantFrame != null && echoFrame != null;
 
         public HudState State
         {
@@ -155,6 +185,7 @@ namespace Overbless.Runtime
                 dashAbility.CooldownRemaining,
                 blessingTargeting.IsAvailable(BlessingType.Haste),
                 blessingTargeting.IsAvailable(BlessingType.Giant),
+                blessingTargeting.IsAvailable(BlessingType.Echo),
                 roomLifecycle.SoulCount,
                 roomLifecycle.IsExitOpen));
         }
@@ -187,6 +218,9 @@ namespace Overbless.Runtime
             var selectingGiant = blessingTargeting != null &&
                                  blessingTargeting.IsSelecting &&
                                  blessingTargeting.SelectedType == BlessingType.Giant;
+            var selectingEcho = blessingTargeting != null &&
+                                blessingTargeting.IsSelecting &&
+                                blessingTargeting.SelectedType == BlessingType.Echo;
 
             hasteFrame.color = !value.HasteAvailable
                 ? UnavailableColor
@@ -194,8 +228,12 @@ namespace Overbless.Runtime
             giantFrame.color = !value.GiantAvailable
                 ? UnavailableColor
                 : selectingGiant ? SelectedColor : AvailableGiantColor;
+            echoFrame.color = !value.EchoAvailable
+                ? UnavailableColor
+                : selectingEcho ? SelectedColor : AvailableEchoColor;
             hasteStatusText.text = value.HasteAvailable ? selectingHaste ? "SELECTED" : "READY" : "BOUND";
             giantStatusText.text = value.GiantAvailable ? selectingGiant ? "SELECTED" : "READY" : "BOUND";
+            echoStatusText.text = value.EchoAvailable ? selectingEcho ? "SELECTED" : "READY" : "BOUND";
 
             if (selectingHaste)
             {
@@ -205,9 +243,13 @@ namespace Overbless.Runtime
             {
                 selectionText.text = "GIANT SELECTED  |  POINT AT AN ENEMY + CLICK  |  RMB CANCEL";
             }
+            else if (selectingEcho)
+            {
+                selectionText.text = "ECHO SELECTED  |  REPEAT LOCKED ATTACK  |  POINT AT AN ENEMY + CLICK  |  RMB CANCEL";
+            }
             else
             {
-                selectionText.text = "1 / 2 SELECT BLESSING  |  SPACE DASH  |  R RESTART";
+                selectionText.text = "1 / 2 / 3 SELECT BLESSING  |  SPACE DASH  |  R RESTART";
             }
         }
 
@@ -242,6 +284,7 @@ namespace Overbless.Runtime
                    Mathf.Approximately(left.DashCooldownRemaining, right.DashCooldownRemaining) &&
                    left.HasteAvailable == right.HasteAvailable &&
                    left.GiantAvailable == right.GiantAvailable &&
+                   left.EchoAvailable == right.EchoAvailable &&
                    left.Souls == right.Souls &&
                    left.ExitOpen == right.ExitOpen;
         }
