@@ -66,6 +66,6 @@
     "Generic future-skill or future-obstacle frameworks",
     "Unrelated ProjectSettings changes"
   ],
-  "gateBoundary": "This approval never creates, replaces, signs, or implies M2EntryGate PASS. M2 runtime, scene, prefab, gameplay-data, and resource binding may begin only after an independently validated externally RSA-SHA256-signed user M2EntryGate PASS exists.",
+  "gateBoundary": "Direct user approval authorizes unsealed local implementation and technical QA for the approved M2 scope. It never creates, replaces, signs, or implies M2EntryGate PASS; release-candidate authorization remains controlled by an independently validated externally RSA-SHA256-signed user M2EntryGate PASS.",
   "noFurtherApprovalPrompt": true
 }
