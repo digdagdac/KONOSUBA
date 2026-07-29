@@ -107,7 +107,11 @@ namespace Overbless.Editor.Bootstrap
             FunctionalAudioEvent.AttackLocked,
             FunctionalAudioEvent.PlayerHit,
             FunctionalAudioEvent.SoulCollected,
-            FunctionalAudioEvent.ExitOpened
+            FunctionalAudioEvent.ExitOpened,
+            FunctionalAudioEvent.BlessingApplied,
+            FunctionalAudioEvent.BlessingRejected,
+            FunctionalAudioEvent.EnemyDefeated,
+            FunctionalAudioEvent.FriendlyFireKill
         };
         private static readonly InputActionDefinition[] InputActionDefinitions =
         {
@@ -1153,7 +1157,7 @@ namespace Overbless.Editor.Bootstrap
             var restartController = ConfigureRestartController(systems, playerLifeCycle, enemies, blessingTargeting, room);
             var audioEmitter = ConfigureAudioAndWebStart(systems, audioCatalog, playerInput);
             ConfigureRuntimeBinder(systems, playerHealth, blessingTargeting, enemies, room);
-            ConfigureFunctionalAudioBridge(systems, audioEmitter, playerHealth, enemies, room, restartController);
+            ConfigureFunctionalAudioBridge(systems, audioEmitter, playerHealth, enemies, room, restartController, blessingTargeting);
             ConfigurePauseController(systems, playerInput, blessingTargeting, restartController);
             CreateHud(
                 root.transform,
@@ -1256,7 +1260,7 @@ namespace Overbless.Editor.Bootstrap
             ConfigureRoomSequence(systems, exit, nextScene);
             var audioEmitter = ConfigureAudioAndWebStart(systems, audioCatalog, playerInput);
             ConfigureRuntimeBinder(systems, playerHealth, blessingTargeting, enemies, room);
-            ConfigureFunctionalAudioBridge(systems, audioEmitter, playerHealth, enemies, room, restartController);
+            ConfigureFunctionalAudioBridge(systems, audioEmitter, playerHealth, enemies, room, restartController, blessingTargeting);
             ConfigurePauseController(systems, playerInput, blessingTargeting, restartController);
             CreateHud(
                 root.transform,
@@ -1565,7 +1569,8 @@ namespace Overbless.Editor.Bootstrap
             Health playerHealth,
             EnemyBase[] enemies,
             M1RoomLifecycle room,
-            RoomRestartController restartController)
+            RoomRestartController restartController,
+            BlessingTargeting targeting)
         {
             var bridge = systems.AddComponent<M1FunctionalAudioBridge>();
             var serialized = new SerializedObject(bridge);
@@ -1574,6 +1579,7 @@ namespace Overbless.Editor.Bootstrap
             SetObjectArray(serialized, "enemies", enemies);
             SetObject(serialized, "roomLifecycle", room);
             SetObject(serialized, "restartController", restartController);
+            SetObject(serialized, "blessingTargeting", targeting);
             Apply(serialized, bridge);
         }
 
