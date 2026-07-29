@@ -146,6 +146,14 @@ namespace Overbless.Runtime
         [SerializeField] private Camera targetingCamera;
         [SerializeField] private string enemyBodyLayerName = EnemyBodyLayerName;
 
+        /// <summary>
+        /// Optional. When assigned, selection, apply, and cancel arrive through the
+        /// router, which is the only component allowed to read input devices
+        /// (PROJECT_RULES section 3). Left optional so a scene generated before
+        /// this field existed keeps working through the legacy polling path.
+        /// </summary>
+        [SerializeField] private PlayerInputRouter inputRouter;
+
         private readonly SortedDictionary<int, TargetBinding> targetsByEntityId =
             new SortedDictionary<int, TargetBinding>();
         private readonly Dictionary<Collider2D, int> targetEntityIdsByCollider =
@@ -168,6 +176,7 @@ namespace Overbless.Runtime
         private bool isResettingTargets;
         private bool isCleaningUp;
         private bool isCancellingSelection;
+        private bool isRouterSubscribed;
         private long selectionPublicationGeneration;
         private long targetPublicationGeneration;
         private BlessingType selectedType;
@@ -207,11 +216,70 @@ namespace Overbless.Runtime
         }
         private void OnEnable()
         {
+            SubscribeToRouter();
             if (isInitialized)
             {
                 PublishSelectionState();
                 PublishTargetStates();
             }
+        }
+
+        private void SubscribeToRouter()
+        {
+            if (isRouterSubscribed || inputRouter == null)
+            {
+                return;
+            }
+
+            inputRouter.BlessingSelectionRequested += HandleRoutedSelection;
+            inputRouter.ApplyRequested += HandleRoutedApply;
+            inputRouter.CancelRequested += HandleRoutedCancel;
+            isRouterSubscribed = true;
+        }
+
+        private void UnsubscribeFromRouter()
+        {
+            if (!isRouterSubscribed || inputRouter == null)
+            {
+                return;
+            }
+
+            inputRouter.BlessingSelectionRequested -= HandleRoutedSelection;
+            inputRouter.ApplyRequested -= HandleRoutedApply;
+            inputRouter.CancelRequested -= HandleRoutedCancel;
+            isRouterSubscribed = false;
+        }
+
+        private void HandleRoutedSelection(int blessingIndex)
+        {
+            switch (blessingIndex)
+            {
+                case 1:
+                    Select(BlessingType.Haste);
+                    break;
+                case 2:
+                    Select(BlessingType.Giant);
+                    break;
+                case 3:
+                    Select(BlessingType.Echo);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(
+                        nameof(blessingIndex), blessingIndex, "Only blessing slots one through three exist.");
+            }
+        }
+
+        private void HandleRoutedApply()
+        {
+            if (isSelecting)
+            {
+                ApplyHoveredTarget();
+            }
+        }
+
+        private void HandleRoutedCancel()
+        {
+            CancelSelection();
         }
 
 
@@ -242,6 +310,7 @@ namespace Overbless.Runtime
 
         private void OnDisable()
         {
+            UnsubscribeFromRouter();
             if (!isInitialized)
             {
                 return;
@@ -722,6 +791,19 @@ namespace Overbless.Runtime
 
         private void HandleInput()
         {
+            if (inputRouter != null)
+            {
+                // Selection, apply, and cancel arrive as router events, so nothing
+                // here reads a device. Hover is still re-evaluated every frame
+                // because targets keep moving while the pointer stays still.
+                if (isSelecting)
+                {
+                    UpdateHoveredTargetFromMouse(inputRouter.MousePosition);
+                }
+
+                return;
+            }
+
             var keyboard = Keyboard.current;
             if (keyboard != null)
             {

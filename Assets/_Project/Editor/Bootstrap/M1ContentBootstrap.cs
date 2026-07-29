@@ -710,6 +710,7 @@ namespace Overbless.Editor.Bootstrap
             var controller = root.AddComponent<PlayerController>();
             var lifeCycle = root.AddComponent<PlayerLifeCycle>();
             var targeting = root.AddComponent<BlessingTargeting>();
+            ConfigureBlessingTargetingInput(targeting, input);
 
             ConfigureDash(dash, config, root.transform, health);
             ConfigurePlayerController(controller, config, root.transform, input, dash);
@@ -1561,6 +1562,19 @@ namespace Overbless.Editor.Bootstrap
             SetObjectArray(serialized, "enemies", enemies);
             SetObject(serialized, "roomLifecycle", room);
             Apply(serialized, binder);
+        }
+
+        /// <summary>
+        /// Routes blessing input through PlayerInputRouter. Both components live on
+        /// the player root, so the reference is authored into the prefab.
+        /// </summary>
+        private static void ConfigureBlessingTargetingInput(
+            BlessingTargeting targeting,
+            PlayerInputRouter input)
+        {
+            var serialized = new SerializedObject(targeting);
+            SetObject(serialized, "inputRouter", input);
+            Apply(serialized, targeting);
         }
 
         private static void ConfigureFunctionalAudioBridge(
