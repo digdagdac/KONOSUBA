@@ -399,7 +399,7 @@ namespace Overbless.Runtime
             }
 
             var travelDistance = requestedDistance;
-            var stoppedByWall = TryGetWallDistance(
+            var stoppedByWall = TryGetObstacleDistance(
                 projectilePosition,
                 context.Width * 0.5f,
                 context.NormalizedDirection,
@@ -411,7 +411,7 @@ namespace Overbless.Runtime
             }
 
             var errors = new List<Exception>();
-            if (!ApplyDamageAlongSweep(
+            if (!SweepAttackDamage(
                     projectilePosition,
                     context,
                     travelDistance,
@@ -526,7 +526,7 @@ namespace Overbless.Runtime
             }
 
             var travelDistance = requestedDistance;
-            var stoppedByWall = TryGetWallDistance(
+            var stoppedByWall = TryGetObstacleDistance(
                 echoProjectilePosition,
                 context.Width * 0.5f,
                 context.NormalizedDirection,
@@ -538,7 +538,7 @@ namespace Overbless.Runtime
             }
 
             var errors = new List<Exception>();
-            if (!ApplyDamageAlongSweep(
+            if (!SweepAttackDamage(
                     echoProjectilePosition,
                     context,
                     travelDistance,
@@ -830,64 +830,5 @@ namespace Overbless.Runtime
             }
         }
 
-        private bool TryGetWallDistance(
-            Vector2 origin,
-            float radius,
-            Vector2 direction,
-            float distance,
-            out float nearestWallDistance)
-        {
-            nearestWallDistance = distance;
-            var hits = Physics2D.CircleCastAll(origin, radius, direction, distance, Definition.WorldCollisionMask);
-            var foundWall = false;
-
-            foreach (var hit in hits)
-            {
-                if (hit.collider == null || IsOwnerCollider(hit.collider))
-                {
-                    continue;
-                }
-
-                if (!foundWall || hit.distance < nearestWallDistance)
-                {
-                    nearestWallDistance = hit.distance;
-                    foundWall = true;
-                }
-            }
-
-            return foundWall;
-        }
-
-        private bool ApplyDamageAlongSweep(
-            Vector2 origin,
-            AttackContext context,
-            float distance,
-            Func<bool> continueCondition)
-        {
-            var hits = Physics2D.CircleCastAll(
-                origin,
-                context.Width * 0.5f,
-                context.NormalizedDirection,
-                distance,
-                context.TargetMask);
-
-            foreach (var hit in hits)
-            {
-                if (!continueCondition())
-                {
-                    return false;
-                }
-
-                TryApplyAttackDamage(context, hit.collider);
-            }
-
-            return continueCondition();
-        }
-
-        private bool IsOwnerCollider(Collider2D collider)
-        {
-            var colliderHealth = collider.GetComponentInParent<Health>();
-            return colliderHealth != null && colliderHealth.EntityId == EntityId;
-        }
     }
 }

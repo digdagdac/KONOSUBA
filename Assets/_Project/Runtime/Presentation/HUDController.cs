@@ -106,6 +106,8 @@ namespace Overbless.Runtime
 
         private HudState state;
         private bool hasState;
+        private bool renderedIsSelecting;
+        private BlessingType renderedSelectedType;
 
         public event Action<HudState> StateChanged;
 
@@ -152,14 +154,41 @@ namespace Overbless.Runtime
         {
             ValidateState(newState);
             var changed = !hasState || !StatesEqual(state, newState);
+            var selectionChanged = RefreshSelectionView();
             state = newState;
             hasState = true;
-            RenderView(newState);
+
+            // Rendering builds interpolated strings, so it must only run when the
+            // rendered result can actually differ. Update() calls SetState every
+            // frame; rendering unconditionally produced per-frame string garbage.
+            if (changed || selectionChanged)
+            {
+                RenderView(newState);
+            }
 
             if (changed)
             {
                 StateChanged?.Invoke(newState);
             }
+        }
+
+        /// <summary>
+        /// Tracks blessing-selection state, which RenderView reads directly from
+        /// BlessingTargeting instead of from HudState. Without this the render
+        /// guard would miss selection-only transitions.
+        /// </summary>
+        private bool RefreshSelectionView()
+        {
+            var selecting = blessingTargeting != null && blessingTargeting.IsSelecting;
+            var selected = selecting ? blessingTargeting.SelectedType : default;
+            if (hasState && selecting == renderedIsSelecting && selected == renderedSelectedType)
+            {
+                return false;
+            }
+
+            renderedIsSelecting = selecting;
+            renderedSelectedType = selected;
+            return true;
         }
 
         private void RefreshFromSources()
