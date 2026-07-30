@@ -63,8 +63,17 @@ Each generated WAV for the following six functional events requires a separate r
 - Test, WebGL and 1280×720 browser evidence is recorded in `Docs/AI_Usage/edits/m1_directional_animation_review_v001.json`. The generated poses remain `review-required` pending final human consistency review.
 ## M2 offline image-resource preproduction
 
-- The user explicitly approved offline M2 image production in `Docs/Decisions/M2_ASSET_PRODUCTION_APPROVAL.json`; no M2 scene, prefab, gameplay data or runtime binding was created.
+- At v001 generation time, the user-approved scope in `Docs/Decisions/M2_ASSET_PRODUCTION_APPROVAL.json` was offline image production only; that v001 generation created no M2 scene, prefab, gameplay data, or runtime binding.
 - Eight gpt-5.4 source generations cover five Golem directions plus Echo VFX, environment mechanics and final-room presentation sheets.
 - `Tools/process_m2_art.py` produced one eight-direction Golem animation atlas with 264 named frames and 28 standalone 128×128 sprites for Echo, resonance, cliffs, destructibles, traps, final-room portals and UI crests.
 - `M2ImageResourceBootstrap` imports the package at 128 PPU with point filtering, binary alpha, no mipmaps and uncompressed texture data.
 - Prompts, response IDs, source/output hashes, deterministic edits and remaining visual review items are recorded in `Docs/AI_Usage/generations/m2_image_resources_v001.json`; per-cell and per-frame hashes are recorded in `Docs/AI_Usage/generations/m2_image_resource_index_v001.json`.
+
+## M2 local runtime visual baseline v002
+
+- The later standing approval in `Docs/Decisions/M2_IMPLEMENTATION_APPROVAL.json` authorizes only the selected Echo and fixed non-damaging pillar scope for local unsealed technical QA. It does not create or imply `M2EntryGate PASS`.
+- `Tools/process_m2_runtime_visuals.py` promotes exactly four fixed Echo cells from the immutable v001 source into `M2Production` and produces one original permanent-cover pillar. All Golem, destructible, trap, cliff, resonance, and final-room preproduction assets remain unbound.
+- The pillar source was constructed from repository-local Pillow geometric pixel primitives after three image-service attempts produced no bytes. No model output or response ID is claimed. The generation record preserves the failed-attempt facts, local tool version, source/final hashes, and repository-generated-original license.
+- `M2RuntimeVisualBootstrap` imports exactly five 128×128 sprites at 128 PPU with point filtering, binary alpha, no mipmaps, uncompressed data, and explicit center or bottom-center pivots.
+- M1 and M2 view topology is separated: M1 physically contains only Haste/Giant UI and no Echo presenter or M2-production dependency; M2 uses distinct prefabs, one Echo card, and the v002 resources.
+- Prompt, source, output, processing, index, manifest, and review records are `Docs/AI_Usage/prompts/m2_runtime_visual_prompts_v002.json`, `Docs/AI_Usage/generations/m2_runtime_visuals_v002.json`, `Docs/AI_Usage/generations/m2_runtime_visual_index_v002.json`, `Docs/AI_Usage/asset_manifest.csv`, and `Docs/AI_Usage/edits/m2_runtime_visual_review_v002.json`. Human gameplay-scale visual review remains required.

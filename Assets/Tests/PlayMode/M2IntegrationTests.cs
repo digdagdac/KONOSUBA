@@ -8,9 +8,11 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.SceneManagement;
 #if UNITY_EDITOR
+using UnityEditor;
 using UnityEditor.SceneManagement;
 #endif
 using UnityEngine.TestTools;
+using UnityEngine.UI;
 
 namespace Overbless.Tests.PlayMode
 {
@@ -113,6 +115,47 @@ namespace Overbless.Tests.PlayMode
             var pillars = FindGameObjectsInScene(room03.Scene, "WorldPillar");
             Assert.That(pillars.Count, Is.EqualTo(1));
             AssertWorldPillarContract(pillars[0]);
+        }
+
+        [UnityTest]
+        public IEnumerator Room02_OpenExitEntryCompletesSequenceBeforeRoom03LoadsWithM2Scope()
+        {
+            LoadedRoom room = null;
+            yield return LoadRoom(Room02ScenePath, loadedRoom => room = loadedRoom);
+
+            var exitGate = FindComponentInScene<ExitGate>(room.Scene);
+            Assert.That(exitGate, Is.Not.Null);
+            var completed = false;
+            room.SequenceController.Completed += () => completed = true;
+#if UNITY_EDITOR
+            var sequenceSerialized = new SerializedObject(room.SequenceController);
+            sequenceSerialized.FindProperty("nextScene").stringValue = string.Empty;
+            sequenceSerialized.ApplyModifiedPropertiesWithoutUndo();
+#else
+            Assert.Ignore("Scene-transition verification requires Unity Editor scene loading.");
+#endif
+            Assert.That(exitGate.Open(), Is.True);
+            Assert.That(exitGate.TryEnter(room.Player), Is.True);
+            Assert.That(completed, Is.True, "Room_02 exit entry must complete the configured sequence exactly once.");
+            Assert.That(room.SequenceController.HasHandledEntry, Is.True);
+
+#if UNITY_EDITOR
+            var loadRoom03 = EditorSceneManager.LoadSceneAsyncInPlayMode(
+                Room03ScenePath,
+                new LoadSceneParameters(LoadSceneMode.Additive));
+            Assert.That(loadRoom03, Is.Not.Null);
+            while (!loadRoom03.isDone)
+            {
+                yield return null;
+            }
+#endif
+            yield return UnloadScene(Room02ScenePath);
+
+            var loadedRoom03 = SceneManager.GetSceneByPath(Room03ScenePath);
+            Assert.That(loadedRoom03.isLoaded, Is.True);
+            Assert.That(SceneManager.GetSceneByPath(Room02ScenePath).isLoaded, Is.False);
+            Assert.That(FindComponentInScene<BlessingTargeting>(loadedRoom03).EchoEnabled, Is.True);
+            Assert.That(FindGameObjectsInScene(loadedRoom03, "WorldPillar").Count, Is.EqualTo(1));
         }
 
         [UnityTest]
@@ -348,6 +391,47 @@ namespace Overbless.Tests.PlayMode
             Assert.That(echoStoppedPosition.x, Is.GreaterThanOrEqualTo(pillarCollider.bounds.max.x - PositionTolerance));
             Assert.That(primaryStoppedPosition.x, Is.LessThan(primaryStoppedContext.Origin.x));
             Assert.That(echoStoppedPosition.x, Is.LessThan(echoStoppedContext.Origin.x));
+
+            Physics2D.SyncTransforms();
+            var worldMask = LayerMask.GetMask("World");
+            var bounds = pillarCollider.bounds;
+            var leftEdgeHit = Physics2D.Raycast(
+                new Vector2(bounds.min.x - 1f, bounds.center.y),
+                Vector2.right,
+                3f,
+                worldMask);
+            var rightEdgeHit = Physics2D.Raycast(
+                new Vector2(bounds.max.x + 1f, bounds.center.y),
+                Vector2.left,
+                3f,
+                worldMask);
+            Assert.That(leftEdgeHit.collider, Is.SameAs(pillarCollider));
+            Assert.That(rightEdgeHit.collider, Is.SameAs(pillarCollider));
+            Assert.That(leftEdgeHit.point.x, Is.EqualTo(bounds.min.x).Within(0.01f));
+            Assert.That(rightEdgeHit.point.x, Is.EqualTo(bounds.max.x).Within(0.01f));
+
+            var pillarRenderer = pillar.GetComponentInChildren<SpriteRenderer>();
+            var playerRenderer = room.Player.GetComponentInChildren<SpriteRenderer>();
+            Assert.That(
+                SortingLayer.GetLayerValueFromName(playerRenderer.sortingLayerName),
+                Is.GreaterThan(SortingLayer.GetLayerValueFromName(pillarRenderer.sortingLayerName)),
+                "Actor-versus-pillar depth ordering must be explicit and stable.");
+
+            for (var enemyIndex = 0; enemyIndex < room.Enemies.Count; enemyIndex++)
+            {
+                room.Enemies[enemyIndex].enabled = false;
+            }
+
+            var playerHealth = room.Player.GetComponent<Health>();
+            var healthBeforePillarContact = playerHealth.CurrentHealth;
+            room.Player.transform.position = bounds.center;
+            Physics2D.SyncTransforms();
+            yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate();
+            Assert.That(
+                playerHealth.CurrentHealth,
+                Is.EqualTo(healthBeforePillarContact),
+                "Static pillar contact must not damage the player.");
         }
 
         [UnityTest]
@@ -524,14 +608,27 @@ namespace Overbless.Tests.PlayMode
             AssertPosition(FindEnemy(room.Enemies, "Minion_A").transform, expectedMinionAPosition, "Minion_A");
             AssertPosition(FindEnemy(room.Enemies, "Minion_B").transform, expectedMinionBPosition, "Minion_B");
 
+            Assert.That(room.BlessingTargeting, Is.Not.Null);
+            Assert.That(room.BlessingTargeting.EchoEnabled, Is.True, $"{definitionName} must explicitly enable Echo.");
+            Assert.That(room.BlessingTargeting.IsAvailable(BlessingType.Echo), Is.True);
+
             Assert.That(room.Hud, Is.Not.Null);
             Assert.That(room.Hud.IsBound, Is.True);
             Assert.That(room.Hud.IsViewConfigured, Is.True, "The third Echo HUD card must have its view references.");
-            Assert.That(FindGameObjectsInScene(room.Scene, "EchoCard").Count, Is.EqualTo(1));
+            var echoCards = FindGameObjectsInScene(room.Scene, "EchoCard");
+            Assert.That(echoCards.Count, Is.EqualTo(1));
+            var echoCard = echoCards[0];
+            Assert.That(echoCard.GetComponent<Image>(), Is.Not.Null);
+            var echoIcon = GetRequiredDirectChildComponent<Image>(echoCard.transform, "Icon");
+            Assert.That(echoIcon.sprite, Is.Not.Null, "The Echo card icon must be assigned.");
+            Assert.That(GetRequiredDirectChildComponent<Text>(echoCard.transform, "Title").text, Is.EqualTo("3 ECHO"));
+            Assert.That(
+                GetRequiredDirectChildComponent<Text>(echoCard.transform, "Detail").text,
+                Is.EqualTo("REPEAT LOCKED ATTACK"));
+            Assert.That(GetRequiredDirectChildComponent<Text>(echoCard.transform, "Status"), Is.Not.Null);
             Assert.That(room.Hud.TryGetState(out var hudState), Is.True);
             Assert.That(hudState.EchoAvailable, Is.True);
             Assert.That(hudState.EchoAvailable, Is.EqualTo(room.BlessingTargeting.IsAvailable(BlessingType.Echo)));
-
             Assert.That(room.SequenceController, Is.Not.Null);
             if (string.IsNullOrEmpty(expectedNextScene))
             {
@@ -541,13 +638,16 @@ namespace Overbless.Tests.PlayMode
             {
                 Assert.That(room.SequenceController.NextScene, Is.EqualTo(expectedNextScene));
             }
-
             var echoPresenters = FindComponentsInScene<EchoProjectilePresenter>(room.Scene);
             Assert.That(echoPresenters.Count, Is.EqualTo(2));
             for (var index = 0; index < echoPresenters.Count; index++)
             {
                 AssertEchoPresenterHasNoPhysicsOrDamage(echoPresenters[index]);
             }
+
+#if UNITY_EDITOR
+            AssertM2PrefabAndVisualOwnership(room, echoIcon, echoPresenters);
+#endif
         }
 
         private static void AssertWorldPillarContract(GameObject pillar)
@@ -555,12 +655,31 @@ namespace Overbless.Tests.PlayMode
             Assert.That(LayerMask.NameToLayer("World"), Is.EqualTo(12));
             Assert.That(pillar.layer, Is.EqualTo(12));
             Assert.That(pillar.layer, Is.EqualTo(LayerMask.NameToLayer("World")));
+            Assert.That(pillar.isStatic, Is.True);
 
             var collider = pillar.GetComponent<BoxCollider2D>();
             Assert.That(collider, Is.Not.Null);
             Assert.That(collider.size.x, Is.EqualTo(1.2f).Within(PositionTolerance));
             Assert.That(collider.size.y, Is.EqualTo(1.8f).Within(PositionTolerance));
+            Assert.That(collider.offset.x, Is.EqualTo(0f).Within(PositionTolerance));
+            Assert.That(collider.offset.y, Is.EqualTo(0.28f).Within(PositionTolerance));
             Assert.That(collider.isTrigger, Is.False);
+
+            var renderer = pillar.GetComponentInChildren<SpriteRenderer>();
+            Assert.That(renderer, Is.Not.Null);
+            Assert.That(renderer.sprite, Is.Not.Null);
+            Assert.That(renderer.spriteSortPoint, Is.EqualTo(SpriteSortPoint.Pivot));
+            Assert.That(renderer.sortingLayerName, Is.EqualTo("World"));
+            Assert.That(renderer.drawMode, Is.EqualTo(SpriteDrawMode.Simple));
+            Assert.That(renderer.transform.localScale.x, Is.EqualTo(1.2f).Within(PositionTolerance));
+            Assert.That(renderer.transform.localScale.y, Is.EqualTo(1.8f).Within(PositionTolerance));
+
+#if UNITY_EDITOR
+            AssertSpriteAssetPath(
+                renderer.sprite,
+                "Assets/_Project/Art/M2Production/Environment/env_static_world_pillar_south_a_v002.png");
+#endif
+
             Assert.That(pillar.GetComponent<Rigidbody2D>(), Is.Null);
             Assert.That(pillar.GetComponent<Health>(), Is.Null);
             var behaviours = pillar.GetComponents<MonoBehaviour>();
@@ -585,6 +704,56 @@ namespace Overbless.Tests.PlayMode
                 Assert.That(behaviours[index] is IDamageable, Is.False);
                 Assert.That(behaviours[index] is IDamageSource, Is.False);
             }
+        }
+#if UNITY_EDITOR
+        private static void AssertM2PrefabAndVisualOwnership(
+            LoadedRoom room,
+            Image echoIcon,
+            IReadOnlyList<EchoProjectilePresenter> echoPresenters)
+        {
+
+            AssertSpriteAssetPath(
+                echoIcon.sprite,
+                "Assets/_Project/Art/M2Production/UI/ui_icon_bless_echo_a_v002.png");
+
+            var indicators = FindComponentsInScene<BlessingIndicator>(room.Scene);
+            Assert.That(indicators.Count, Is.EqualTo(5));
+            for (var index = 0; index < indicators.Count; index++)
+            {
+                var echoRenderer = GetRequiredDirectChildComponent<SpriteRenderer>(indicators[index].transform, "Echo");
+                AssertSpriteAssetPath(
+                    echoRenderer.sprite,
+                    "Assets/_Project/Art/M2Production/UI/ui_icon_echo_status_a_v002.png");
+            }
+
+            for (var index = 0; index < echoPresenters.Count; index++)
+            {
+                AssertSpriteAssetPath(
+                    FindSpriteRenderer(echoPresenters[index], "PendingLine").sprite,
+                    "Assets/_Project/Art/M2Production/VFX/vfx_echo_line_telegraph_a_v002.png");
+                AssertSpriteAssetPath(
+                    FindSpriteRenderer(echoPresenters[index], "ProjectileBody").sprite,
+                    "Assets/_Project/Art/M2Production/VFX/vfx_echo_double_silhouette_a_v002.png");
+            }
+        }
+
+        private static void AssertSpriteAssetPath(Sprite sprite, string expectedPath)
+        {
+            Assert.That(sprite, Is.Not.Null, $"Expected sprite at '{expectedPath}'.");
+            Assert.That(
+                AssetDatabase.GetAssetPath(sprite),
+                Is.EqualTo(expectedPath),
+                $"Sprite '{sprite.name}' must resolve to its approved v002 path.");
+        }
+#endif
+
+        private static T GetRequiredDirectChildComponent<T>(Transform parent, string childName) where T : Component
+        {
+            var child = parent.Find(childName);
+            Assert.That(child, Is.Not.Null, $"'{parent.name}' is missing required child '{childName}'.");
+            var component = child.GetComponent<T>();
+            Assert.That(component, Is.Not.Null, $"'{parent.name}/{childName}' is missing {typeof(T).Name}.");
+            return component;
         }
 
         private static IEnumerator ApplyEchoAndWaitForPending(

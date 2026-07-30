@@ -106,6 +106,7 @@ namespace Overbless.Runtime
 
         private HudState state;
         private bool hasState;
+        private bool EchoEnabled => blessingTargeting != null && blessingTargeting.EchoEnabled;
 
         public event Action<HudState> StateChanged;
 
@@ -116,8 +117,9 @@ namespace Overbless.Runtime
             healthFill != null && healthFill.sprite != null && healthFill.type == Image.Type.Filled &&
             dashFill != null && dashFill.sprite != null && dashFill.type == Image.Type.Filled &&
             healthText != null && dashText != null && soulText != null && exitText != null &&
-            selectionText != null && hasteStatusText != null && giantStatusText != null && echoStatusText != null &&
-            hasteFrame != null && giantFrame != null && echoFrame != null;
+            selectionText != null && hasteStatusText != null && giantStatusText != null &&
+            hasteFrame != null && giantFrame != null &&
+            (!EchoEnabled || (echoStatusText != null && echoFrame != null));
 
         public HudState State
         {
@@ -177,6 +179,7 @@ namespace Overbless.Runtime
                     ? 0f
                     : 1f - Mathf.Clamp01(dashAbility.CooldownRemaining / cooldownDuration);
 
+            var echoEnabled = blessingTargeting.EchoEnabled;
             SetState(new HudState(
                 playerHealth.CurrentHealth,
                 playerHealth.MaximumHealth,
@@ -185,7 +188,7 @@ namespace Overbless.Runtime
                 dashAbility.CooldownRemaining,
                 blessingTargeting.IsAvailable(BlessingType.Haste),
                 blessingTargeting.IsAvailable(BlessingType.Giant),
-                blessingTargeting.IsAvailable(BlessingType.Echo),
+                echoEnabled && blessingTargeting.IsAvailable(BlessingType.Echo),
                 roomLifecycle.SoulCount,
                 roomLifecycle.IsExitOpen));
         }
@@ -218,7 +221,8 @@ namespace Overbless.Runtime
             var selectingGiant = blessingTargeting != null &&
                                  blessingTargeting.IsSelecting &&
                                  blessingTargeting.SelectedType == BlessingType.Giant;
-            var selectingEcho = blessingTargeting != null &&
+            var echoEnabled = EchoEnabled;
+            var selectingEcho = echoEnabled &&
                                 blessingTargeting.IsSelecting &&
                                 blessingTargeting.SelectedType == BlessingType.Echo;
 
@@ -228,12 +232,16 @@ namespace Overbless.Runtime
             giantFrame.color = !value.GiantAvailable
                 ? UnavailableColor
                 : selectingGiant ? SelectedColor : AvailableGiantColor;
-            echoFrame.color = !value.EchoAvailable
-                ? UnavailableColor
-                : selectingEcho ? SelectedColor : AvailableEchoColor;
             hasteStatusText.text = value.HasteAvailable ? selectingHaste ? "SELECTED" : "READY" : "BOUND";
             giantStatusText.text = value.GiantAvailable ? selectingGiant ? "SELECTED" : "READY" : "BOUND";
-            echoStatusText.text = value.EchoAvailable ? selectingEcho ? "SELECTED" : "READY" : "BOUND";
+
+            if (echoEnabled)
+            {
+                echoFrame.color = !value.EchoAvailable
+                    ? UnavailableColor
+                    : selectingEcho ? SelectedColor : AvailableEchoColor;
+                echoStatusText.text = value.EchoAvailable ? selectingEcho ? "SELECTED" : "READY" : "BOUND";
+            }
 
             if (selectingHaste)
             {
@@ -249,7 +257,9 @@ namespace Overbless.Runtime
             }
             else
             {
-                selectionText.text = "1 / 2 / 3 SELECT BLESSING  |  SPACE DASH  |  R RESTART";
+                selectionText.text = echoEnabled
+                    ? "1 / 2 / 3 SELECT BLESSING  |  SPACE DASH  |  R RESTART"
+                    : "1 / 2 SELECT BLESSING  |  SPACE DASH  |  R RESTART";
             }
         }
 

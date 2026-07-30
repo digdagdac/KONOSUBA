@@ -1,0 +1,140 @@
+{
+  "schema": "overbless.m2-runtime-visual-prompts/v2",
+  "version": "v002",
+  "created_utc": "2026-07-30T09:36:59Z",
+  "approval": "Docs/Decisions/M2_IMPLEMENTATION_APPROVAL.json",
+  "runtime_authorization": {
+    "boundary": "local-unsealed-only",
+    "m2_entry_gate_status": "not-evaluated",
+    "scope": "Only the five declared M2Production runtime visual outputs are authorized for local unsealed technical QA. All other M2Preproduction assets remain offline and unbound."
+  },
+  "shared_style": "Original production-ready 2D pixel art for a fixed-camera three-quarter top-down dark fantasy dungeon game. Crisp hard pixel clusters, readable silhouettes at 128 pixels, dark navy outlines, restrained cyan, purple, and warm stone accents, no antialiasing and no blur.",
+  "assets": {
+    "static_world_pillar": {
+      "source_path": "Docs/AI_Usage/sources/m2_runtime_visual_v002/static_world_pillar_source.png",
+      "final_path": "Assets/_Project/Art/M2Production/Environment/env_static_world_pillar_south_a_v002.png",
+      "prompt": "Create one isolated permanent fixed dungeon world pillar facing south toward the camera in the original pixel-art fixed-camera three-quarter top-down direction. It is static, non-damaging, non-destructible cover with a solid unbroken dark blue-gray masonry silhouette, broad stable base, restrained cool upper-left lighting, and no state changes. Center the complete object with a generous empty border on a perfectly flat pure magenta #ff00ff background.",
+      "negative_prompt": [
+        "cracks",
+        "rubble",
+        "spikes",
+        "motion",
+        "text",
+        "logo",
+        "watermark"
+      ],
+      "processing": {
+        "chroma_background": "sampled pure magenta",
+        "max_content_size": 118,
+        "canvas_size": [
+          128,
+          128
+        ],
+        "placement": "bottom-center",
+        "alpha": "binary"
+      },
+      "classification": "m2-runtime-static-non-damaging-world-cover",
+      "intended_binding": "M2 WorldPillar SpriteRenderer only"
+    },
+    "echo_bless_icon": {
+      "source_path": "Docs/AI_Usage/sources/m2_assets_v001/echo_vfx_sheet_source.png",
+      "final_path": "Assets/_Project/Art/M2Production/UI/ui_icon_bless_echo_a_v002.png",
+      "deterministic_reuse": {
+        "source_version": "v001",
+        "source_grid": [
+          4,
+          2
+        ],
+        "source_cell": [
+          0,
+          0
+        ],
+        "source_cell_inset_policy": "inset each edge by max(1, cell_dimension // 12)",
+        "max_content_size": 96,
+        "canvas_size": [
+          128,
+          128
+        ],
+        "placement": "center",
+        "alpha": "binary"
+      },
+      "classification": "m2-runtime-echo-blessing-ui",
+      "intended_binding": "M2 EchoCard icon only"
+    },
+    "echo_status_icon": {
+      "source_path": "Docs/AI_Usage/sources/m2_assets_v001/echo_vfx_sheet_source.png",
+      "final_path": "Assets/_Project/Art/M2Production/UI/ui_icon_echo_status_a_v002.png",
+      "deterministic_reuse": {
+        "source_version": "v001",
+        "source_grid": [
+          4,
+          2
+        ],
+        "source_cell": [
+          1,
+          0
+        ],
+        "source_cell_inset_policy": "inset each edge by max(1, cell_dimension // 12)",
+        "max_content_size": 48,
+        "canvas_size": [
+          128,
+          128
+        ],
+        "placement": "center",
+        "alpha": "binary"
+      },
+      "classification": "m2-runtime-echo-status-ui",
+      "intended_binding": "M2 enemy Echo status indicator only"
+    },
+    "echo_double_silhouette": {
+      "source_path": "Docs/AI_Usage/sources/m2_assets_v001/echo_vfx_sheet_source.png",
+      "final_path": "Assets/_Project/Art/M2Production/VFX/vfx_echo_double_silhouette_a_v002.png",
+      "deterministic_reuse": {
+        "source_version": "v001",
+        "source_grid": [
+          4,
+          2
+        ],
+        "source_cell": [
+          2,
+          0
+        ],
+        "source_cell_inset_policy": "inset each edge by max(1, cell_dimension // 12)",
+        "max_content_size": 112,
+        "canvas_size": [
+          128,
+          128
+        ],
+        "placement": "center",
+        "alpha": "binary"
+      },
+      "classification": "m2-runtime-echo-double-silhouette-vfx",
+      "intended_binding": "M2 EchoProjectileVisual projectile renderer only"
+    },
+    "echo_line_telegraph": {
+      "source_path": "Docs/AI_Usage/sources/m2_assets_v001/echo_vfx_sheet_source.png",
+      "final_path": "Assets/_Project/Art/M2Production/VFX/vfx_echo_line_telegraph_a_v002.png",
+      "deterministic_reuse": {
+        "source_version": "v001",
+        "source_grid": [
+          4,
+          2
+        ],
+        "source_cell": [
+          3,
+          0
+        ],
+        "source_cell_inset_policy": "inset each edge by max(1, cell_dimension // 12)",
+        "max_content_size": 120,
+        "canvas_size": [
+          128,
+          128
+        ],
+        "placement": "center",
+        "alpha": "binary"
+      },
+      "classification": "m2-runtime-echo-line-telegraph-vfx",
+      "intended_binding": "M2 EchoProjectileVisual PendingLine renderer only"
+    }
+  }
+}

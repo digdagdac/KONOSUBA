@@ -45,7 +45,10 @@ namespace Overbless.Runtime
             RequireRenderers();
             hasteRenderer.enabled = stats.HasHaste;
             giantRenderer.enabled = stats.HasGiant;
-            echoRenderer.enabled = stats.HasEcho;
+            if (echoRenderer != null)
+            {
+                echoRenderer.enabled = stats.HasEcho;
+            }
         }
 
         private void Unsubscribe()
@@ -60,10 +63,10 @@ namespace Overbless.Runtime
 
         private void RequireRenderers()
         {
-            if (hasteRenderer == null || giantRenderer == null || echoRenderer == null)
+            if (hasteRenderer == null || giantRenderer == null)
             {
                 throw new System.InvalidOperationException(
-                    "Blessing indicator requires independent Haste, Giant, and Echo renderers.");
+                    "Blessing indicator requires Haste and Giant renderers.");
             }
         }
     }

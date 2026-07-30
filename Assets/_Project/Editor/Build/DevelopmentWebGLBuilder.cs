@@ -94,6 +94,7 @@ namespace Overbless.Editor.Build
         [MenuItem("Overbless/M2/Build Development WebGL")]
         public static void BuildM2()
         {
+            M2RuntimeVisualBootstrap.ImportForBatchMode();
             M1ContentBootstrap.CreateOrUpdateM2();
             var previousSettings = TemporaryBuildSettings.Capture();
             try

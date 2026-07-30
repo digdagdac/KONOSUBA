@@ -1,0 +1,171 @@
+{
+  "schema": "overbless.m2-runtime-visual-review/v2",
+  "reviewed_utc": "2026-07-30T10:00:19Z",
+  "status": "machine-pass-human-review-required",
+  "approval_boundary": {
+    "file": "Docs/Decisions/M2_IMPLEMENTATION_APPROVAL.json",
+    "runtime_authorization": "local-unsealed-only",
+    "m2_entry_gate_status": "not-evaluated",
+    "statement": "This technical evidence neither creates nor implies M2EntryGate PASS."
+  },
+  "scope": {
+    "included": [
+      "M1/M2 HUD, targeting, presenter, prefab, scene, and build containment",
+      "four approved Echo runtime sprites",
+      "one fixed non-damaging static World pillar sprite and collider"
+    ],
+    "excluded_and_unbound": [
+      "Golem",
+      "destructible pillar states",
+      "cliffs",
+      "traps",
+      "resonance",
+      "final encounter",
+      "all other M2Preproduction assets"
+    ]
+  },
+  "supersession": {
+    "policy": "append-only-v002",
+    "preserved": [
+      "M1 v001 animation atlas bytes, GUIDs, frame topology, and review evidence",
+      "M1 v001 UI review evidence",
+      "M2Preproduction v001 sources, outputs, generation records, and GUIDs"
+    ],
+    "new_record": "Docs/AI_Usage/generations/m2_runtime_visuals_v002.json",
+    "new_index": "Docs/AI_Usage/generations/m2_runtime_visual_index_v002.json"
+  },
+  "deterministic_processing": {
+    "command": "python Tools/process_m2_runtime_visuals.py . --check",
+    "result": "Passed: exactly 5 outputs and index are deterministic",
+    "git_diff_check": "Passed after canonical Unity-YAML trailing-whitespace normalization",
+    "dependency_scan": {
+      "result": "Passed",
+      "file": "Evidence/Verification/m2-runtime-visual-v002-dependency-scan.json",
+      "sha256": "77632ec35de1d8b65992f6d548b1de408b7593526d4000087a8d381db0d2dfef"
+    }
+  },
+  "unity": {
+    "version": "6000.0.72f1",
+    "import": {
+      "result": "Passed",
+      "file": "Evidence/Verification/m2-runtime-visual-v002-import.log",
+      "sha256": "6ab890d5f7d3173ff1fe0249374444e964dadc5d9508d70126925d6afbd4b5d0"
+    },
+    "focused_editmode": {
+      "result": "Passed",
+      "total": 3,
+      "passed": 3,
+      "failed": 0,
+      "file": "Evidence/Verification/editmode-m2-runtime-visual-v002-results.xml",
+      "sha256": "5a03f85d284e61c0cca3644219952632b7239dee527109803bde92a41d8888e1"
+    },
+    "m1_playmode_regression": {
+      "result": "Passed",
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "file": "Evidence/Verification/playmode-m1-regression-after-m2-visual-v002.xml",
+      "sha256": "7819ee182e8407311b3bd4f3eb18e75586a2871a424369db2fc0fe2022cd48dd"
+    },
+    "m2_playmode": {
+      "result": "Passed",
+      "total": 12,
+      "passed": 12,
+      "failed": 0,
+      "file": "Evidence/Verification/playmode-m2-runtime-visual-v002-results.xml",
+      "sha256": "1337a622f197621a1048fed7bab78f4dad5e78df449a732a3702eea9364daac1"
+    },
+    "full_editmode": {
+      "result": "Passed",
+      "total": 30,
+      "passed": 30,
+      "failed": 0,
+      "file": "Evidence/Verification/editmode-full-after-m2-runtime-visual-v002.xml",
+      "sha256": "15de482df8e7b3b235ed621ec4e8ee154db883fc8403941d0b868039e4146e5d"
+    },
+    "full_playmode": {
+      "result": "Passed",
+      "total": 17,
+      "passed": 17,
+      "failed": 0,
+      "file": "Evidence/Verification/playmode-full-after-m2-runtime-visual-v002.xml",
+      "sha256": "f2531afb6209958fe9520f458a2c7e4791ea3ca492390ae83628c11041497bdd"
+    }
+  },
+  "webgl": {
+    "m1": {
+      "result": "Passed",
+      "output": "Builds/M1_GuidedValidation_WebGL",
+      "file": "Evidence/Verification/m1-webgl-regression-after-m2-runtime-visual-v002.log",
+      "sha256": "87f1ecee04dff57adcdd4034989347b950ca7979670a21a3379d4c50823a7d79"
+    },
+    "m2": {
+      "result": "Passed",
+      "output": "Builds/M2_Rooms_WebGL",
+      "file": "Evidence/Verification/m2-runtime-visual-v002-webgl.log",
+      "sha256": "165f9e1a276acf8bf40faf053ae35d0f8dca59a38d059d622b10b1c8941b170f",
+      "authorization": "unsealed local technical QA only"
+    }
+  },
+  "browser_qa": {
+    "result": "technical-pass",
+    "m1_observed": [
+      "Canvas matched both 1280x720 and 1920x1080 viewports and backing resolution.",
+      "Only Haste and Giant cards were physically visible; no Echo card or Echo presenter appeared.",
+      "Gameplay rendered nonblank with live combat and HUD."
+    ],
+    "m2_observed": [
+      "Canvas matched both 1280x720 and 1920x1080 viewports and backing resolution.",
+      "Exactly one Echo card was visible beside Haste and Giant.",
+      "Keyboard 3 selected Echo and changed the card/help state to ECHO SELECTED.",
+      "Gameplay rendered nonblank with live combat and the approved v002 Echo icon."
+    ],
+    "animation_frame_samples": {
+      "method": "Chromium requestAnimationFrame counting during live WebGL gameplay",
+      "m1_1280x720": [241, 240, 240],
+      "m1_1920x1080": [241, 240],
+      "m2_1280x720": [241, 240, 240],
+      "m2_1920x1080": [241, 241],
+      "minimum_required": 45,
+      "note": "Browser callback cadence is a responsiveness signal, not a Unity Profiler frame-time claim."
+    },
+    "screenshots": [
+      {
+        "file": "Evidence/Verification/m1-runtime-visual-v002-1280x720.png",
+        "sha256": "2a3a4ae77344d71d820c0f6d295c2907bf52fcc1eae9eb606ca3cffb363a67b7"
+      },
+      {
+        "file": "Evidence/Verification/m1-runtime-visual-v002-1920x1080.png",
+        "sha256": "f84d6723afefee77bef61197fccd1d79ab491adff6f7ae931df0f7cc0f806777"
+      },
+      {
+        "file": "Evidence/Verification/m2-runtime-visual-v002-echo-selected-1280x720.png",
+        "sha256": "e24d51fe8962054982c647c7be62257620e7c8c372cd6fd38d8b85b00043b07b"
+      },
+      {
+        "file": "Evidence/Verification/m2-runtime-visual-v002-1920x1080.png",
+        "sha256": "3986b552bdf93ad7372e051b64864201207991894681d5143912610393055591"
+      }
+    ]
+  },
+  "machine_review": {
+    "result": "Passed",
+    "checks": [
+      "Five production PNGs are 128x128 RGBA with binary alpha and index hash parity.",
+      "Unity import settings and pivots match the explicit contract.",
+      "M1 scene/prefabs contain no M2Production, M2Preproduction, EchoCard, EchoProjectilePresenter, or Echo visual dependency.",
+      "M2 scene/prefabs bind only the five approved v002 production sprites and no excluded keyword/resource.",
+      "Room_02 has no pillar; Room_03 has one static World-layer solid pillar with 1.2x1.8 collider and offset (0,0.28).",
+      "M1 animation atlas bytes and 944-frame imported topology remain authoritative and unchanged."
+    ]
+  },
+  "human_review": {
+    "status": "required",
+    "reviewer": "pending-user-review",
+    "remaining": [
+      "Judge the pillar source, 128px output, and gameplay-scale silhouette for permanent non-damaging cover readability.",
+      "Judge near/far depth overlap and collision-feel in Room_03 during hands-on play.",
+      "Judge the Echo icon, status, double-silhouette, and line telegraph at gameplay scale for semantic clarity and flicker-free presentation."
+    ]
+  }
+}
