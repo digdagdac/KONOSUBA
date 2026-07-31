@@ -403,8 +403,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b313561adb966bb4b9e7c8e6684ab0b4, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   entityId: 1
   maximumHealth: 12
   startsInvulnerable: 0
@@ -418,12 +418,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 835920dc434fd194aae1a78129eaa3d2, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   definition: {fileID: 11400000, guid: a573d165d97afcf4195bcd35dc28f5c1, type: 2}
   health: {fileID: 3553620749236732840}
   playerTarget: {fileID: 0}
   spawnTransform: {fileID: 8968629748944248260}
+  initialIntendedFacing: {x: 0, y: -1}
 --- !u!114 &7532879682393169747
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -434,8 +435,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 027a2d32dcd2aab44a32719a69178b01, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   driver: 1
   initialDirection: 0
   spriteRenderer: {fileID: 5579628874047589362}
@@ -603,8 +604,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f5e2809eb3bd16249aaa255fec2b7854, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   line: {fileID: 3493132795556931650}
   warningColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   lockedColor: {r: 1, g: 0, b: 0, a: 1}
@@ -975,8 +976,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cc451b99adaadb74883e5904e23b115c, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   hasteRenderer: {fileID: 9084730425084954486}
   giantRenderer: {fileID: 4883634718192118274}
   echoRenderer: {fileID: 3229621952186810065}
@@ -1024,8 +1025,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 16d722555d983d34fa69496cd4f027db, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   health: {fileID: 3553620749236732840}
   backgroundLine: {fileID: 164372688099878799}
   fillLine: {fileID: 720139579813167591}

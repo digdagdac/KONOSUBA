@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: Enemy_Minion
   m_EditorClassIdentifier: 
   maximumHealth: 5
-  movementSpeed: 1.25
+  walkSpeed: 0.8333333
+  runSpeed: 1.25
   attackCooldown: 4
   attackDamage: 1
   engagementRange: 8

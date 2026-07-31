@@ -170,8 +170,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b313561adb966bb4b9e7c8e6684ab0b4, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   entityId: 1
   maximumHealth: 8
   startsInvulnerable: 0
@@ -185,12 +185,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5faa23feccb82f04c97f038c0aa9c5a0, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   definition: {fileID: 11400000, guid: 6beef3f224273d043ab2f649cb75a0f7, type: 2}
   health: {fileID: 6036412221352849867}
   playerTarget: {fileID: 0}
   spawnTransform: {fileID: 3599444883341684629}
+  initialIntendedFacing: {x: 0, y: -1}
 --- !u!114 &7119787984975227528
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -201,8 +202,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 027a2d32dcd2aab44a32719a69178b01, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   driver: 1
   initialDirection: 0
   spriteRenderer: {fileID: 7374599217432876634}
@@ -430,8 +431,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cc451b99adaadb74883e5904e23b115c, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   hasteRenderer: {fileID: 5697427645872151566}
   giantRenderer: {fileID: 3014374142933780228}
   echoRenderer: {fileID: 1831003844300253880}
@@ -594,8 +595,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a5b5ba0a221542f4dab098c03e12862d, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   line: {fileID: 919816308403493470}
 --- !u!1 &5119924487857384319
 GameObject:
@@ -876,8 +877,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 16d722555d983d34fa69496cd4f027db, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   health: {fileID: 6036412221352849867}
   backgroundLine: {fileID: 773031496885163511}
   fillLine: {fileID: 8691011614615065817}
@@ -1362,8 +1363,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f5e2809eb3bd16249aaa255fec2b7854, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   line: {fileID: 1442631719869850707}
   warningColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   lockedColor: {r: 1, g: 0, b: 0, a: 1}
@@ -1411,7 +1412,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5192ab49b3e57d7419283903f36055cb, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   pendingLineRenderer: {fileID: 8652631506967486196}
   projectileRenderer: {fileID: 6095011281066172845}
