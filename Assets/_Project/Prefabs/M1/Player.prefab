@@ -248,6 +248,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetingCamera: {fileID: 0}
   enemyBodyLayerName: EnemyBody
+  echoEnabled: 0
 --- !u!114 &1422521095181645935
 MonoBehaviour:
   m_ObjectHideFlags: 0

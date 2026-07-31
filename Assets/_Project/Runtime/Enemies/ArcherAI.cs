@@ -97,16 +97,15 @@ namespace Overbless.Runtime
                 case AttackPhase.Idle:
                     MaintainDistanceAndTryStartWarning(deltaTime);
                     break;
-
                 case AttackPhase.Warning:
                     AdvanceShotWarning(deltaTime);
                     break;
-
                 case AttackPhase.Executing:
+                    SetLocomotionMode(LocomotionMode.Idle);
                     AdvanceProjectiles(deltaTime);
                     break;
-
                 case AttackPhase.Recovery:
+                    SetLocomotionMode(LocomotionMode.Idle);
                     CompleteShotRecoveryWhenReady();
                     break;
             }
@@ -241,8 +240,11 @@ namespace Overbless.Runtime
             if (direction.sqrMagnitude < MinimumDirectionSqrMagnitude)
             {
                 CancelAttack();
+                SetLocomotionMode(LocomotionMode.Idle);
                 return;
             }
+
+            SetIntendedFacing(direction);
 
             var errors = new List<Exception>();
             AttackContext context = null;
@@ -597,21 +599,43 @@ namespace Overbless.Runtime
             var offsetFromTarget = currentPosition - targetPosition;
             var currentDistance = offsetFromTarget.magnitude;
             var preferredDistance = RuntimeStats.PreferredDistance;
-            var moveDistance = RuntimeStats.MovementSpeed * deltaTime;
-
+            var directionToTarget = targetPosition - currentPosition;
             if (currentDistance > preferredDistance + DistanceTolerance)
             {
-                MoveTowards(targetPosition, moveDistance);
+                SetIntendedFacing(directionToTarget);
+                if (currentDistance > RuntimeStats.EngagementRange)
+                {
+                    SetLocomotionMode(LocomotionMode.Run);
+                    MoveTowards(targetPosition, RuntimeStats.RunSpeed * deltaTime);
+                }
+                else
+                {
+                    SetLocomotionMode(LocomotionMode.Walk);
+                    MoveTowards(targetPosition, RuntimeStats.WalkSpeed * deltaTime);
+                }
+
+                return;
             }
-            else if (currentDistance < preferredDistance - DistanceTolerance)
+
+            if (currentDistance < preferredDistance - DistanceTolerance)
             {
                 if (currentDistance > MinimumDirectionSqrMagnitude)
                 {
                     lastSeparationDirection = offsetFromTarget / currentDistance;
                 }
 
-                MoveInDirection(lastSeparationDirection, moveDistance);
+                SetIntendedFacing(lastSeparationDirection);
+                SetLocomotionMode(LocomotionMode.Run);
+                MoveInDirection(lastSeparationDirection, RuntimeStats.RunSpeed * deltaTime);
+                return;
             }
+
+            if (directionToTarget.sqrMagnitude >= MinimumDirectionSqrMagnitude)
+            {
+                SetIntendedFacing(directionToTarget);
+            }
+
+            SetLocomotionMode(LocomotionMode.Idle);
         }
 
         private void ScheduleEcho(AttackContext echoContext, AttackContext sourceContext, float projectileSpeed)

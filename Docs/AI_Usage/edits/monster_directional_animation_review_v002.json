@@ -1,0 +1,68 @@
+{
+  "review_id": "monster_directional_animation_review_v002",
+  "reviewed_at": "2026-07-31",
+  "status": "machine-pass-live-review-pending",
+  "scope": "Dasher, Archer and Minion directional Walk, Run and attack animation overhaul shared by M1 and M2",
+  "production_summary": {
+    "roles": 3,
+    "accepted_direct_sheets": 15,
+    "rejected_attempts_retained": 8,
+    "direct_directions": ["south", "north", "east", "southeast", "northeast"],
+    "mirror_directions": ["west", "southwest", "northwest"],
+    "atlases": 3,
+    "atlas_size": "8192x1024",
+    "cell_size": "128x128",
+    "pivot": "bottom-center",
+    "pixels_per_unit": 128,
+    "filter": "Point",
+    "mipmaps": false,
+    "compression": "Uncompressed",
+    "alpha": "binary",
+    "authored_frames": 450,
+    "mirror_derived_frames": 270,
+    "inherited_v001_frames": 312
+  },
+  "state_coverage": {
+    "dasher": ["Idle", "Walk", "Run", "AttackCharge", "AttackExecute", "Recover", "Hit", "Death"],
+    "archer": ["Idle", "Walk", "Run", "AttackCharge", "AttackExecute", "Recover", "Hit", "Death"],
+    "minion": ["Idle", "Walk", "Run", "AttackCharge", "AttackExecute", "Recover", "Hit", "Death"]
+  },
+  "machine_checks": {
+    "processor_build": {"result":"Passed","command":"python Tools/process_monster_animation_v002.py ."},
+    "determinism": {"result":"Passed","command":"python Tools/process_monster_animation_v002.py . --check"},
+    "source_topology": {"result":"Passed","detail":"15 accepted sheets each contain eight connected foreground groups in each of five rows"},
+    "mirror_policy": {"result":"Passed","detail":"target-state west, southwest and northwest frames are exact horizontal pixel mirrors"},
+    "unity_import": {"result":"Passed","detail":"v002 atlases imported and M1/M2 content regenerated with shared set assets"}
+  },
+  "runtime_scenarios": [
+    {"id":"dasher-charge","expectation":"Idle before warning, Run during executing sweep, locked facing through Recover","status":"pending final PlayMode and live review"},
+    {"id":"archer-distance","expectation":"Run for far chase and unsafe retreat, Walk for engagement correction, Idle in tolerance","status":"pending final PlayMode and live review"},
+    {"id":"minion-execute","expectation":"six distinct Execute frames at 24fps across 0.25 seconds; one frame-zero hit; Recover follows","status":"pending final PlayMode and live review"},
+    {"id":"collision-intent","expectation":"pillar or partial collision does not change LocomotionMode or IntendedFacing","status":"pending final PlayMode and live review"},
+    {"id":"m1-m2-sharing","expectation":"six enemy prefabs share the same three v002 animation-set asset GUIDs without prefab/scene mixing","status":"pending final structural and live review"}
+  ],
+  "timing_metrics": [
+    {"metric":"chase_to_range","baseline_seconds":null,"candidate_seconds":null,"delta_percent":null,"status":"pending repeatable capture"},
+    {"metric":"retreat_to_safe_band","baseline_seconds":null,"candidate_seconds":null,"delta_percent":null,"status":"pending repeatable capture"},
+    {"metric":"preparation_to_judgment","baseline_seconds":null,"candidate_seconds":null,"delta_percent":null,"status":"pending repeatable capture"},
+    {"metric":"judgment_to_next_eligible_warning_plain","baseline_seconds":null,"candidate_seconds":null,"delta_percent":null,"status":"pending repeatable capture"},
+    {"metric":"judgment_to_next_judgment_plain","baseline_seconds":null,"candidate_seconds":null,"delta_percent":null,"status":"pending repeatable capture"},
+    {"metric":"judgment_to_next_eligible_warning_haste","baseline_seconds":null,"candidate_seconds":null,"delta_percent":null,"status":"pending repeatable capture"},
+    {"metric":"judgment_to_next_judgment_haste","baseline_seconds":null,"candidate_seconds":null,"delta_percent":null,"status":"pending repeatable capture"}
+  ],
+  "visual_matrix": [
+    {"build":"M1","resolution":"1280x720","roles":["dasher","archer","minion"],"states":["walk","run","attack"],"status":"pending","media":[]},
+    {"build":"M1","resolution":"1920x1080","roles":["dasher","archer","minion"],"states":["walk","run","attack"],"status":"pending","media":[]},
+    {"build":"M2","resolution":"1280x720","roles":["dasher","archer","minion"],"states":["walk","run","attack"],"status":"pending","media":[]},
+    {"build":"M2","resolution":"1920x1080","roles":["dasher","archer","minion"],"states":["walk","run","attack"],"status":"pending","media":[]}
+  ],
+  "reviewer": null,
+  "live_review_remaining": [
+    "Run the expanded EditMode and PlayMode suites and record result hashes.",
+    "Build M1 and M2 WebGL players from the regenerated scenes.",
+    "Exercise both builds at 1280x720 and 1920x1080 and attach screenshots/automation transcripts.",
+    "Record repeatable timing baselines/candidates and verify every delta remains within ten percent."
+  ],
+  "generation_record": "Docs/AI_Usage/generations/monster_directional_animations_v002.json",
+  "atlas_index": "Docs/AI_Usage/generations/monster_directional_animation_index_v002.json"
+}

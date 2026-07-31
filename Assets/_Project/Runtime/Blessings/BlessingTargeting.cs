@@ -145,6 +145,7 @@ namespace Overbless.Runtime
 
         [SerializeField] private Camera targetingCamera;
         [SerializeField] private string enemyBodyLayerName = EnemyBodyLayerName;
+        [SerializeField] private bool echoEnabled;
 
         /// <summary>
         /// Optional. When assigned, selection, apply, and cancel arrive through the
@@ -190,9 +191,15 @@ namespace Overbless.Runtime
 
         public bool IsSelecting => isSelecting;
         public BlessingType SelectedType => selectedType;
+        public bool EchoEnabled => echoEnabled;
         public bool IsAvailable(BlessingType type)
         {
             EnsureInitialized();
+            if (type == BlessingType.Echo && !echoEnabled)
+            {
+                return false;
+            }
+
             return GetSlot(type).IsAvailable;
         }
         public BlessingSystem System
@@ -288,7 +295,11 @@ namespace Overbless.Runtime
             EnsureInitialized();
             hasteSlot.Advance(Time.time);
             giantSlot.Advance(Time.time);
-            echoSlot.Advance(Time.time);
+            if (echoEnabled)
+            {
+                echoSlot.Advance(Time.time);
+            }
+
             HandleInput();
         }
 
@@ -478,6 +489,11 @@ namespace Overbless.Runtime
         public bool Select(BlessingType type)
         {
             EnsureInitialized();
+            if (type == BlessingType.Echo && !echoEnabled)
+            {
+                return false;
+            }
+
             ThrowIfTargetMutationBlocked();
             if (!isActiveAndEnabled || isCancellingSelection)
             {
@@ -815,7 +831,8 @@ namespace Overbless.Runtime
                 {
                     Select(BlessingType.Giant);
                 }
-                else if (keyboard.digit3Key.wasPressedThisFrame || keyboard.numpad3Key.wasPressedThisFrame)
+                else if (echoEnabled &&
+                         (keyboard.digit3Key.wasPressedThisFrame || keyboard.numpad3Key.wasPressedThisFrame))
                 {
                     Select(BlessingType.Echo);
                 }

@@ -146,19 +146,19 @@ namespace Overbless.Tests.PlayMode
             Assert.That(playerAnimator.CurrentState, Is.EqualTo(CharacterAnimationState.Idle));
             Assert.That(playerAnimator.AnimationSet.ClipCount, Is.EqualTo(48));
             Assert.That(
-                playerAnimator.AnimationSet.GetClip(CharacterAnimationState.Move, CharacterDirection.East).FrameCount,
+                playerAnimator.AnimationSet.GetClip(CharacterAnimationState.Walk, CharacterDirection.East).FrameCount,
                 Is.EqualTo(6));
             Assert.That(
-                playerAnimator.AnimationSet.GetClip(CharacterAnimationState.Move, CharacterDirection.SouthEast).FrameCount,
+                playerAnimator.AnimationSet.GetClip(CharacterAnimationState.Walk, CharacterDirection.SouthEast).FrameCount,
                 Is.EqualTo(6));
             Assert.That(
-                playerAnimator.AnimationSet.GetClip(CharacterAnimationState.Move, CharacterDirection.SouthWest).FrameCount,
+                playerAnimator.AnimationSet.GetClip(CharacterAnimationState.Walk, CharacterDirection.SouthWest).FrameCount,
                 Is.EqualTo(6));
             Assert.That(
-                playerAnimator.AnimationSet.GetClip(CharacterAnimationState.Move, CharacterDirection.NorthEast).FrameCount,
+                playerAnimator.AnimationSet.GetClip(CharacterAnimationState.Walk, CharacterDirection.NorthEast).FrameCount,
                 Is.EqualTo(6));
             Assert.That(
-                playerAnimator.AnimationSet.GetClip(CharacterAnimationState.Move, CharacterDirection.NorthWest).FrameCount,
+                playerAnimator.AnimationSet.GetClip(CharacterAnimationState.Walk, CharacterDirection.NorthWest).FrameCount,
                 Is.EqualTo(6));
             AssertPosition(enemies, "Dasher", new Vector2(0f, 3f));
             AssertPosition(enemies, "Archer_A", new Vector2(0f, -0.5f));
@@ -222,14 +222,14 @@ namespace Overbless.Tests.PlayMode
             Assert.That(inputRouter.Movement.x, Is.GreaterThan(0f), "D key did not route movement through PlayerInputRouter.");
             yield return null;
             Assert.That(playerAnimator.CurrentDirection, Is.EqualTo(CharacterDirection.East));
-            Assert.That(playerAnimator.CurrentState, Is.EqualTo(CharacterAnimationState.Move));
+            Assert.That(playerAnimator.CurrentState, Is.EqualTo(CharacterAnimationState.Walk));
             Assert.That(player.transform.position.x, Is.GreaterThan(eastMovementStart.x));
 
             var northEastMovementStart = player.transform.position;
             yield return SetKeyboardState(keyboard, Key.W, Key.D);
             yield return null;
             Assert.That(playerAnimator.CurrentDirection, Is.EqualTo(CharacterDirection.NorthEast));
-            Assert.That(playerAnimator.CurrentState, Is.EqualTo(CharacterAnimationState.Move));
+            Assert.That(playerAnimator.CurrentState, Is.EqualTo(CharacterAnimationState.Walk));
             Assert.That(player.transform.position.x, Is.GreaterThan(northEastMovementStart.x));
             Assert.That(player.transform.position.y, Is.GreaterThan(northEastMovementStart.y));
 
@@ -337,6 +337,59 @@ namespace Overbless.Tests.PlayMode
                 SetPrivateField(driftTarget.Health, "entityId", registeredEntityId);
             }
         }
+        [UnityTest]
+        public IEnumerator GuidedScene_PhysicallyExcludesEchoFromItsHudAndEnemyViews()
+        {
+            var keyboard = AddKeyboard();
+            yield return LoadGuidedScene();
+
+            var scene = SceneManager.GetSceneByPath(GuidedScenePath);
+            var targeting = FindComponentInScene<BlessingTargeting>(scene);
+            Assert.That(targeting, Is.Not.Null);
+            Assert.That(targeting.EchoEnabled, Is.False, "M1 must serialize its Echo scope as disabled.");
+            Assert.That(targeting.IsAvailable(BlessingType.Echo), Is.False, "M1 must never advertise Echo availability.");
+            Assert.That(targeting.Select(BlessingType.Echo), Is.False, "M1 must reject programmatic Echo selection.");
+            yield return SetKeyboardState(keyboard, Key.Digit3);
+            yield return SetKeyboardState(keyboard);
+            Assert.That(targeting.IsSelecting, Is.False, "M1 Digit3 input must not enter blessing selection.");
+            Assert.That(targeting.SelectedType, Is.Not.EqualTo(BlessingType.Echo), "M1 Digit3 input must not select Echo.");
+
+            var cardNames = new List<string>();
+            var transforms = FindTransformsInScene(scene);
+            for (var index = 0; index < transforms.Count; index++)
+            {
+                if (transforms[index].name.EndsWith("Card", StringComparison.Ordinal))
+                {
+                    cardNames.Add(transforms[index].name);
+                }
+            }
+
+            CollectionAssert.AreEquivalent(
+                new[] { "HasteCard", "GiantCard" },
+                cardNames,
+                "M1 must physically contain exactly its Haste and Giant HUD cards.");
+            Assert.That(FindComponentsInScene<EchoProjectilePresenter>(scene), Is.Empty);
+            Assert.That(FindGameObjectsInScene(scene, "EchoCard"), Is.Empty);
+
+            var indicators = FindComponentsInScene<BlessingIndicator>(scene);
+            Assert.That(indicators.Count, Is.EqualTo(5));
+            for (var indicatorIndex = 0; indicatorIndex < indicators.Count; indicatorIndex++)
+            {
+                var indicator = indicators[indicatorIndex];
+                Assert.That(indicator.transform.Find("Haste"), Is.Not.Null);
+                Assert.That(indicator.transform.Find("Giant"), Is.Not.Null);
+
+                var descendants = indicator.GetComponentsInChildren<Transform>(true);
+                for (var childIndex = 0; childIndex < descendants.Length; childIndex++)
+                {
+                    Assert.That(
+                        descendants[childIndex].name.IndexOf("Echo", StringComparison.OrdinalIgnoreCase),
+                        Is.LessThan(0),
+                        $"M1 BlessingIndicator '{indicator.name}' retains an Echo child.");
+                }
+            }
+        }
+
 
         [UnityTest]
         public IEnumerator GuidedScene_BlessingsSoulsAudioPauseAndRestartCommitObservableState()
@@ -710,6 +763,11 @@ namespace Overbless.Tests.PlayMode
                 Key.Digit1);
             Assert.That(archer.RuntimeStats.HasHaste, Is.True);
             Assert.That(targeting.IsAvailable(BlessingType.Haste), Is.False);
+            var hasteIndicator = archer.transform.Find("BlessingIndicator/Haste");
+            Assert.That(hasteIndicator, Is.Not.Null);
+            var hasteRenderer = hasteIndicator.GetComponent<SpriteRenderer>();
+            Assert.That(hasteRenderer, Is.Not.Null);
+            Assert.That(hasteRenderer.enabled, Is.True);
 
             yield return BeginBlessingSelectionWithInput(
                 keyboard,
@@ -848,6 +906,11 @@ namespace Overbless.Tests.PlayMode
             Assert.That(giantTarget.RuntimeStats.HasGiant, Is.True);
             Assert.That(giantTarget.Health.MaximumHealth, Is.EqualTo(giantTarget.RuntimeStats.MaximumHealth));
             Assert.That(targeting.IsAvailable(BlessingType.Giant), Is.False);
+            var giantIndicator = giantTarget.transform.Find("BlessingIndicator/Giant");
+            Assert.That(giantIndicator, Is.Not.Null);
+            var giantRenderer = giantIndicator.GetComponent<SpriteRenderer>();
+            Assert.That(giantRenderer, Is.Not.Null);
+            Assert.That(giantRenderer.enabled, Is.True);
 
             AttackContext giantContext = null;
             giantTarget.AttackState.ContextLocked += context =>
@@ -1967,6 +2030,32 @@ namespace Overbless.Tests.PlayMode
             }
 
             return components;
+        }
+        private static List<Transform> FindTransformsInScene(Scene scene)
+        {
+            var transforms = new List<Transform>();
+            var roots = scene.GetRootGameObjects();
+            for (var rootIndex = 0; rootIndex < roots.Length; rootIndex++)
+            {
+                transforms.AddRange(roots[rootIndex].GetComponentsInChildren<Transform>(true));
+            }
+
+            return transforms;
+        }
+
+        private static List<GameObject> FindGameObjectsInScene(Scene scene, string objectName)
+        {
+            var matches = new List<GameObject>();
+            var transforms = FindTransformsInScene(scene);
+            for (var index = 0; index < transforms.Count; index++)
+            {
+                if (transforms[index].name == objectName)
+                {
+                    matches.Add(transforms[index].gameObject);
+                }
+            }
+
+            return matches;
         }
 
         private static EnemyBase AssertPosition(IReadOnlyList<EnemyBase> enemies, string name, Vector2 expected)

@@ -4,6 +4,13 @@ using UnityEngine;
 
 namespace Overbless.Runtime
 {
+    public enum LocomotionMode
+    {
+        Idle = 0,
+        Walk = 1,
+        Run = 2
+    }
+
     [RequireComponent(typeof(Health))]
     public abstract class EnemyBase : MonoBehaviour, IDamageSource, IEnemyBlessingRuntime
     {
@@ -17,6 +24,7 @@ namespace Overbless.Runtime
         [SerializeField] private Health health;
         [SerializeField] private Transform playerTarget;
         [SerializeField] private Transform spawnTransform;
+        [SerializeField] private Vector2 initialIntendedFacing = Vector2.down;
 
         private readonly DamageLedger damageLedger = new DamageLedger();
         private readonly List<RaycastHit2D> movementHits = new List<RaycastHit2D>();
@@ -36,10 +44,14 @@ namespace Overbless.Runtime
         private Vector3 baseLocalScale;
         private float baseMass;
         private AttackStateMachine attackState;
+        private Vector2 intendedFacing;
+        private LocomotionMode currentLocomotionMode;
 
         public event Action<EnemyRuntimeStats, EnemyRuntimeStats> RuntimeStatsChanged;
         public event Action<EnemyBase> Restarted;
         public event Action<EnemyRuntimeStats, EnemyRuntimeStats, float> BlessingRuntimeStatsApplied;
+        public event Action<Vector2> IntendedFacingChanged;
+        public event Action<LocomotionMode> LocomotionModeChanged;
 
         public int EntityId => health.EntityId;
         public Health Health => health;
@@ -51,6 +63,8 @@ namespace Overbless.Runtime
         public AttackPhase CurrentAttackPhase => attackState.Phase;
         public EnemyRuntimeStats RuntimeStats => runtimeStats;
         public bool IsDead => health.IsDead;
+        public Vector2 IntendedFacing => intendedFacing;
+        public LocomotionMode CurrentLocomotionMode => currentLocomotionMode;
         public float HealthRatio => health.MaximumHealth == 0
             ? 0f
             : (float)health.CurrentHealth / health.MaximumHealth;
@@ -76,6 +90,7 @@ namespace Overbless.Runtime
             {
                 throw new InvalidOperationException("EnemyBase requires an EnemyDefinition.");
             }
+            InitializeMovementIntent();
 
             var authoredSpawn = spawnTransform == null ? transform : spawnTransform;
             spawnPosition = authoredSpawn.position;
@@ -115,9 +130,16 @@ namespace Overbless.Runtime
 
         protected virtual void OnDisable()
         {
-            if (attackState != null)
+            try
             {
-                attackState.Cancel();
+                if (attackState != null)
+                {
+                    attackState.Cancel();
+                }
+            }
+            finally
+            {
+                ResetMovementIntent();
             }
         }
 
@@ -131,8 +153,14 @@ namespace Overbless.Runtime
 
         private void Update()
         {
+            if (health.IsDead)
+            {
+                ResetMovementIntent();
+                return;
+            }
+
             var deltaTime = Time.deltaTime;
-            if (health.IsDead || deltaTime <= 0f)
+            if (deltaTime <= 0f)
             {
                 return;
             }
@@ -143,6 +171,10 @@ namespace Overbless.Runtime
         public void SetPlayerTarget(Transform target)
         {
             playerTarget = target;
+            if (target == null)
+            {
+                ResetMovementIntent();
+            }
         }
 
         public void RecomputeRuntimeStats(IReadOnlyCollection<BlessingType> activeBlessingIds)
@@ -175,6 +207,15 @@ namespace Overbless.Runtime
         public void Restart()
         {
             var failures = new List<Exception>();
+            try
+            {
+                ResetMovementIntent();
+            }
+            catch (Exception exception)
+            {
+                failures.Add(exception);
+            }
+
             try
             {
                 attackState.Reset();
@@ -255,6 +296,7 @@ namespace Overbless.Runtime
         {
             if (playerTarget == null)
             {
+                ResetMovementIntent();
                 position = default;
                 return false;
             }
@@ -262,6 +304,7 @@ namespace Overbless.Runtime
             var targetHealth = GetCachedPlayerHealth();
             if (targetHealth != null && targetHealth.IsDead)
             {
+                ResetMovementIntent();
                 position = default;
                 return false;
             }
@@ -269,6 +312,66 @@ namespace Overbless.Runtime
             position = playerTarget.position;
             return true;
         }
+        protected void SetIntendedFacing(Vector2 facing)
+        {
+            var normalizedFacing = NormalizeFacing(facing, nameof(facing));
+            if (intendedFacing == normalizedFacing)
+            {
+                return;
+            }
+
+            intendedFacing = normalizedFacing;
+            IntendedFacingChanged?.Invoke(intendedFacing);
+        }
+
+        protected void SetLocomotionMode(LocomotionMode mode)
+        {
+            if (mode != LocomotionMode.Idle &&
+                mode != LocomotionMode.Walk &&
+                mode != LocomotionMode.Run)
+            {
+                throw new ArgumentOutOfRangeException(nameof(mode), mode, "Unsupported locomotion mode.");
+            }
+
+            if (currentLocomotionMode == mode)
+            {
+                return;
+            }
+
+            currentLocomotionMode = mode;
+            LocomotionModeChanged?.Invoke(currentLocomotionMode);
+        }
+        private void InitializeMovementIntent()
+        {
+            intendedFacing = NormalizeFacing(initialIntendedFacing, nameof(initialIntendedFacing));
+            currentLocomotionMode = LocomotionMode.Idle;
+        }
+
+        private void ResetMovementIntent()
+        {
+            SetIntendedFacing(initialIntendedFacing);
+            SetLocomotionMode(LocomotionMode.Idle);
+        }
+
+        private static Vector2 NormalizeFacing(Vector2 facing, string name)
+        {
+            if (float.IsNaN(facing.x) ||
+                float.IsInfinity(facing.x) ||
+                float.IsNaN(facing.y) ||
+                float.IsInfinity(facing.y))
+            {
+                throw new ArgumentOutOfRangeException(name, facing, "Facing must be finite and non-zero.");
+            }
+
+            var magnitude = facing.magnitude;
+            if (float.IsNaN(magnitude) || float.IsInfinity(magnitude) || magnitude <= 0f)
+            {
+                throw new ArgumentOutOfRangeException(name, facing, "Facing must be finite and non-zero.");
+            }
+
+            return facing / magnitude;
+        }
+
 
         /// <summary>
         /// Resolves the player's Health once per target transform. This runs every
@@ -600,6 +703,15 @@ namespace Overbless.Runtime
         private void HandleDeath(DeathEvent deathEvent)
         {
             var failures = new List<Exception>();
+            try
+            {
+                ResetMovementIntent();
+            }
+            catch (Exception exception)
+            {
+                failures.Add(exception);
+            }
+
             try
             {
                 attackState.HandleOwnerDeath();

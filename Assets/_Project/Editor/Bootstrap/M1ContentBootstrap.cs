@@ -39,15 +39,15 @@ namespace Overbless.Editor.Bootstrap
         private const string HasteProductionSpritePath = ProductionUiRoot + "/ui_icon_bless_haste_a_v001.png";
         private const string GiantProductionSpritePath = ProductionUiRoot + "/ui_icon_bless_giant_a_v001.png";
         private const string UiLineMaterialPath = ProductionUiRoot + "/mat_m1_ui_line_unlit_v001.mat";
-        private const string M2ArtRoot = ProjectRoot + "/Art/M2Preproduction";
-        private const string M2UiRoot = M2ArtRoot + "/UI";
-        private const string M2VfxRoot = M2ArtRoot + "/VFX";
-        private const string M2EnvironmentRoot = M2ArtRoot + "/Environment";
-        private const string EchoProductionSpritePath = M2UiRoot + "/ui_icon_bless_echo_a_v001.png";
-        private const string EchoStatusProductionSpritePath = M2UiRoot + "/ui_icon_echo_status_a_v001.png";
-        private const string EchoLineProductionSpritePath = M2VfxRoot + "/vfx_echo_line_telegraph_a_v001.png";
-        private const string EchoDoubleProductionSpritePath = M2VfxRoot + "/vfx_echo_double_silhouette_a_v001.png";
-        private const string WorldPillarProductionSpritePath = M2EnvironmentRoot + "/env_destructible_pillar_intact_a_v001.png";
+        private const string M2ProductionArtRoot = ProjectRoot + "/Art/M2Production";
+        private const string M2ProductionUiRoot = M2ProductionArtRoot + "/UI";
+        private const string M2ProductionVfxRoot = M2ProductionArtRoot + "/VFX";
+        private const string M2ProductionEnvironmentRoot = M2ProductionArtRoot + "/Environment";
+        private const string EchoProductionSpritePath = M2ProductionUiRoot + "/ui_icon_bless_echo_a_v002.png";
+        private const string EchoStatusProductionSpritePath = M2ProductionUiRoot + "/ui_icon_echo_status_a_v002.png";
+        private const string EchoLineProductionSpritePath = M2ProductionVfxRoot + "/vfx_echo_line_telegraph_a_v002.png";
+        private const string EchoDoubleProductionSpritePath = M2ProductionVfxRoot + "/vfx_echo_double_silhouette_a_v002.png";
+        private const string WorldPillarProductionSpritePath = M2ProductionEnvironmentRoot + "/env_static_world_pillar_south_a_v002.png";
         private const string DataRoot = ProjectRoot + "/Data";
         private const string PrefabRoot = ProjectRoot + "/Prefabs/M1";
         private const string BlessingDataRoot = DataRoot + "/Blessings";
@@ -155,13 +155,13 @@ namespace Overbless.Editor.Bootstrap
             EnsureDirectories();
             ConfigureUniversalRenderPipeline();
             CreateInputActionsAsset();
-            var sprites = CreateRepresentativeSprites();
+            var sprites = CreateM1Sprites();
             var animations = M1DirectionalAnimationBootstrap.CreateOrUpdate();
             var playerConfig = CreatePlayerConfig();
             var enemyDefinitions = CreateEnemyDefinitions();
             var roomDefinition = CreateRoomDefinition();
             var audioCatalog = CreateAudioCatalog();
-            var prefabs = CreatePrefabs(sprites, animations, playerConfig, enemyDefinitions);
+            var prefabs = CreateM1Prefabs(sprites, animations, playerConfig, enemyDefinitions);
 
             CreateScene(sprites, roomDefinition, audioCatalog, prefabs);
             AssetDatabase.SaveAssets();
@@ -173,30 +173,24 @@ namespace Overbless.Editor.Bootstrap
             GuardOpenScenes();
             EnsureM2Directories();
 
-            var sprites = CreateRepresentativeSprites();
+            var sprites = CreateM2Sprites();
             var animations = M1DirectionalAnimationBootstrap.CreateOrUpdate();
             var playerConfig = CreatePlayerConfig();
             var enemyDefinitions = CreateEnemyDefinitions();
-            var guidedRoom = CreateRoomDefinition();
             var room02 = CreateRoomDefinition(Room02DataPath, M1RoomVariant.Room02);
             var room03 = CreateRoomDefinition(Room03DataPath, M1RoomVariant.Room03);
             var audioCatalog = CreateAudioCatalog();
-            var prefabs = CreatePrefabs(sprites, animations, playerConfig, enemyDefinitions);
+            var prefabs = CreateM2Prefabs(sprites, animations, playerConfig, enemyDefinitions);
             var pillar = SavePrefab(
                 M2PrefabRoot + "/WorldPillar.prefab",
                 () => CreateWorldPillarPrefab(sprites.WorldPillar));
 
             AssetDatabase.SaveAssets();
 
-            guidedRoom = RequireAsset<M1RoomDefinition>(RoomDataRoot + "/Room_M1_GuidedValidation.asset");
-            audioCatalog = RequireAsset<FunctionalAudioCatalog>(AudioDataRoot + "/FunctionalAudioCatalog.asset");
-            prefabs = LoadPrefabSet();
-            guidedRoom.Validate();
-            CreateScene(sprites, guidedRoom, audioCatalog, prefabs);
 
             room02 = RequireAsset<M1RoomDefinition>(Room02DataPath);
             audioCatalog = RequireAsset<FunctionalAudioCatalog>(AudioDataRoot + "/FunctionalAudioCatalog.asset");
-            prefabs = LoadPrefabSet();
+            prefabs = LoadPrefabSet(M2PrefabRoot);
             room02.Validate();
             CreateM2Scene(
                 Room02ScenePath,
@@ -211,7 +205,7 @@ namespace Overbless.Editor.Bootstrap
 
             room03 = RequireAsset<M1RoomDefinition>(Room03DataPath);
             audioCatalog = RequireAsset<FunctionalAudioCatalog>(AudioDataRoot + "/FunctionalAudioCatalog.asset");
-            prefabs = LoadPrefabSet();
+            prefabs = LoadPrefabSet(M2PrefabRoot);
             pillar = RequireAsset<GameObject>(M2PrefabRoot + "/WorldPillar.prefab");
             room03.Validate();
             CreateM2Scene(
@@ -399,9 +393,9 @@ namespace Overbless.Editor.Bootstrap
             builder.Append('"');
         }
 
-        private static SpriteSet CreateRepresentativeSprites()
+        private static M1SpriteSet CreateM1Sprites()
         {
-            return new SpriteSet(
+            return new M1SpriteSet(
                 LoadRequiredProductionSprite(PlayerProductionSpritePath, CharacterSpritePivot),
                 LoadRequiredProductionSprite(DasherProductionSpritePath, CharacterSpritePivot),
                 LoadRequiredProductionSprite(ArcherProductionSpritePath, CharacterSpritePivot),
@@ -410,7 +404,13 @@ namespace Overbless.Editor.Bootstrap
                 LoadRequiredProductionSprite(ExitProductionSpritePath, CenteredSpritePivot),
                 LoadRequiredProductionSprite(TileProductionSpritePath, CenteredSpritePivot),
                 LoadRequiredProductionSprite(HasteProductionSpritePath, CenteredSpritePivot),
-                LoadRequiredProductionSprite(GiantProductionSpritePath, CenteredSpritePivot),
+                LoadRequiredProductionSprite(GiantProductionSpritePath, CenteredSpritePivot));
+        }
+
+        private static M2SpriteSet CreateM2Sprites()
+        {
+            return new M2SpriteSet(
+                CreateM1Sprites(),
                 LoadRequiredProductionSprite(EchoProductionSpritePath, CenteredSpritePivot),
                 LoadRequiredProductionSprite(EchoStatusProductionSpritePath, CenteredSpritePivot),
                 LoadRequiredProductionSprite(EchoLineProductionSpritePath, CenteredSpritePivot),
@@ -422,7 +422,7 @@ namespace Overbless.Editor.Bootstrap
         {
             if (!File.Exists(Path.GetFullPath(assetPath)))
             {
-                throw new FileNotFoundException("Required approved M1 production sprite is missing.", assetPath);
+                throw new FileNotFoundException("Required production sprite is missing.", assetPath);
             }
 
             return ImportExistingSprite(assetPath, pivot);
@@ -499,20 +499,21 @@ namespace Overbless.Editor.Bootstrap
         private static EnemyDefinitions CreateEnemyDefinitions()
         {
             var dasher = GetOrCreateAsset<EnemyDefinition>(EnemyDataRoot + "/Enemy_Dasher.asset");
-            ConfigureEnemyDefinition(dasher, 12, 1.5f, 3f, 1, 8f, 8f, 0.7f, 0.75f, 0.4f, 10f, 8f, 4f);
+            ConfigureEnemyDefinition(dasher, 12, 1f, 1.5f, 3f, 1, 8f, 8f, 0.7f, 0.75f, 0.4f, 10f, 8f, 4f);
 
             var archer = GetOrCreateAsset<EnemyDefinition>(EnemyDataRoot + "/Enemy_Archer.asset");
-            ConfigureEnemyDefinition(archer, 8, 0.75f, 3.5f, 1, 10f, 10f, 0.35f, 0.7f, 0.35f, 8f, 9f, 4f);
+            ConfigureEnemyDefinition(archer, 8, 0.5f, 0.75f, 3.5f, 1, 10f, 10f, 0.35f, 0.7f, 0.35f, 8f, 9f, 4f);
 
             var minion = GetOrCreateAsset<EnemyDefinition>(EnemyDataRoot + "/Enemy_Minion.asset");
-            ConfigureEnemyDefinition(minion, 5, 1.25f, 4f, 1, 8f, 1f, 0.5f, 0.75f, 0.35f, 6f, 6f, 0f);
+            ConfigureEnemyDefinition(minion, 5, 0.8333333f, 1.25f, 4f, 1, 8f, 1f, 0.5f, 0.75f, 0.35f, 6f, 6f, 0f);
             return new EnemyDefinitions(dasher, archer, minion);
         }
 
         private static void ConfigureEnemyDefinition(
             EnemyDefinition definition,
             int maximumHealth,
-            float movementSpeed,
+            float walkSpeed,
+            float runSpeed,
             float attackCooldown,
             int attackDamage,
             float engagementRange,
@@ -526,7 +527,8 @@ namespace Overbless.Editor.Bootstrap
         {
             var serialized = new SerializedObject(definition);
             SetInt(serialized, "maximumHealth", maximumHealth);
-            SetFloat(serialized, "movementSpeed", movementSpeed);
+            SetFloat(serialized, "walkSpeed", walkSpeed);
+            SetFloat(serialized, "runSpeed", runSpeed);
             SetFloat(serialized, "attackCooldown", attackCooldown);
             SetInt(serialized, "attackDamage", attackDamage);
             SetFloat(serialized, "engagementRange", engagementRange);
@@ -669,8 +671,8 @@ namespace Overbless.Editor.Bootstrap
             return clip;
         }
 
-        private static PrefabSet CreatePrefabs(
-            SpriteSet sprites,
+        private static PrefabSet CreateM1Prefabs(
+            M1SpriteSet sprites,
             M1DirectionalAnimationAssets animations,
             PlayerConfig playerConfig,
             EnemyDefinitions enemyDefinitions)
@@ -680,15 +682,38 @@ namespace Overbless.Editor.Bootstrap
                 () => CreatePlayerPrefab(sprites.Player, animations.Player, playerConfig));
             var dasher = SavePrefab(
                 PrefabRoot + "/Dasher.prefab",
-                () => CreateEnemyPrefab("Dasher", sprites.Dasher, sprites.Haste, sprites.Giant, sprites.EchoStatus, sprites.EchoLine, sprites.EchoDouble, animations.Dasher, CharacterAnimationDriver.MajorEnemy, enemyDefinitions.Dasher, typeof(DasherAI)));
+                () => CreateEnemyPrefab("Dasher", sprites.Dasher, animations.Dasher, CharacterAnimationDriver.MajorEnemy, enemyDefinitions.Dasher, typeof(DasherAI), false, sprites.Haste, sprites.Giant, null, null, null));
             var archer = SavePrefab(
                 PrefabRoot + "/Archer.prefab",
-                () => CreateEnemyPrefab("Archer", sprites.Archer, sprites.Haste, sprites.Giant, sprites.EchoStatus, sprites.EchoLine, sprites.EchoDouble, animations.Archer, CharacterAnimationDriver.MajorEnemy, enemyDefinitions.Archer, typeof(ArcherAI)));
+                () => CreateEnemyPrefab("Archer", sprites.Archer, animations.Archer, CharacterAnimationDriver.MajorEnemy, enemyDefinitions.Archer, typeof(ArcherAI), false, sprites.Haste, sprites.Giant, null, null, null));
             var minion = SavePrefab(
                 PrefabRoot + "/Minion.prefab",
-                () => CreateEnemyPrefab("Minion", sprites.Minion, sprites.Haste, sprites.Giant, sprites.EchoStatus, sprites.EchoLine, sprites.EchoDouble, animations.Minion, CharacterAnimationDriver.Minion, enemyDefinitions.Minion, typeof(MinionAI)));
+                () => CreateEnemyPrefab("Minion", sprites.Minion, animations.Minion, CharacterAnimationDriver.Minion, enemyDefinitions.Minion, typeof(MinionAI), false, sprites.Haste, sprites.Giant, null, null, null));
             var soul = SavePrefab(PrefabRoot + "/SoulFragment.prefab", () => CreateSoulPrefab(sprites.Soul));
             var exit = SavePrefab(PrefabRoot + "/ExitGate.prefab", () => CreateExitPrefab(sprites.Exit));
+            return new PrefabSet(player, dasher, archer, minion, soul, exit);
+        }
+
+        private static PrefabSet CreateM2Prefabs(
+            M2SpriteSet sprites,
+            M1DirectionalAnimationAssets animations,
+            PlayerConfig playerConfig,
+            EnemyDefinitions enemyDefinitions)
+        {
+            var player = SavePrefab(
+                M2PrefabRoot + "/Player.prefab",
+                () => CreatePlayerPrefab(sprites.M1.Player, animations.Player, playerConfig));
+            var dasher = SavePrefab(
+                M2PrefabRoot + "/Dasher.prefab",
+                () => CreateEnemyPrefab("Dasher", sprites.M1.Dasher, animations.Dasher, CharacterAnimationDriver.MajorEnemy, enemyDefinitions.Dasher, typeof(DasherAI), true, sprites.M1.Haste, sprites.M1.Giant, sprites.EchoStatus, sprites.EchoLine, sprites.EchoDouble));
+            var archer = SavePrefab(
+                M2PrefabRoot + "/Archer.prefab",
+                () => CreateEnemyPrefab("Archer", sprites.M1.Archer, animations.Archer, CharacterAnimationDriver.MajorEnemy, enemyDefinitions.Archer, typeof(ArcherAI), true, sprites.M1.Haste, sprites.M1.Giant, sprites.EchoStatus, sprites.EchoLine, sprites.EchoDouble));
+            var minion = SavePrefab(
+                M2PrefabRoot + "/Minion.prefab",
+                () => CreateEnemyPrefab("Minion", sprites.M1.Minion, animations.Minion, CharacterAnimationDriver.Minion, enemyDefinitions.Minion, typeof(MinionAI), true, sprites.M1.Haste, sprites.M1.Giant, sprites.EchoStatus, sprites.EchoLine, sprites.EchoDouble));
+            var soul = SavePrefab(M2PrefabRoot + "/SoulFragment.prefab", () => CreateSoulPrefab(sprites.M1.Soul));
+            var exit = SavePrefab(M2PrefabRoot + "/ExitGate.prefab", () => CreateExitPrefab(sprites.M1.Exit));
             return new PrefabSet(player, dasher, archer, minion, soul, exit);
         }
 
@@ -731,15 +756,16 @@ namespace Overbless.Editor.Bootstrap
         private static GameObject CreateEnemyPrefab(
             string name,
             Sprite sprite,
+            DirectionalAnimationSet animationSet,
+            CharacterAnimationDriver animationDriver,
+            EnemyDefinition definition,
+            Type enemyType,
+            bool echoEnabled,
             Sprite hasteSprite,
             Sprite giantSprite,
             Sprite echoSprite,
             Sprite echoLineSprite,
-            Sprite echoProjectileSprite,
-            DirectionalAnimationSet animationSet,
-            CharacterAnimationDriver animationDriver,
-            EnemyDefinition definition,
-            Type enemyType)
+            Sprite echoProjectileSprite)
         {
             var root = new GameObject(name, typeof(SpriteRenderer), typeof(CircleCollider2D), typeof(Rigidbody2D));
             root.layer = EnemyLayer;
@@ -760,6 +786,7 @@ namespace Overbless.Editor.Bootstrap
             SetObject(serialized, "definition", definition);
             SetObject(serialized, "health", health);
             SetObject(serialized, "spawnTransform", root.transform);
+            SetVector2(serialized, "initialIntendedFacing", Vector2.down);
             Apply(serialized, enemy);
             ConfigureDirectionalAnimator(
                 root.AddComponent<DirectionalSpriteAnimator>(),
@@ -791,11 +818,15 @@ namespace Overbless.Editor.Bootstrap
             if (enemyType == typeof(ArcherAI))
             {
                 CreateArcherProjectileVisual(root.transform);
-                CreateEchoProjectileVisual(root.transform, echoLineSprite, echoProjectileSprite);
+                if (echoEnabled)
+                {
+                    CreateEchoProjectileVisual(root.transform, echoLineSprite, echoProjectileSprite);
+                }
             }
 
             CreateEnemyHealthBar(root.transform, health);
-            CreateEnemyBlessingIndicator(root.transform, hasteSprite, giantSprite, echoSprite);
+            CreateEnemyBlessingIndicator(root.transform, hasteSprite, giantSprite, echoEnabled ? echoSprite : null);
+
             return root;
         }
         private static void CreateArcherProjectileVisual(Transform parent)
@@ -872,16 +903,24 @@ namespace Overbless.Editor.Bootstrap
             ConfigureSprite(giantRenderer, giantSprite, "VFX", 22);
             giantRenderer.enabled = false;
 
-            var echoObject = new GameObject("Echo", typeof(SpriteRenderer));
-            echoObject.transform.SetParent(root.transform, false);
-            var echoRenderer = echoObject.GetComponent<SpriteRenderer>();
-            ConfigureSprite(echoRenderer, echoSprite, "VFX", 23);
-            echoRenderer.enabled = false;
+            SpriteRenderer echoRenderer = null;
+            if (echoSprite != null)
+            {
+                var echoObject = new GameObject("Echo", typeof(SpriteRenderer));
+                echoObject.transform.SetParent(root.transform, false);
+                echoRenderer = echoObject.GetComponent<SpriteRenderer>();
+                ConfigureSprite(echoRenderer, echoSprite, "VFX", 23);
+                echoRenderer.enabled = false;
+            }
 
             var serialized = new SerializedObject(root.GetComponent<BlessingIndicator>());
             SetObject(serialized, "hasteRenderer", hasteRenderer);
             SetObject(serialized, "giantRenderer", giantRenderer);
-            SetObject(serialized, "echoRenderer", echoRenderer);
+            if (echoRenderer != null)
+            {
+                SetObject(serialized, "echoRenderer", echoRenderer);
+            }
+
             Apply(serialized, root.GetComponent<BlessingIndicator>());
         }
         private static void CreateEnemyHealthBar(Transform parent, Health health)
@@ -977,16 +1016,23 @@ namespace Overbless.Editor.Bootstrap
         }
         private static GameObject CreateWorldPillarPrefab(Sprite sprite)
         {
-            var root = new GameObject("WorldPillar", typeof(SpriteRenderer), typeof(BoxCollider2D));
+            var root = new GameObject("WorldPillar", typeof(BoxCollider2D));
             root.layer = WorldLayer;
+            root.isStatic = true;
 
-            var renderer = root.GetComponent<SpriteRenderer>();
+            var visual = new GameObject("Visual", typeof(SpriteRenderer));
+            visual.layer = WorldLayer;
+            visual.transform.SetParent(root.transform, false);
+            visual.transform.localScale = new Vector3(1.2f, 1.8f, 1f);
+
+            var renderer = visual.GetComponent<SpriteRenderer>();
             ConfigureSprite(renderer, sprite, "World", 10);
-            renderer.drawMode = SpriteDrawMode.Tiled;
-            renderer.size = new Vector2(1.2f, 1.8f);
+            renderer.drawMode = SpriteDrawMode.Simple;
+            renderer.spriteSortPoint = SpriteSortPoint.Pivot;
 
             var collider = root.GetComponent<BoxCollider2D>();
             collider.size = new Vector2(1.2f, 1.8f);
+            collider.offset = new Vector2(0f, 0.28f);
             collider.isTrigger = false;
             return root;
         }
@@ -1099,7 +1145,7 @@ namespace Overbless.Editor.Bootstrap
         }
 
         private static void CreateScene(
-            SpriteSet sprites,
+            M1SpriteSet sprites,
             M1RoomDefinition roomDefinition,
             FunctionalAudioCatalog audioCatalog,
             PrefabSet prefabs)
@@ -1157,7 +1203,7 @@ namespace Overbless.Editor.Bootstrap
                 blessingTargeting);
             var restartController = ConfigureRestartController(systems, playerLifeCycle, enemies, blessingTargeting, room);
             var audioEmitter = ConfigureAudioAndWebStart(systems, audioCatalog, playerInput);
-            ConfigureRuntimeBinder(systems, playerHealth, blessingTargeting, enemies, room);
+            ConfigureRuntimeBinder(systems, playerHealth, blessingTargeting, enemies, room, false);
             ConfigureFunctionalAudioBridge(systems, audioEmitter, playerHealth, enemies, room, restartController, blessingTargeting);
             ConfigurePauseController(systems, playerInput, blessingTargeting, restartController);
             CreateHud(
@@ -1168,7 +1214,9 @@ namespace Overbless.Editor.Bootstrap
                 room,
                 camera,
                 sprites,
-                "ROOM  01");
+                "ROOM  01",
+                false,
+                null);
 
             ValidateSceneAudioListener(scene, camera);
             if (!EditorSceneManager.SaveScene(scene, ScenePath))
@@ -1191,7 +1239,7 @@ namespace Overbless.Editor.Bootstrap
             M1RoomDefinition roomDefinition,
             FunctionalAudioCatalog audioCatalog,
             PrefabSet prefabs,
-            SpriteSet sprites,
+            M2SpriteSet sprites,
             string nextScene,
             GameObject pillarPrefab)
         {
@@ -1203,7 +1251,7 @@ namespace Overbless.Editor.Bootstrap
             var root = new GameObject(sceneName);
             var world = new GameObject("World");
             world.transform.SetParent(root.transform, false);
-            CreateWorldPresentation(world.transform, sprites.Tile);
+            CreateWorldPresentation(world.transform, sprites.M1.Tile);
             CreateBounds(world.transform);
 
             if (pillarPrefab != null)
@@ -1260,7 +1308,7 @@ namespace Overbless.Editor.Bootstrap
             var restartController = ConfigureRestartController(systems, playerLifeCycle, enemies, blessingTargeting, room);
             ConfigureRoomSequence(systems, exit, nextScene);
             var audioEmitter = ConfigureAudioAndWebStart(systems, audioCatalog, playerInput);
-            ConfigureRuntimeBinder(systems, playerHealth, blessingTargeting, enemies, room);
+            ConfigureRuntimeBinder(systems, playerHealth, blessingTargeting, enemies, room, true);
             ConfigureFunctionalAudioBridge(systems, audioEmitter, playerHealth, enemies, room, restartController, blessingTargeting);
             ConfigurePauseController(systems, playerInput, blessingTargeting, restartController);
             CreateHud(
@@ -1270,8 +1318,10 @@ namespace Overbless.Editor.Bootstrap
                 blessingTargeting,
                 room,
                 camera,
-                sprites,
-                roomLabel);
+                sprites.M1,
+                roomLabel,
+                true,
+                sprites.Echo);
 
             ValidateSceneAudioListener(scene, camera);
             if (!EditorSceneManager.SaveScene(scene, scenePath))
@@ -1444,6 +1494,7 @@ namespace Overbless.Editor.Bootstrap
             var serialized = new SerializedObject(enemy);
             SetObject(serialized, "playerTarget", playerTarget);
             SetObject(serialized, "spawnTransform", instance.transform);
+            SetVector2(serialized, "initialIntendedFacing", initialFacing.normalized);
             Apply(serialized, enemy);
             return enemy;
         }
@@ -1553,8 +1604,13 @@ namespace Overbless.Editor.Bootstrap
             Health playerHealth,
             BlessingTargeting targeting,
             EnemyBase[] enemies,
-            M1RoomLifecycle room)
+            M1RoomLifecycle room,
+            bool echoEnabled)
         {
+            var targetingSerialized = new SerializedObject(targeting);
+            SetBool(targetingSerialized, "echoEnabled", echoEnabled);
+            Apply(targetingSerialized, targeting);
+
             var binder = systems.AddComponent<M1SceneRuntimeBinder>();
             var serialized = new SerializedObject(binder);
             SetObject(serialized, "playerHealth", playerHealth);
@@ -1618,8 +1674,10 @@ namespace Overbless.Editor.Bootstrap
             BlessingTargeting blessingTargeting,
             M1RoomLifecycle roomLifecycle,
             Camera worldCamera,
-            SpriteSet sprites,
-            string roomLabel)
+            M1SpriteSet sprites,
+            string roomLabel,
+            bool echoEnabled,
+            Sprite echoSprite)
         {
             var hud = new GameObject(
                 "HUD",
@@ -1648,6 +1706,11 @@ namespace Overbless.Editor.Bootstrap
             if (font == null)
             {
                 throw new InvalidOperationException("M1 HUD requires Unity's LegacyRuntime font.");
+            }
+
+            if (echoEnabled && echoSprite == null)
+            {
+                throw new InvalidOperationException("M2 HUD requires an Echo sprite.");
             }
 
             var panelColor = new Color32(10, 17, 30, 238);
@@ -1695,14 +1758,30 @@ namespace Overbless.Editor.Bootstrap
             var soulText = CreateHudText(roomPanel, "SoulText", "SOULS  0 / 3", font, 25, TextAnchor.MiddleLeft, paleText, new Vector2(96f, -69f), new Vector2(270f, 42f));
             var exitText = CreateHudText(roomPanel, "ExitText", "EXIT  LOCKED  0/3", font, 21, TextAnchor.MiddleRight, orange, new Vector2(24f, -122f), new Vector2(342f, 30f));
 
-            var blessingPanel = CreateHudPanel(
-                hud.transform,
-                "BlessingSelection",
-                new Vector2(0.5f, 0f),
-                new Vector2(0.5f, 0f),
-                new Vector2(0f, 24f),
-                new Vector2(820f, 170f),
-                panelColor);
+            Transform blessingPanel;
+            if (echoEnabled)
+            {
+                blessingPanel = CreateHudPanel(
+                    hud.transform,
+                    "BlessingSelection",
+                    new Vector2(0.5f, 0f),
+                    new Vector2(0.5f, 0f),
+                    new Vector2(0f, 24f),
+                    new Vector2(820f, 170f),
+                    panelColor);
+            }
+            else
+            {
+                blessingPanel = CreateHudPanel(
+                    hud.transform,
+                    "BlessingSelection",
+                    new Vector2(0.5f, 0f),
+                    new Vector2(0.5f, 0f),
+                    new Vector2(0f, 24f),
+                    new Vector2(552f, 170f),
+                    panelColor);
+            }
+
             Text hasteStatusText;
             var hasteFrame = CreateBlessingCard(
                 blessingPanel,
@@ -1727,28 +1806,36 @@ namespace Overbless.Editor.Bootstrap
                 orange,
                 font,
                 out giantStatusText);
-            Text echoStatusText;
-            var echoFrame = CreateBlessingCard(
-                blessingPanel,
-                "EchoCard",
-                sprites.Echo,
-                "3 ECHO",
-                string.Empty,
-                "REPEAT LOCKED ATTACK",
-                new Vector2(552f, -18f),
-                purple,
-                font,
-                out echoStatusText);
+
+            Text echoStatusText = null;
+            Image echoFrame = null;
+            if (echoEnabled)
+            {
+                echoFrame = CreateBlessingCard(
+                    blessingPanel,
+                    "EchoCard",
+                    echoSprite,
+                    "3 ECHO",
+                    string.Empty,
+                    "REPEAT LOCKED ATTACK",
+                    new Vector2(552f, -18f),
+                    purple,
+                    font,
+                    out echoStatusText);
+            }
+
             var selectionText = CreateHudText(
                 blessingPanel,
                 "SelectionHint",
-                "1 / 2 / 3 SELECT BLESSING  |  SPACE DASH  |  R RESTART",
+                echoEnabled
+                    ? "1 / 2 / 3 SELECT BLESSING  |  SPACE DASH  |  R RESTART"
+                    : "1 / 2 SELECT BLESSING  |  SPACE DASH  |  R RESTART",
                 font,
                 18,
                 TextAnchor.MiddleCenter,
                 mutedText,
                 new Vector2(20f, -132f),
-                new Vector2(780f, 26f));
+                echoEnabled ? new Vector2(780f, 26f) : new Vector2(512f, 26f));
 
             var controller = hud.GetComponent<HUDController>();
             var serialized = new SerializedObject(controller);
@@ -1765,10 +1852,13 @@ namespace Overbless.Editor.Bootstrap
             SetObject(serialized, "selectionText", selectionText);
             SetObject(serialized, "hasteStatusText", hasteStatusText);
             SetObject(serialized, "giantStatusText", giantStatusText);
-            SetObject(serialized, "echoStatusText", echoStatusText);
             SetObject(serialized, "hasteFrame", hasteFrame);
             SetObject(serialized, "giantFrame", giantFrame);
-            SetObject(serialized, "echoFrame", echoFrame);
+            if (echoEnabled)
+            {
+                SetObject(serialized, "echoStatusText", echoStatusText);
+                SetObject(serialized, "echoFrame", echoFrame);
+            }
             Apply(serialized, controller);
         }
 
@@ -1962,15 +2052,15 @@ namespace Overbless.Editor.Bootstrap
             return asset;
         }
 
-        private static PrefabSet LoadPrefabSet()
+        private static PrefabSet LoadPrefabSet(string prefabRoot)
         {
             return new PrefabSet(
-                RequireAsset<GameObject>(PrefabRoot + "/Player.prefab"),
-                RequireAsset<GameObject>(PrefabRoot + "/Dasher.prefab"),
-                RequireAsset<GameObject>(PrefabRoot + "/Archer.prefab"),
-                RequireAsset<GameObject>(PrefabRoot + "/Minion.prefab"),
-                RequireAsset<GameObject>(PrefabRoot + "/SoulFragment.prefab"),
-                RequireAsset<GameObject>(PrefabRoot + "/ExitGate.prefab"));
+                RequireAsset<GameObject>(prefabRoot + "/Player.prefab"),
+                RequireAsset<GameObject>(prefabRoot + "/Dasher.prefab"),
+                RequireAsset<GameObject>(prefabRoot + "/Archer.prefab"),
+                RequireAsset<GameObject>(prefabRoot + "/Minion.prefab"),
+                RequireAsset<GameObject>(prefabRoot + "/SoulFragment.prefab"),
+                RequireAsset<GameObject>(prefabRoot + "/ExitGate.prefab"));
         }
 
         private static T RequireAsset<T>(string assetPath) where T : UnityEngine.Object
@@ -2155,9 +2245,9 @@ namespace Overbless.Editor.Bootstrap
             public bool IsComposite { get; }
             public bool IsPartOfComposite { get; }
         }
-        private readonly struct SpriteSet
+        private readonly struct M1SpriteSet
         {
-            public SpriteSet(
+            public M1SpriteSet(
                 Sprite player,
                 Sprite dasher,
                 Sprite archer,
@@ -2166,12 +2256,7 @@ namespace Overbless.Editor.Bootstrap
                 Sprite exit,
                 Sprite tile,
                 Sprite haste,
-                Sprite giant,
-                Sprite echo,
-                Sprite echoStatus,
-                Sprite echoLine,
-                Sprite echoDouble,
-                Sprite worldPillar)
+                Sprite giant)
             {
                 Player = player;
                 Dasher = dasher;
@@ -2182,11 +2267,6 @@ namespace Overbless.Editor.Bootstrap
                 Tile = tile;
                 Haste = haste;
                 Giant = giant;
-                Echo = echo;
-                EchoStatus = echoStatus;
-                EchoLine = echoLine;
-                EchoDouble = echoDouble;
-                WorldPillar = worldPillar;
             }
 
             public Sprite Player { get; }
@@ -2198,6 +2278,27 @@ namespace Overbless.Editor.Bootstrap
             public Sprite Tile { get; }
             public Sprite Haste { get; }
             public Sprite Giant { get; }
+        }
+
+        private readonly struct M2SpriteSet
+        {
+            public M2SpriteSet(
+                M1SpriteSet m1,
+                Sprite echo,
+                Sprite echoStatus,
+                Sprite echoLine,
+                Sprite echoDouble,
+                Sprite worldPillar)
+            {
+                M1 = m1;
+                Echo = echo;
+                EchoStatus = echoStatus;
+                EchoLine = echoLine;
+                EchoDouble = echoDouble;
+                WorldPillar = worldPillar;
+            }
+
+            public M1SpriteSet M1 { get; }
             public Sprite Echo { get; }
             public Sprite EchoStatus { get; }
             public Sprite EchoLine { get; }

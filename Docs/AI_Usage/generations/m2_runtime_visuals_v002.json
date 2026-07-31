@@ -1,0 +1,112 @@
+{
+  "schema": "overbless.m2-runtime-visuals/v2",
+  "created_utc": "2026-07-30T09:36:59Z",
+  "status": "generated-machine-pass-human-review-required",
+  "approval": {
+    "file": "Docs/Decisions/M2_IMPLEMENTATION_APPROVAL.json",
+    "sha256": "fd1903da01b5f3266f6fe56e4ff65a0a788574963dc1d73cc5c2575127441825",
+    "scope": "approved Echo and static non-damaging line-of-fire pillar for local unsealed technical QA",
+    "runtime_authorization": "local-unsealed-only",
+    "m2_entry_gate_status": "not-evaluated"
+  },
+  "prompt": {
+    "file": "Docs/AI_Usage/prompts/m2_runtime_visual_prompts_v002.json",
+    "sha256": "e6faa58d0fc9d6643375c0f61535c2e435fd95eb2a0dc110897a603cb32a21f1"
+  },
+  "pillar_source": {
+    "file": "Docs/AI_Usage/sources/m2_runtime_visual_v002/static_world_pillar_source.png",
+    "sha256": "c71b33df74ee2ac1f089827feb3d0d11d20873503465dce94f542f08fd57d933",
+    "size": [1024, 1024],
+    "tool": "repository-local Pillow 12.1.1 procedural pixel construction",
+    "provider": "local",
+    "model": null,
+    "response_id": null,
+    "license": "repository-generated original",
+    "generation_note": "The image-generation service was attempted three times but returned overload or processing errors and produced no source bytes. The source was therefore constructed locally from original geometric pixel-art primitives on pure magenta, with no external asset bytes or model-output claim.",
+    "failed_service_attempts": [
+      {
+        "result": "overloaded-no-output",
+        "request_id": null
+      },
+      {
+        "result": "processing-error-no-output",
+        "request_id": "9331b458-e01f-40d5-9fa2-20d3d71ec2b7"
+      },
+      {
+        "result": "overloaded-no-output",
+        "request_id": null
+      }
+    ]
+  },
+  "echo_source_reuse": {
+    "file": "Docs/AI_Usage/sources/m2_assets_v001/echo_vfx_sheet_source.png",
+    "sha256": "4017f9badd6d291028599a290e22f2a7cf860654db679e52c5b082b5ca3d5044",
+    "original_record": "Docs/AI_Usage/generations/m2_image_resources_v001.json",
+    "reuse": "four fixed cells re-extracted deterministically; original v001 bytes and record unchanged"
+  },
+  "deterministic_processing": {
+    "script": "Tools/process_m2_runtime_visuals.py",
+    "script_sha256": "1fb437580414c8335fb38380a4ea0e351323d1cf86077022969a25454e6421e7",
+    "steps": [
+      "Load only declared static PNG sources and reject animation or invalid formats.",
+      "Remove sampled magenta into binary alpha.",
+      "Crop opaque bounds, resize with nearest-neighbor sampling, and center or bottom-align on 128x128 canvases.",
+      "Re-extract the four approved Echo cells with the v001 grid inset policy.",
+      "Write exactly five outputs and a canonical index; --check writes nothing and rejects byte or metadata drift."
+    ],
+    "index": "Docs/AI_Usage/generations/m2_runtime_visual_index_v002.json",
+    "index_sha256": "8c13958f6b6a334f448bdde9fd04d8d0de00d077d53cffeba04a90852554c501",
+    "check_result": "Passed"
+  },
+  "unity_import": {
+    "script": "Assets/_Project/Editor/Bootstrap/M2RuntimeVisualBootstrap.cs",
+    "script_sha256": "a5e859725006167c71b1185f77b01da7e1a151798c0de8a8b065c354c42ccfcc",
+    "pixels_per_unit": 128,
+    "filter": "Point",
+    "mipmaps": false,
+    "streaming_mipmaps": false,
+    "compression": "Uncompressed",
+    "wrap": "Clamp",
+    "readable": false,
+    "pillar_pivot": "bottom-center",
+    "echo_pivot": "center",
+    "declared_sprite_count": 5,
+    "verification": {
+      "result": "Passed",
+      "file": "Evidence/Verification/m2-runtime-visual-v002-import.log",
+      "sha256": "6ab890d5f7d3173ff1fe0249374444e964dadc5d9508d70126925d6afbd4b5d0"
+    }
+  },
+  "outputs": [
+    {
+      "file": "Assets/_Project/Art/M2Production/Environment/env_static_world_pillar_south_a_v002.png",
+      "sha256": "ca6263efcbc444d1a050205d9deaa61fd48be7492756ea6ad31269820ae4da13",
+      "role": "static permanent non-damaging World cover"
+    },
+    {
+      "file": "Assets/_Project/Art/M2Production/UI/ui_icon_bless_echo_a_v002.png",
+      "sha256": "f4623e7e9333055cb194d1f410d3e0c13705f5afd2d263f8ba27f68915328501",
+      "role": "M2 Echo blessing card"
+    },
+    {
+      "file": "Assets/_Project/Art/M2Production/UI/ui_icon_echo_status_a_v002.png",
+      "sha256": "b89721f3c5c84e813669a9050a6743dcc96175b162485db39f4122abbccc0a17",
+      "role": "M2 enemy Echo status"
+    },
+    {
+      "file": "Assets/_Project/Art/M2Production/VFX/vfx_echo_double_silhouette_a_v002.png",
+      "sha256": "21d4a09117d1d31923604a163bc5d76e1c5981e02812d2a3e52183bc260e4390",
+      "role": "M2 Echo duplicate projectile silhouette"
+    },
+    {
+      "file": "Assets/_Project/Art/M2Production/VFX/vfx_echo_line_telegraph_a_v002.png",
+      "sha256": "5d95f7cc1498201175f9dc053d246d628fda6861d96622a94a800497a2cbed2d",
+      "role": "M2 Echo pending line telegraph"
+    }
+  ],
+  "review": {
+    "file": "Docs/AI_Usage/edits/m2_runtime_visual_review_v002.json",
+    "status": "human-review-required",
+    "reviewer": "pending-user-review"
+  }
+}

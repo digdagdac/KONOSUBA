@@ -1,0 +1,85 @@
+{
+  "schema_version": "2.0",
+  "generation_id": "monster_directional_animations_v002",
+  "project": "Overbless",
+  "status": "machine-pass-live-review-pending",
+  "created_at": "2026-07-31",
+  "tool": {
+    "generator": "GJC generate_image",
+    "provider": "session image generation tool",
+    "model": "not exposed by tool receipt",
+    "postprocessor": "Tools/process_monster_animation_v002.py",
+    "postprocessor_sha256": "d2e42c8f1b8f13b9ea454018817a2c61774e2b56aeb5378a84c544d366af3728"
+  },
+  "prompt_file": {
+    "path": "Docs/AI_Usage/prompts/monster_directional_animation_prompts_v002.json",
+    "sha256": "cab663952358eb5c120751367030067c76aeed417c4de7ea6dcb28bb01407d6e"
+  },
+  "accepted_sources": [
+    {"path":"Docs/AI_Usage/sources/monster_animation_v002/archer_east_motion_sheet_source.png","sha256":"a50bdd9ef6fa44f40a61e5e6f58ed1abcc0b0c03264722af0793edb00689af95"},
+    {"path":"Docs/AI_Usage/sources/monster_animation_v002/archer_north_motion_sheet_source.png","sha256":"3fecba12bcc66e7bccffae1efdf6e3df7faa3bf4140a6fdaa52c4d63804cbb08"},
+    {"path":"Docs/AI_Usage/sources/monster_animation_v002/archer_northeast_motion_sheet_source.png","sha256":"01d4ddb5e26e95f3fd25b948841098a21f47ea62bc224e1bd8285ad5df8f8ab4"},
+    {"path":"Docs/AI_Usage/sources/monster_animation_v002/archer_south_motion_sheet_source.png","sha256":"75b37039ec76e82488eb3b846cec387a3314ec685c8a6adf7a1dd2507b82730d"},
+    {"path":"Docs/AI_Usage/sources/monster_animation_v002/archer_southeast_motion_sheet_source.png","sha256":"eeb375583a07977995e1e89d58cda310f2c61bdee38285469583fc5f09290de5"},
+    {"path":"Docs/AI_Usage/sources/monster_animation_v002/dasher_east_motion_sheet_source.png","sha256":"6f429e4592ddc9adeeedc0d68a7d951461c587eb8f5fd6b1fb18fa89f60502dd"},
+    {"path":"Docs/AI_Usage/sources/monster_animation_v002/dasher_north_motion_sheet_source.png","sha256":"3a7e45dce96cf30d27f3f5b969e247c30ccc68705deb78da7ec43c17c6d02df9"},
+    {"path":"Docs/AI_Usage/sources/monster_animation_v002/dasher_northeast_motion_sheet_source.png","sha256":"dd3e367d210c2d000d6367600c160f7069d5b2c5e6fa3b2be0e2cefb401be8ed"},
+    {"path":"Docs/AI_Usage/sources/monster_animation_v002/dasher_south_motion_sheet_source.png","sha256":"8665f1ec8b633b22b11166f010ad193f9a03e69f27a887e2c4ad93a8fabd7481"},
+    {"path":"Docs/AI_Usage/sources/monster_animation_v002/dasher_southeast_motion_sheet_source.png","sha256":"9023ee7479b3b058a12a8c88e5850d2df0d3a3b970cceb4f4067d3fa74056b8c"},
+    {"path":"Docs/AI_Usage/sources/monster_animation_v002/minion_east_motion_sheet_source.png","sha256":"07bc782ae5289510115e74f1f9eb07abcb91c83802386baff08dc4bffdf76b66"},
+    {"path":"Docs/AI_Usage/sources/monster_animation_v002/minion_north_motion_sheet_source.png","sha256":"10345412d6cee49b518b5f50084612e556e96d4939a1d1b6386f466beef67336"},
+    {"path":"Docs/AI_Usage/sources/monster_animation_v002/minion_northeast_motion_sheet_source.png","sha256":"7c1f69533165b9871418b2adce638be9dea92e7a7f9d960eec0140946a71908f"},
+    {"path":"Docs/AI_Usage/sources/monster_animation_v002/minion_south_motion_sheet_source.png","sha256":"438dc5b0a09afed1b0d1da595f21e80548b6e6f1b99b0a08ba76dfd31c48f661"},
+    {"path":"Docs/AI_Usage/sources/monster_animation_v002/minion_southeast_motion_sheet_source.png","sha256":"5dad7b149a5bbb7749527978806cb32396b02e112e3514493f93d0d07c024dd0"}
+  ],
+  "rejected_attempts": [
+    {"path":"Docs/AI_Usage/sources/monster_animation_v002/rejected/archer_north_7col_attempt.webp","sha256":"2109eb2c985203accb875dddce89fbf9817840d758412ee84a47dac07cf7c2fa","reason":"seven-column topology; required eight"},
+    {"path":"Docs/AI_Usage/sources/monster_animation_v002/rejected/archer_southeast_7col_attempt_a.webp","sha256":"6945d00678fb2d69de9333c4978ff22744341a3cbb32c7c3b729aba40e5f9e17","reason":"seven-column topology; required eight"},
+    {"path":"Docs/AI_Usage/sources/monster_animation_v002/rejected/archer_southeast_7col_attempt_b.webp","sha256":"4af57526fcf78837ffe10aa32248e2d69528bde5c19fd8a789e789dad94706f7","reason":"seven-column topology; required eight"},
+    {"path":"Docs/AI_Usage/sources/monster_animation_v002/rejected/archer_southeast_7col_attempt_c.webp","sha256":"e1284ca809184f52c00a936c26a42644ff5ec87b43eaa152d9d363622650c82b","reason":"seven-column topology; required eight"},
+    {"path":"Docs/AI_Usage/sources/monster_animation_v002/rejected/dasher_east_7col_execute_attempt.webp","sha256":"3c6e97ef6ce4de1d60f0e0d836a3f311108e41cdfeca76700d527e0d50aef213","reason":"execute row contained seven columns; required eight"},
+    {"path":"Docs/AI_Usage/sources/monster_animation_v002/rejected/dasher_northeast_6col_attempt.webp","sha256":"a3bc2940f2565fe938612ddd0dd522970ee92480add3f6d0ca8cc14cc85c9a4b","reason":"six-column topology; required eight"},
+    {"path":"Docs/AI_Usage/sources/monster_animation_v002/rejected/dasher_northeast_7col_attempt.webp","sha256":"4e88631f624ca9908181b99716c77dd15e3df68296ad5785a9de63f1090303a1","reason":"seven-column topology; required eight"},
+    {"path":"Docs/AI_Usage/sources/monster_animation_v002/rejected/dasher_northeast_7col_retry.webp","sha256":"6d5c8d62858babfdc02ed1b14e5b6128e88485705caaf3dcac08fd8a95d84ee1","reason":"seven-column retry; required eight"}
+  ],
+  "production_contract": {
+    "roles": ["dasher", "archer", "minion"],
+    "direct_directions": ["south", "north", "east", "southeast", "northeast"],
+    "derived_directions": {"west":"east", "southwest":"southeast", "northwest":"northeast"},
+    "source_grid": "8x5",
+    "source_rows": ["walk", "run", "attack_charge", "attack_execute", "recover"],
+    "authored_frames": 450,
+    "mirror_derived_frames": 270,
+    "inherited_v001_frames": 312,
+    "inherited_states": ["idle", "hit", "death"]
+  },
+  "deterministic_modifications": [
+    "Remove magenta chroma into binary alpha.",
+    "Crop and resize with nearest-neighbor sampling, then bottom-center align.",
+    "Derive only west, southwest and northwest by exact horizontal pixel mirroring.",
+    "Pack 128x128 cells into eight 8-frame directional blocks and eight state rows.",
+    "Validate nonempty variation, loop seams, binary alpha, mirror equality, names, dimensions and deterministic output hashes."
+  ],
+  "forbidden_modifications": [
+    "idle translation, rotation, scale or tint synthesis",
+    "direct-diagonal compositing",
+    "animation-driven gameplay judgment"
+  ],
+  "atlas_index": {
+    "path": "Docs/AI_Usage/generations/monster_directional_animation_index_v002.json",
+    "sha256": "4ea1ebb520bb3483790842ebd4b57ca633f16cfd067e1a2f845a1e72861dcf88"
+  },
+  "atlases": [
+    {"role":"dasher","path":"Assets/_Project/Art/M1Production/Characters/Animation/chr_dasher_animation_atlas_v002.png","size":"8192x1024","sha256":"9805cd44d272d9e96a4eb39446adba150487872600adc9e380de7ac2aebb672e"},
+    {"role":"archer","path":"Assets/_Project/Art/M1Production/Characters/Animation/chr_archer_animation_atlas_v002.png","size":"8192x1024","sha256":"47c724d1a56c57bcbd48f29de45869be7228cefe871b2b0a7a234b0026d13cb4"},
+    {"role":"minion","path":"Assets/_Project/Art/M1Production/Characters/Animation/chr_minion_animation_atlas_v002.png","size":"8192x1024","sha256":"b4a0e39bcc11485ffb8dae87fbad54ae5c8526091b2397312c5a2c3c04b7a2b9"}
+  ],
+  "verification": {
+    "processor_build": "passed",
+    "determinism_check": "passed",
+    "unity_import": "passed",
+    "unity_tests": "pending final expanded suite",
+    "webgl_builds": "pending",
+    "live_visual_review": "pending"
+  }
+}

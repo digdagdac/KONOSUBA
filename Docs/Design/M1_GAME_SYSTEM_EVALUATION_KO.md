@@ -214,6 +214,14 @@ M1에는 장기 성장이나 유지 장치가 없다. 이는 누락이 아니라
 3. Haste의 이동×1.5와 투사체×1.35는 인과를 읽기 전에 피격을 만들 위험이 있다.
 4. Giant의 범위×1.4는 friendly fire 성공 면적을 넓히지만 벽 근처 이동 자유를 과도하게 줄일 수 있다.
 
+## 몬스터 방향 애니메이션 v002 런타임 계약
+
+- Dasher·Archer·Minion의 이동 표현은 transform 변화량을 추측하지 않고, 각 AI가 명시적으로 소유하는 `LocomotionMode`(`Idle`/`Walk`/`Run`)와 정규화된 `IntendedFacing`을 사용한다. 벽·기둥 충돌로 실제 이동이 막혀도 이 의도는 바뀌지 않으므로 idle 프레임이 미끄러지는 것처럼 보이거나 방향이 튀지 않아야 한다.
+- 역할별 기본 속도는 Dasher Walk/Run=`1.0/1.5`, Archer=`0.5/0.75`, Minion=`0.8333333/1.25`다. Haste는 두 속도를 같은 이동 배율로 다시 계산하며, `RunSpeed`는 항상 `WalkSpeed`보다 커야 한다. Dasher의 실행 이동은 별도 `ChargeSpeed` 계약을 유지한다.
+- 공격 Warning 중에는 최신 목표 방향을 의도로 갱신하고, Lock 이후에는 잠긴 방향이 AttackCharge·AttackExecute·Recover 표현을 우선한다. 공격이 Idle로 돌아오거나 취소되면 최신 유효 `IntendedFacing`이 다시 보인다.
+- 공격 판정과 상태 전이는 계속 게임플레이 로직이 소유한다. `AttackPhase.Executing` 진입과 `AttackExecute` 프레임 0 적용은 같은 tick에 동기화하지만, 애니메이션 프레임이 판정·투사체·회복 전이를 요청하지 않는다. 논리 구간이 길면 비반복 Charge/Execute/Recover는 마지막 프레임을 유지한다.
+- Minion은 판정 tick에 피해를 정확히 한 번 적용하고, 논리 소유 `Executing`을 0.25초 유지한다. 표현은 독립적으로 설정된 24fps의 6개 Execute 프레임을 한 번 재생한 뒤 Recover로 전환한다. 다음 공격 가능 시각은 기존 케이던스를 보존하도록 `판정 시각 + RecoveryDuration + AttackCooldown`의 절대 시각에 고정하며, 0.25초 표현 구간을 다시 더하지 않는다.
+- M1과 M2의 Dasher·Archer·Minion 프리팹은 동일한 세 v002 `DirectionalAnimationSet` 자산을 공유하지만, 프리팹과 씬의 소유권·토폴로지는 계속 분리한다.
 ## 플레이테스트 계획
 
 - 대상: 빌드 사전 노출이 없는 fresh tester 3명

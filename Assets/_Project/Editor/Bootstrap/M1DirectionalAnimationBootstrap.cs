@@ -29,10 +29,9 @@ namespace Overbless.Editor.Bootstrap
     internal static class M1DirectionalAnimationBootstrap
     {
         private const int CellSize = 128;
-        private const int MaxFrames = 6;
+        private const string FrameLetters = "abcdefgh";
         private const string AtlasRoot = "Assets/_Project/Art/M1Production/Characters/Animation";
         private const string DataRoot = "Assets/_Project/Data/Animations";
-        private const string FrameLetters = "abcdef";
 
         private static readonly DirectionSpec[] Directions =
         {
@@ -49,7 +48,7 @@ namespace Overbless.Editor.Bootstrap
         private static readonly StateSpec[] PlayerStates =
         {
             new StateSpec(CharacterAnimationState.Idle, "idle", 4, 4f, true),
-            new StateSpec(CharacterAnimationState.Move, "move", 6, 10f, true),
+            new StateSpec(CharacterAnimationState.Walk, "move", 6, 10f, true),
             new StateSpec(CharacterAnimationState.Dash, "dash", 4, 14f, false),
             new StateSpec(CharacterAnimationState.BlessCast, "bless_cast", 6, 8f, true),
             new StateSpec(CharacterAnimationState.Hit, "hit", 3, 12f, false),
@@ -59,9 +58,10 @@ namespace Overbless.Editor.Bootstrap
         private static readonly StateSpec[] MajorEnemyStates =
         {
             new StateSpec(CharacterAnimationState.Idle, "idle", 4, 4f, true),
-            new StateSpec(CharacterAnimationState.Move, "move", 6, 9f, true),
-            new StateSpec(CharacterAnimationState.AttackCharge, "attack_charge", 6, 8f, true),
-            new StateSpec(CharacterAnimationState.AttackExecute, "attack_execute", 4, 14f, false),
+            new StateSpec(CharacterAnimationState.Walk, "walk", 6, 8f, true),
+            new StateSpec(CharacterAnimationState.Run, "run", 8, 12f, true),
+            new StateSpec(CharacterAnimationState.AttackCharge, "attack_charge", 6, 8f, false),
+            new StateSpec(CharacterAnimationState.AttackExecute, "attack_execute", 6, 14f, false),
             new StateSpec(CharacterAnimationState.Recover, "recover", 4, 7f, false),
             new StateSpec(CharacterAnimationState.Hit, "hit", 3, 12f, false),
             new StateSpec(CharacterAnimationState.Death, "death", 6, 8f, false)
@@ -70,18 +70,21 @@ namespace Overbless.Editor.Bootstrap
         private static readonly StateSpec[] MinionStates =
         {
             new StateSpec(CharacterAnimationState.Idle, "idle", 4, 4f, true),
-            new StateSpec(CharacterAnimationState.Move, "move", 6, 10f, true),
-            new StateSpec(CharacterAnimationState.BasicAttack, "basic_attack", 4, 12f, false),
+            new StateSpec(CharacterAnimationState.Walk, "walk", 6, 8f, true),
+            new StateSpec(CharacterAnimationState.Run, "run", 8, 12f, true),
+            new StateSpec(CharacterAnimationState.AttackCharge, "attack_charge", 6, 8f, false),
+            new StateSpec(CharacterAnimationState.AttackExecute, "attack_execute", 6, 24f, false),
+            new StateSpec(CharacterAnimationState.Recover, "recover", 4, 7f, false),
             new StateSpec(CharacterAnimationState.Hit, "hit", 3, 12f, false),
             new StateSpec(CharacterAnimationState.Death, "death", 6, 8f, false)
         };
 
         private static readonly AtlasSpec[] Atlases =
         {
-            new AtlasSpec("player", PlayerStates),
-            new AtlasSpec("dasher", MajorEnemyStates),
-            new AtlasSpec("archer", MajorEnemyStates),
-            new AtlasSpec("minion", MinionStates)
+            new AtlasSpec("player", "v001", 6, PlayerStates),
+            new AtlasSpec("dasher", "v002", 8, MajorEnemyStates),
+            new AtlasSpec("archer", "v002", 8, MajorEnemyStates),
+            new AtlasSpec("minion", "v002", 8, MinionStates)
         };
 
         public static M1DirectionalAnimationAssets CreateOrUpdate()
@@ -93,6 +96,16 @@ namespace Overbless.Editor.Bootstrap
                 var spec = Atlases[index];
                 ConfigureAtlasImporter(spec);
                 sets.Add(spec.Role, CreateAnimationSet(spec));
+            }
+
+            AssetDatabase.SaveAssets();
+            for (var index = 0; index < Atlases.Length; index++)
+            {
+                var spec = Atlases[index];
+                var assetPath = AnimationSetPath(spec.Role);
+                var reloaded = AssetDatabase.LoadAssetAtPath<DirectionalAnimationSet>(assetPath);
+                ValidateExactSet(reloaded, spec);
+                sets[spec.Role] = reloaded;
             }
 
             return new M1DirectionalAnimationAssets(
@@ -140,7 +153,7 @@ namespace Overbless.Editor.Bootstrap
             importer.SaveAndReimport();
 
             var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(spec.AtlasPath);
-            var expectedWidth = CellSize * MaxFrames * Directions.Length;
+            var expectedWidth = CellSize * spec.MaxFrames * Directions.Length;
             var expectedHeight = CellSize * spec.States.Length;
             if (texture == null || texture.width != expectedWidth || texture.height != expectedHeight)
             {
@@ -161,11 +174,11 @@ namespace Overbless.Editor.Bootstrap
                     var direction = Directions[directionIndex];
                     for (var frameIndex = 0; frameIndex < state.FrameCount; frameIndex++)
                     {
-                        var x = (directionIndex * MaxFrames + frameIndex) * CellSize;
+                        var x = (directionIndex * spec.MaxFrames + frameIndex) * CellSize;
                         var y = atlasHeight - (stateIndex + 1) * CellSize;
                         metadata.Add(new SpriteMetaData
                         {
-                            name = FrameName(spec.Role, state.Name, direction.Name, frameIndex),
+                            name = FrameName(spec.Role, state.Name, direction.Name, frameIndex, spec.Version),
                             rect = new Rect(x, y, CellSize, CellSize),
                             alignment = (int)SpriteAlignment.Custom,
                             pivot = new Vector2(0.5f, 0f),
@@ -181,7 +194,7 @@ namespace Overbless.Editor.Bootstrap
         private static DirectionalAnimationSet CreateAnimationSet(AtlasSpec spec)
         {
             var sprites = LoadSpritesByName(spec.AtlasPath);
-            var assetPath = $"{DataRoot}/{UppercaseFirst(spec.Role)}DirectionalAnimationSet.asset";
+            var assetPath = AnimationSetPath(spec.Role);
             var set = AssetDatabase.LoadAssetAtPath<DirectionalAnimationSet>(assetPath);
             if (set == null)
             {
@@ -206,15 +219,15 @@ namespace Overbless.Editor.Bootstrap
                 {
                     var direction = Directions[directionIndex];
                     var clip = clips.GetArrayElementAtIndex(clipIndex++);
-                    clip.FindPropertyRelative("state").enumValueIndex = (int)state.State;
-                    clip.FindPropertyRelative("direction").enumValueIndex = (int)direction.Direction;
+                    clip.FindPropertyRelative("state").intValue = (int)state.State;
+                    clip.FindPropertyRelative("direction").intValue = (int)direction.Direction;
                     clip.FindPropertyRelative("framesPerSecond").floatValue = state.FramesPerSecond;
                     clip.FindPropertyRelative("loop").boolValue = state.Loop;
                     var frames = clip.FindPropertyRelative("frames");
                     frames.arraySize = state.FrameCount;
                     for (var frameIndex = 0; frameIndex < state.FrameCount; frameIndex++)
                     {
-                        var name = FrameName(spec.Role, state.Name, direction.Name, frameIndex);
+                        var name = FrameName(spec.Role, state.Name, direction.Name, frameIndex, spec.Version);
                         if (!sprites.TryGetValue(name, out var sprite))
                         {
                             throw new InvalidOperationException($"Animation atlas '{spec.AtlasPath}' is missing sprite '{name}'.");
@@ -227,8 +240,59 @@ namespace Overbless.Editor.Bootstrap
 
             serialized.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(set);
-            set.Validate();
+            ValidateExactSet(set, spec);
             return set;
+        }
+
+        private static void ValidateExactSet(DirectionalAnimationSet set, AtlasSpec spec)
+        {
+            if (set == null)
+            {
+                throw new InvalidOperationException(
+                    $"Directional animation set '{AnimationSetPath(spec.Role)}' failed to reload.");
+            }
+
+            set.Validate();
+            var expectedClipCount = spec.States.Length * Directions.Length;
+            if (!string.Equals(set.Role, spec.Role, StringComparison.Ordinal) ||
+                set.ClipCount != expectedClipCount)
+            {
+                throw new InvalidOperationException(
+                    $"Animation set '{spec.Role}' must contain exactly {expectedClipCount} clips.");
+            }
+
+            for (var stateIndex = 0; stateIndex < spec.States.Length; stateIndex++)
+            {
+                var state = spec.States[stateIndex];
+                for (var directionIndex = 0; directionIndex < Directions.Length; directionIndex++)
+                {
+                    var direction = Directions[directionIndex];
+                    var clip = set.GetClip(state.State, direction.Direction);
+                    if (clip.FrameCount != state.FrameCount ||
+                        !Mathf.Approximately(clip.FramesPerSecond, state.FramesPerSecond) ||
+                        clip.Loop != state.Loop)
+                    {
+                        throw new InvalidOperationException(
+                            $"Animation set '{spec.Role}' has an invalid {state.State}/{direction.Direction} contract.");
+                    }
+
+                    for (var frameIndex = 0; frameIndex < clip.FrameCount; frameIndex++)
+                    {
+                        var sprite = clip.GetFrame(frameIndex);
+                        var expectedName = FrameName(spec.Role, state.Name, direction.Name, frameIndex, spec.Version);
+                        if (sprite == null || !string.Equals(sprite.name, expectedName, StringComparison.Ordinal))
+                        {
+                            throw new InvalidOperationException(
+                                $"Animation set '{spec.Role}' contains a stale frame for {state.State}/{direction.Direction}.");
+                        }
+                    }
+                }
+            }
+        }
+
+        private static string AnimationSetPath(string role)
+        {
+            return $"{DataRoot}/{UppercaseFirst(role)}DirectionalAnimationSet.asset";
         }
 
         private static Dictionary<string, Sprite> LoadSpritesByName(string atlasPath)
@@ -251,9 +315,14 @@ namespace Overbless.Editor.Bootstrap
             return result;
         }
 
-        private static string FrameName(string role, string state, string direction, int frameIndex)
+        private static string FrameName(
+            string role,
+            string state,
+            string direction,
+            int frameIndex,
+            string version)
         {
-            return $"chr_{role}_{state}_{direction}_{FrameLetters[frameIndex]}_v001";
+            return $"chr_{role}_{state}_{direction}_{FrameLetters[frameIndex]}_{version}";
         }
 
         private static string UppercaseFirst(string value)
@@ -315,15 +384,19 @@ namespace Overbless.Editor.Bootstrap
 
         private readonly struct AtlasSpec
         {
-            public AtlasSpec(string role, StateSpec[] states)
+            public AtlasSpec(string role, string version, int maxFrames, StateSpec[] states)
             {
                 Role = role;
+                Version = version;
+                MaxFrames = maxFrames;
                 States = states;
             }
 
             public string Role { get; }
+            public string Version { get; }
+            public int MaxFrames { get; }
             public StateSpec[] States { get; }
-            public string AtlasPath => $"{AtlasRoot}/chr_{Role}_animation_atlas_v001.png";
+            public string AtlasPath => $"{AtlasRoot}/chr_{Role}_animation_atlas_{Version}.png";
         }
     }
 }

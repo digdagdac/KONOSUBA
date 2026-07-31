@@ -8,9 +8,11 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.SceneManagement;
 #if UNITY_EDITOR
+using UnityEditor;
 using UnityEditor.SceneManagement;
 #endif
 using UnityEngine.TestTools;
+using UnityEngine.UI;
 
 namespace Overbless.Tests.PlayMode
 {
@@ -21,6 +23,48 @@ namespace Overbless.Tests.PlayMode
         private const float PositionTolerance = 0.001f;
         private const float EchoNoFireBeforeSeconds = 0.649f;
         private const float EchoTimingTolerance = 0.001f;
+#if UNITY_EDITOR
+        private const string M1GuidedScenePath = "Assets/_Project/Scenes/M1_GuidedValidation.unity";
+        private const string M1DasherPrefabPath = "Assets/_Project/Prefabs/M1/Dasher.prefab";
+        private const string M1ArcherPrefabPath = "Assets/_Project/Prefabs/M1/Archer.prefab";
+        private const string M1MinionPrefabPath = "Assets/_Project/Prefabs/M1/Minion.prefab";
+        private const string M2DasherPrefabPath = "Assets/_Project/Prefabs/M2/Dasher.prefab";
+        private const string M2ArcherPrefabPath = "Assets/_Project/Prefabs/M2/Archer.prefab";
+        private const string M2MinionPrefabPath = "Assets/_Project/Prefabs/M2/Minion.prefab";
+        private const string DasherAnimationSetPath =
+            "Assets/_Project/Data/Animations/DasherDirectionalAnimationSet.asset";
+        private const string ArcherAnimationSetPath =
+            "Assets/_Project/Data/Animations/ArcherDirectionalAnimationSet.asset";
+        private const string MinionAnimationSetPath =
+            "Assets/_Project/Data/Animations/MinionDirectionalAnimationSet.asset";
+        private const string DasherAnimationSetGuid = "de31bab5f86db3b4b93ff29ee5d5e7bd";
+        private const string ArcherAnimationSetGuid = "6aa8444b1250c9d428491b9aec9da017";
+        private const string MinionAnimationSetGuid = "f27245187b875204d94cb75d9482a7f9";
+
+        private static readonly CharacterDirection[] MonsterAnimationDirections =
+        {
+            CharacterDirection.South,
+            CharacterDirection.North,
+            CharacterDirection.East,
+            CharacterDirection.West,
+            CharacterDirection.SouthEast,
+            CharacterDirection.SouthWest,
+            CharacterDirection.NorthEast,
+            CharacterDirection.NorthWest
+        };
+
+        private static readonly CharacterAnimationState[] MonsterAnimationStates =
+        {
+            CharacterAnimationState.Idle,
+            CharacterAnimationState.Walk,
+            CharacterAnimationState.Run,
+            CharacterAnimationState.AttackCharge,
+            CharacterAnimationState.AttackExecute,
+            CharacterAnimationState.Recover,
+            CharacterAnimationState.Hit,
+            CharacterAnimationState.Death
+        };
+#endif
 
         private readonly List<InputDevice> inputDevicesToRemove = new List<InputDevice>();
         private float timeScaleBeforeTest;
@@ -113,6 +157,65 @@ namespace Overbless.Tests.PlayMode
             var pillars = FindGameObjectsInScene(room03.Scene, "WorldPillar");
             Assert.That(pillars.Count, Is.EqualTo(1));
             AssertWorldPillarContract(pillars[0]);
+        }
+        [UnityTest]
+        public IEnumerator Room02AndRoom03_M2MonsterPrefabsShareV002AnimationSetsWithM1AndKeepOwnershipIsolated()
+        {
+#if UNITY_EDITOR
+            LoadedRoom room02 = null;
+            yield return LoadRoom(Room02ScenePath, loadedRoom => room02 = loadedRoom);
+            AssertM2MonsterAnimationBindings(room02);
+            yield return UnloadScene(Room02ScenePath);
+
+            LoadedRoom room03 = null;
+            yield return LoadRoom(Room03ScenePath, loadedRoom => room03 = loadedRoom);
+            AssertM2MonsterAnimationBindings(room03);
+#else
+            Assert.Ignore("Prefab and GUID ownership verification requires Unity Editor asset access.");
+            yield break;
+#endif
+        }
+
+
+        [UnityTest]
+        public IEnumerator Room02_OpenExitEntryCompletesSequenceBeforeRoom03LoadsWithM2Scope()
+        {
+            LoadedRoom room = null;
+            yield return LoadRoom(Room02ScenePath, loadedRoom => room = loadedRoom);
+
+            var exitGate = FindComponentInScene<ExitGate>(room.Scene);
+            Assert.That(exitGate, Is.Not.Null);
+            var completed = false;
+            room.SequenceController.Completed += () => completed = true;
+#if UNITY_EDITOR
+            var sequenceSerialized = new SerializedObject(room.SequenceController);
+            sequenceSerialized.FindProperty("nextScene").stringValue = string.Empty;
+            sequenceSerialized.ApplyModifiedPropertiesWithoutUndo();
+#else
+            Assert.Ignore("Scene-transition verification requires Unity Editor scene loading.");
+#endif
+            Assert.That(exitGate.Open(), Is.True);
+            Assert.That(exitGate.TryEnter(room.Player), Is.True);
+            Assert.That(completed, Is.True, "Room_02 exit entry must complete the configured sequence exactly once.");
+            Assert.That(room.SequenceController.HasHandledEntry, Is.True);
+
+#if UNITY_EDITOR
+            var loadRoom03 = EditorSceneManager.LoadSceneAsyncInPlayMode(
+                Room03ScenePath,
+                new LoadSceneParameters(LoadSceneMode.Additive));
+            Assert.That(loadRoom03, Is.Not.Null);
+            while (!loadRoom03.isDone)
+            {
+                yield return null;
+            }
+#endif
+            yield return UnloadScene(Room02ScenePath);
+
+            var loadedRoom03 = SceneManager.GetSceneByPath(Room03ScenePath);
+            Assert.That(loadedRoom03.isLoaded, Is.True);
+            Assert.That(SceneManager.GetSceneByPath(Room02ScenePath).isLoaded, Is.False);
+            Assert.That(FindComponentInScene<BlessingTargeting>(loadedRoom03).EchoEnabled, Is.True);
+            Assert.That(FindGameObjectsInScene(loadedRoom03, "WorldPillar").Count, Is.EqualTo(1));
         }
 
         [UnityTest]
@@ -348,7 +451,149 @@ namespace Overbless.Tests.PlayMode
             Assert.That(echoStoppedPosition.x, Is.GreaterThanOrEqualTo(pillarCollider.bounds.max.x - PositionTolerance));
             Assert.That(primaryStoppedPosition.x, Is.LessThan(primaryStoppedContext.Origin.x));
             Assert.That(echoStoppedPosition.x, Is.LessThan(echoStoppedContext.Origin.x));
+
+            Physics2D.SyncTransforms();
+            var worldMask = LayerMask.GetMask("World");
+            var bounds = pillarCollider.bounds;
+            var leftEdgeHit = Physics2D.Raycast(
+                new Vector2(bounds.min.x - 1f, bounds.center.y),
+                Vector2.right,
+                3f,
+                worldMask);
+            var rightEdgeHit = Physics2D.Raycast(
+                new Vector2(bounds.max.x + 1f, bounds.center.y),
+                Vector2.left,
+                3f,
+                worldMask);
+            Assert.That(leftEdgeHit.collider, Is.SameAs(pillarCollider));
+            Assert.That(rightEdgeHit.collider, Is.SameAs(pillarCollider));
+            Assert.That(leftEdgeHit.point.x, Is.EqualTo(bounds.min.x).Within(0.01f));
+            Assert.That(rightEdgeHit.point.x, Is.EqualTo(bounds.max.x).Within(0.01f));
+
+            var pillarRenderer = pillar.GetComponentInChildren<SpriteRenderer>();
+            var playerRenderer = room.Player.GetComponentInChildren<SpriteRenderer>();
+            Assert.That(
+                SortingLayer.GetLayerValueFromName(playerRenderer.sortingLayerName),
+                Is.GreaterThan(SortingLayer.GetLayerValueFromName(pillarRenderer.sortingLayerName)),
+                "Actor-versus-pillar depth ordering must be explicit and stable.");
+
+            for (var enemyIndex = 0; enemyIndex < room.Enemies.Count; enemyIndex++)
+            {
+                room.Enemies[enemyIndex].enabled = false;
+            }
+
+            var playerHealth = room.Player.GetComponent<Health>();
+            var healthBeforePillarContact = playerHealth.CurrentHealth;
+            room.Player.transform.position = bounds.center;
+            Physics2D.SyncTransforms();
+            yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate();
+            Assert.That(
+                playerHealth.CurrentHealth,
+                Is.EqualTo(healthBeforePillarContact),
+                "Static pillar contact must not damage the player.");
         }
+        [UnityTest]
+        public IEnumerator Room03_EchoAndPillarCollisionKeepArcherIntentAndVisualDirectionAIOwned()
+        {
+            var mouse = AddMouse();
+            LoadedRoom room = null;
+            yield return LoadRoom(Room03ScenePath, loadedRoom => room = loadedRoom);
+            yield return StartWithTrustedGesture(room.WebGate, mouse);
+
+            var pillar = FindGameObjectsInScene(room.Scene, "WorldPillar")[0];
+            var pillarCollider = pillar.GetComponent<BoxCollider2D>();
+            var archer = room.ArcherA;
+            var archerCollider = archer.GetComponent<Collider2D>();
+            var animator = FindComponentInChildren<DirectionalSpriteAnimator>(archer.transform);
+            Assert.That(pillarCollider, Is.Not.Null);
+            Assert.That(archerCollider, Is.Not.Null);
+            Assert.That(animator, Is.Not.Null);
+
+            var pillarBounds = pillarCollider.bounds;
+            room.Player.transform.position = new Vector3(-7.5f, pillarBounds.center.y, room.Player.transform.position.z);
+            archer.transform.position = new Vector3(
+                pillarBounds.max.x + archerCollider.bounds.extents.x + 0.02f,
+                pillarBounds.center.y,
+                archer.transform.position.z);
+            Physics2D.SyncTransforms();
+
+            var primaryStopped = false;
+            var echoStopped = false;
+            var directionsAtPillarStops = new List<CharacterDirection>();
+            var facingChanges = new List<Vector2>();
+            var locomotionChanges = new List<LocomotionMode>();
+            Action<AttackContext, Vector2> recordPrimaryStop = (_, __) =>
+            {
+                primaryStopped = true;
+                directionsAtPillarStops.Add(animator.CurrentDirection);
+            };
+            Action<AttackContext, Vector2> recordEchoStop = (_, __) =>
+            {
+                echoStopped = true;
+                directionsAtPillarStops.Add(animator.CurrentDirection);
+            };
+            archer.IntendedFacingChanged += facingChanges.Add;
+            archer.LocomotionModeChanged += locomotionChanges.Add;
+            archer.ProjectileStopped += recordPrimaryStop;
+            archer.EchoProjectileStopped += recordEchoStop;
+
+            yield return WaitForCondition(
+                () => archer.CurrentAttackPhase == AttackPhase.Warning &&
+                      archer.CurrentLocomotionMode == LocomotionMode.Walk &&
+                      animator.CurrentState == CharacterAnimationState.AttackCharge,
+                2f,
+                "Archer AI did not own a walking warning state while approaching the pillar.");
+            AssertArcherFacingAndVisualDirectionRemainWest(archer, animator);
+
+            yield return ApplyEchoAndWaitForPending(room, archer);
+            yield return WaitForCondition(
+                () => primaryStopped && echoStopped,
+                3f,
+                "The pillar did not stop both Echo projectiles in the AI-intent scenario.");
+
+            yield return WaitForCondition(
+                () => archer.CurrentAttackPhase == AttackPhase.Idle &&
+                      archer.CurrentLocomotionMode == LocomotionMode.Walk &&
+                      animator.CurrentState == CharacterAnimationState.Walk,
+                3f,
+                "Archer AI did not resume its collision-blocked walking intent after Echo resolved.");
+
+            for (var sample = 0; sample < 5; sample++)
+            {
+                AssertArcherFacingAndVisualDirectionRemainWest(archer, animator);
+                Assert.That(
+                    archerCollider.Distance(pillarCollider).distance,
+                    Is.LessThanOrEqualTo(0.02f),
+                    "Archer should remain collision-blocked by the pillar while its AI retains walk intent.");
+                yield return null;
+            }
+
+            archer.IntendedFacingChanged -= facingChanges.Add;
+            archer.LocomotionModeChanged -= locomotionChanges.Add;
+            archer.ProjectileStopped -= recordPrimaryStop;
+            archer.EchoProjectileStopped -= recordEchoStop;
+
+            Assert.That(directionsAtPillarStops, Is.EqualTo(new[]
+            {
+                CharacterDirection.West,
+                CharacterDirection.West
+            }));
+            for (var index = 0; index < facingChanges.Count; index++)
+            {
+                Assert.That(facingChanges[index].x, Is.LessThan(-0.99f));
+                Assert.That(Mathf.Abs(facingChanges[index].y), Is.LessThan(0.01f));
+            }
+
+            for (var index = 0; index < locomotionChanges.Count; index++)
+            {
+                Assert.That(
+                    locomotionChanges[index],
+                    Is.EqualTo(LocomotionMode.Walk).Or.EqualTo(LocomotionMode.Idle),
+                    "Pillar contact must not synthesize a locomotion mode outside the Archer AI state machine.");
+            }
+        }
+
 
         [UnityTest]
         public IEnumerator Room02_ThrowingAttackObserversDoNotStrandOrDelayEcho()
@@ -524,14 +769,27 @@ namespace Overbless.Tests.PlayMode
             AssertPosition(FindEnemy(room.Enemies, "Minion_A").transform, expectedMinionAPosition, "Minion_A");
             AssertPosition(FindEnemy(room.Enemies, "Minion_B").transform, expectedMinionBPosition, "Minion_B");
 
+            Assert.That(room.BlessingTargeting, Is.Not.Null);
+            Assert.That(room.BlessingTargeting.EchoEnabled, Is.True, $"{definitionName} must explicitly enable Echo.");
+            Assert.That(room.BlessingTargeting.IsAvailable(BlessingType.Echo), Is.True);
+
             Assert.That(room.Hud, Is.Not.Null);
             Assert.That(room.Hud.IsBound, Is.True);
             Assert.That(room.Hud.IsViewConfigured, Is.True, "The third Echo HUD card must have its view references.");
-            Assert.That(FindGameObjectsInScene(room.Scene, "EchoCard").Count, Is.EqualTo(1));
+            var echoCards = FindGameObjectsInScene(room.Scene, "EchoCard");
+            Assert.That(echoCards.Count, Is.EqualTo(1));
+            var echoCard = echoCards[0];
+            Assert.That(echoCard.GetComponent<Image>(), Is.Not.Null);
+            var echoIcon = GetRequiredDirectChildComponent<Image>(echoCard.transform, "Icon");
+            Assert.That(echoIcon.sprite, Is.Not.Null, "The Echo card icon must be assigned.");
+            Assert.That(GetRequiredDirectChildComponent<Text>(echoCard.transform, "Title").text, Is.EqualTo("3 ECHO"));
+            Assert.That(
+                GetRequiredDirectChildComponent<Text>(echoCard.transform, "Detail").text,
+                Is.EqualTo("REPEAT LOCKED ATTACK"));
+            Assert.That(GetRequiredDirectChildComponent<Text>(echoCard.transform, "Status"), Is.Not.Null);
             Assert.That(room.Hud.TryGetState(out var hudState), Is.True);
             Assert.That(hudState.EchoAvailable, Is.True);
             Assert.That(hudState.EchoAvailable, Is.EqualTo(room.BlessingTargeting.IsAvailable(BlessingType.Echo)));
-
             Assert.That(room.SequenceController, Is.Not.Null);
             if (string.IsNullOrEmpty(expectedNextScene))
             {
@@ -541,13 +799,16 @@ namespace Overbless.Tests.PlayMode
             {
                 Assert.That(room.SequenceController.NextScene, Is.EqualTo(expectedNextScene));
             }
-
             var echoPresenters = FindComponentsInScene<EchoProjectilePresenter>(room.Scene);
             Assert.That(echoPresenters.Count, Is.EqualTo(2));
             for (var index = 0; index < echoPresenters.Count; index++)
             {
                 AssertEchoPresenterHasNoPhysicsOrDamage(echoPresenters[index]);
             }
+
+#if UNITY_EDITOR
+            AssertM2PrefabAndVisualOwnership(room, echoIcon, echoPresenters);
+#endif
         }
 
         private static void AssertWorldPillarContract(GameObject pillar)
@@ -555,12 +816,31 @@ namespace Overbless.Tests.PlayMode
             Assert.That(LayerMask.NameToLayer("World"), Is.EqualTo(12));
             Assert.That(pillar.layer, Is.EqualTo(12));
             Assert.That(pillar.layer, Is.EqualTo(LayerMask.NameToLayer("World")));
+            Assert.That(pillar.isStatic, Is.True);
 
             var collider = pillar.GetComponent<BoxCollider2D>();
             Assert.That(collider, Is.Not.Null);
             Assert.That(collider.size.x, Is.EqualTo(1.2f).Within(PositionTolerance));
             Assert.That(collider.size.y, Is.EqualTo(1.8f).Within(PositionTolerance));
+            Assert.That(collider.offset.x, Is.EqualTo(0f).Within(PositionTolerance));
+            Assert.That(collider.offset.y, Is.EqualTo(0.28f).Within(PositionTolerance));
             Assert.That(collider.isTrigger, Is.False);
+
+            var renderer = pillar.GetComponentInChildren<SpriteRenderer>();
+            Assert.That(renderer, Is.Not.Null);
+            Assert.That(renderer.sprite, Is.Not.Null);
+            Assert.That(renderer.spriteSortPoint, Is.EqualTo(SpriteSortPoint.Pivot));
+            Assert.That(renderer.sortingLayerName, Is.EqualTo("World"));
+            Assert.That(renderer.drawMode, Is.EqualTo(SpriteDrawMode.Simple));
+            Assert.That(renderer.transform.localScale.x, Is.EqualTo(1.2f).Within(PositionTolerance));
+            Assert.That(renderer.transform.localScale.y, Is.EqualTo(1.8f).Within(PositionTolerance));
+
+#if UNITY_EDITOR
+            AssertSpriteAssetPath(
+                renderer.sprite,
+                "Assets/_Project/Art/M2Production/Environment/env_static_world_pillar_south_a_v002.png");
+#endif
+
             Assert.That(pillar.GetComponent<Rigidbody2D>(), Is.Null);
             Assert.That(pillar.GetComponent<Health>(), Is.Null);
             var behaviours = pillar.GetComponents<MonoBehaviour>();
@@ -585,6 +865,250 @@ namespace Overbless.Tests.PlayMode
                 Assert.That(behaviours[index] is IDamageable, Is.False);
                 Assert.That(behaviours[index] is IDamageSource, Is.False);
             }
+        }
+#if UNITY_EDITOR
+        private static void AssertM2PrefabAndVisualOwnership(
+            LoadedRoom room,
+            Image echoIcon,
+            IReadOnlyList<EchoProjectilePresenter> echoPresenters)
+        {
+
+            AssertSpriteAssetPath(
+                echoIcon.sprite,
+                "Assets/_Project/Art/M2Production/UI/ui_icon_bless_echo_a_v002.png");
+
+            var indicators = FindComponentsInScene<BlessingIndicator>(room.Scene);
+            Assert.That(indicators.Count, Is.EqualTo(5));
+            for (var index = 0; index < indicators.Count; index++)
+            {
+                var echoRenderer = GetRequiredDirectChildComponent<SpriteRenderer>(indicators[index].transform, "Echo");
+                AssertSpriteAssetPath(
+                    echoRenderer.sprite,
+                    "Assets/_Project/Art/M2Production/UI/ui_icon_echo_status_a_v002.png");
+            }
+
+            for (var index = 0; index < echoPresenters.Count; index++)
+            {
+                AssertSpriteAssetPath(
+                    FindSpriteRenderer(echoPresenters[index], "PendingLine").sprite,
+                    "Assets/_Project/Art/M2Production/VFX/vfx_echo_line_telegraph_a_v002.png");
+                AssertSpriteAssetPath(
+                    FindSpriteRenderer(echoPresenters[index], "ProjectileBody").sprite,
+                    "Assets/_Project/Art/M2Production/VFX/vfx_echo_double_silhouette_a_v002.png");
+            }
+        }
+
+        private static void AssertSpriteAssetPath(Sprite sprite, string expectedPath)
+        {
+            Assert.That(sprite, Is.Not.Null, $"Expected sprite at '{expectedPath}'.");
+            Assert.That(
+                AssetDatabase.GetAssetPath(sprite),
+                Is.EqualTo(expectedPath),
+                $"Sprite '{sprite.name}' must resolve to its approved v002 path.");
+        }
+        private static void AssertM2MonsterAnimationBindings(LoadedRoom room)
+        {
+            Assert.That(
+                AssetDatabase.AssetPathToGUID(room.Scene.path),
+                Is.Not.Empty,
+                $"{room.Scene.path} must remain an independently owned M2 scene asset.");
+            Assert.That(
+                AssetDatabase.AssetPathToGUID(room.Scene.path),
+                Is.Not.EqualTo(AssetDatabase.AssetPathToGUID(M1GuidedScenePath)));
+
+            AssertMonsterPrefabPair(
+                M1DasherPrefabPath,
+                M2DasherPrefabPath,
+                DasherAnimationSetPath,
+                DasherAnimationSetGuid,
+                false);
+            AssertMonsterPrefabPair(
+                M1ArcherPrefabPath,
+                M2ArcherPrefabPath,
+                ArcherAnimationSetPath,
+                ArcherAnimationSetGuid,
+                false);
+            AssertMonsterPrefabPair(
+                M1MinionPrefabPath,
+                M2MinionPrefabPath,
+                MinionAnimationSetPath,
+                MinionAnimationSetGuid,
+                true);
+
+            AssertM2EnemyAnimationBinding(
+                FindEnemy(room.Enemies, "Dasher"),
+                M1DasherPrefabPath,
+                M2DasherPrefabPath,
+                DasherAnimationSetPath,
+                DasherAnimationSetGuid,
+                false);
+            AssertM2EnemyAnimationBinding(
+                FindEnemy(room.Enemies, "Archer_A"),
+                M1ArcherPrefabPath,
+                M2ArcherPrefabPath,
+                ArcherAnimationSetPath,
+                ArcherAnimationSetGuid,
+                false);
+            AssertM2EnemyAnimationBinding(
+                FindEnemy(room.Enemies, "Archer_B"),
+                M1ArcherPrefabPath,
+                M2ArcherPrefabPath,
+                ArcherAnimationSetPath,
+                ArcherAnimationSetGuid,
+                false);
+            AssertM2EnemyAnimationBinding(
+                FindEnemy(room.Enemies, "Minion_A"),
+                M1MinionPrefabPath,
+                M2MinionPrefabPath,
+                MinionAnimationSetPath,
+                MinionAnimationSetGuid,
+                true);
+            AssertM2EnemyAnimationBinding(
+                FindEnemy(room.Enemies, "Minion_B"),
+                M1MinionPrefabPath,
+                M2MinionPrefabPath,
+                MinionAnimationSetPath,
+                MinionAnimationSetGuid,
+                true);
+        }
+
+        private static void AssertMonsterPrefabPair(
+            string m1PrefabPath,
+            string m2PrefabPath,
+            string animationSetPath,
+            string expectedAnimationSetGuid,
+            bool isMinion)
+        {
+            var m1Prefab = AssetDatabase.LoadAssetAtPath<GameObject>(m1PrefabPath);
+            var m2Prefab = AssetDatabase.LoadAssetAtPath<GameObject>(m2PrefabPath);
+            var expectedAnimationSet = AssetDatabase.LoadAssetAtPath<DirectionalAnimationSet>(animationSetPath);
+            Assert.That(m1Prefab, Is.Not.Null);
+            Assert.That(m2Prefab, Is.Not.Null);
+            Assert.That(expectedAnimationSet, Is.Not.Null);
+            Assert.That(AssetDatabase.AssetPathToGUID(m1PrefabPath), Is.Not.Empty);
+            Assert.That(AssetDatabase.AssetPathToGUID(m2PrefabPath), Is.Not.Empty);
+            Assert.That(
+                AssetDatabase.AssetPathToGUID(m2PrefabPath),
+                Is.Not.EqualTo(AssetDatabase.AssetPathToGUID(m1PrefabPath)),
+                $"M2 prefab '{m2PrefabPath}' must remain isolated from its M1 counterpart.");
+
+            var m1Animator = FindComponentInChildren<DirectionalSpriteAnimator>(m1Prefab.transform);
+            var m2Animator = FindComponentInChildren<DirectionalSpriteAnimator>(m2Prefab.transform);
+            Assert.That(m1Animator.AnimationSet, Is.SameAs(expectedAnimationSet));
+            Assert.That(m2Animator.AnimationSet, Is.SameAs(expectedAnimationSet));
+            AssertMonsterAnimationSetContract(expectedAnimationSet, expectedAnimationSetGuid, isMinion);
+        }
+
+        private static void AssertM2EnemyAnimationBinding(
+            EnemyBase enemy,
+            string m1PrefabPath,
+            string m2PrefabPath,
+            string animationSetPath,
+            string expectedAnimationSetGuid,
+            bool isMinion)
+        {
+            var expectedAnimationSet = AssetDatabase.LoadAssetAtPath<DirectionalAnimationSet>(animationSetPath);
+            var animator = FindComponentInChildren<DirectionalSpriteAnimator>(enemy.transform);
+            Assert.That(animator.AnimationSet, Is.SameAs(expectedAnimationSet));
+            AssertMonsterAnimationSetContract(animator.AnimationSet, expectedAnimationSetGuid, isMinion);
+        }
+
+        private static void AssertMonsterAnimationSetContract(
+            DirectionalAnimationSet animationSet,
+            string expectedAnimationSetGuid,
+            bool isMinion)
+        {
+            Assert.That(animationSet, Is.Not.Null);
+            Assert.That(
+                AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(animationSet)),
+                Is.EqualTo(expectedAnimationSetGuid));
+            animationSet.Validate();
+            Assert.That(animationSet.ClipCount, Is.EqualTo(64));
+
+            for (var stateIndex = 0; stateIndex < MonsterAnimationStates.Length; stateIndex++)
+            {
+                for (var directionIndex = 0; directionIndex < MonsterAnimationDirections.Length; directionIndex++)
+                {
+                    Assert.That(
+                        animationSet.Supports(
+                            MonsterAnimationStates[stateIndex],
+                            MonsterAnimationDirections[directionIndex]),
+                        Is.True,
+                        $"{animationSet.Role} is missing {MonsterAnimationStates[stateIndex]}/{MonsterAnimationDirections[directionIndex]}.");
+                }
+            }
+
+            for (var directionIndex = 0; directionIndex < MonsterAnimationDirections.Length; directionIndex++)
+            {
+                var direction = MonsterAnimationDirections[directionIndex];
+                AssertMonsterClipContract(
+                    animationSet,
+                    CharacterAnimationState.Walk,
+                    direction,
+                    6,
+                    8f,
+                    true);
+                AssertMonsterClipContract(
+                    animationSet,
+                    CharacterAnimationState.Run,
+                    direction,
+                    8,
+                    12f,
+                    true);
+                AssertMonsterClipContract(
+                    animationSet,
+                    CharacterAnimationState.AttackCharge,
+                    direction,
+                    6,
+                    8f,
+                    false);
+                AssertMonsterClipContract(
+                    animationSet,
+                    CharacterAnimationState.AttackExecute,
+                    direction,
+                    6,
+                    isMinion ? 24f : 14f,
+                    false);
+                AssertMonsterClipContract(
+                    animationSet,
+                    CharacterAnimationState.Recover,
+                    direction,
+                    4,
+                    7f,
+                    false);
+            }
+        }
+
+        private static void AssertMonsterClipContract(
+            DirectionalAnimationSet animationSet,
+            CharacterAnimationState state,
+            CharacterDirection direction,
+            int expectedFrameCount,
+            float expectedFramesPerSecond,
+            bool expectedLoop)
+        {
+            var clip = animationSet.GetClip(state, direction);
+            Assert.That(clip.FrameCount, Is.EqualTo(expectedFrameCount));
+            Assert.That(clip.FramesPerSecond, Is.EqualTo(expectedFramesPerSecond).Within(PositionTolerance));
+            Assert.That(clip.Loop, Is.EqualTo(expectedLoop));
+        }
+#endif
+        private static void AssertArcherFacingAndVisualDirectionRemainWest(
+            ArcherAI archer,
+            DirectionalSpriteAnimator animator)
+        {
+            Assert.That(archer.IntendedFacing.x, Is.LessThan(-0.99f));
+            Assert.That(Mathf.Abs(archer.IntendedFacing.y), Is.LessThan(0.01f));
+            Assert.That(animator.CurrentDirection, Is.EqualTo(CharacterDirection.West));
+        }
+
+        private static T GetRequiredDirectChildComponent<T>(Transform parent, string childName) where T : Component
+        {
+            var child = parent.Find(childName);
+            Assert.That(child, Is.Not.Null, $"'{parent.name}' is missing required child '{childName}'.");
+            var component = child.GetComponent<T>();
+            Assert.That(component, Is.Not.Null, $"'{parent.name}/{childName}' is missing {typeof(T).Name}.");
+            return component;
         }
 
         private static IEnumerator ApplyEchoAndWaitForPending(

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using NUnit.Framework;
 using Overbless.Runtime;
@@ -24,6 +25,171 @@ namespace Overbless.Tests.EditMode
 
             objectsToDestroy.Clear();
         }
+        [Test]
+        public void CharacterAnimationEnums_ReserveGapAndKeepStableDriverOrdinals()
+        {
+            Assert.That((int)CharacterAnimationState.Idle, Is.EqualTo(0));
+            Assert.That((int)CharacterAnimationState.Walk, Is.EqualTo(1));
+            Assert.That((int)CharacterAnimationState.Dash, Is.EqualTo(2));
+            Assert.That((int)CharacterAnimationState.BlessCast, Is.EqualTo(3));
+            Assert.That((int)CharacterAnimationState.AttackCharge, Is.EqualTo(4));
+            Assert.That((int)CharacterAnimationState.AttackExecute, Is.EqualTo(5));
+            Assert.That((int)CharacterAnimationState.Recover, Is.EqualTo(6));
+            Assert.That(Enum.IsDefined(typeof(CharacterAnimationState), 7), Is.False);
+            Assert.That((int)CharacterAnimationState.Hit, Is.EqualTo(8));
+            Assert.That((int)CharacterAnimationState.Death, Is.EqualTo(9));
+            Assert.That((int)CharacterAnimationState.Run, Is.EqualTo(10));
+            CollectionAssert.AreEqual(
+                new[]
+                {
+                    CharacterAnimationState.Idle,
+                    CharacterAnimationState.Walk,
+                    CharacterAnimationState.Dash,
+                    CharacterAnimationState.BlessCast,
+                    CharacterAnimationState.AttackCharge,
+                    CharacterAnimationState.AttackExecute,
+                    CharacterAnimationState.Recover,
+                    CharacterAnimationState.Hit,
+                    CharacterAnimationState.Death,
+                    CharacterAnimationState.Run
+                },
+                (CharacterAnimationState[])Enum.GetValues(typeof(CharacterAnimationState)));
+
+            Assert.That((int)CharacterAnimationDriver.Player, Is.EqualTo(0));
+            Assert.That((int)CharacterAnimationDriver.MajorEnemy, Is.EqualTo(1));
+            Assert.That((int)CharacterAnimationDriver.Minion, Is.EqualTo(2));
+            CollectionAssert.AreEqual(
+                new[]
+                {
+                    CharacterAnimationDriver.Player,
+                    CharacterAnimationDriver.MajorEnemy,
+                    CharacterAnimationDriver.Minion
+                },
+                (CharacterAnimationDriver[])Enum.GetValues(typeof(CharacterAnimationDriver)));
+        }
+
+        [Test]
+        public void EnemyDefinition_ValidatesDualSpeedsAndRuntimeStatsPreserveTheirContracts()
+        {
+            var definition = Track(ScriptableObject.CreateInstance<EnemyDefinition>());
+            SetPrivateField(definition, "walkSpeed", 2f);
+            SetPrivateField(definition, "runSpeed", 4f);
+
+            var baseline = EnemyRuntimeStats.Recompute(definition, Array.Empty<BlessingType>());
+            var haste = EnemyRuntimeStats.Recompute(definition, new[] { BlessingType.Haste });
+            var giant = EnemyRuntimeStats.Recompute(definition, new[] { BlessingType.Giant });
+            var echo = EnemyRuntimeStats.Recompute(definition, new[] { BlessingType.Echo });
+
+            Assert.That(baseline.WalkSpeed, Is.EqualTo(2f));
+            Assert.That(baseline.RunSpeed, Is.EqualTo(4f));
+            Assert.That(
+                haste.WalkSpeed,
+                Is.EqualTo(baseline.WalkSpeed * BlessingDefinition.Haste.MovementSpeedMultiplier));
+            Assert.That(
+                haste.RunSpeed,
+                Is.EqualTo(baseline.RunSpeed * BlessingDefinition.Haste.MovementSpeedMultiplier));
+            Assert.That(giant.WalkSpeed, Is.EqualTo(baseline.WalkSpeed));
+            Assert.That(giant.RunSpeed, Is.EqualTo(baseline.RunSpeed));
+            Assert.That(echo.WalkSpeed, Is.EqualTo(baseline.WalkSpeed));
+            Assert.That(echo.RunSpeed, Is.EqualTo(baseline.RunSpeed));
+
+            Assert.That(baseline.GetMovementSpeed(LocomotionMode.Idle), Is.Zero);
+            Assert.That(baseline.GetMovementSpeed(LocomotionMode.Walk), Is.EqualTo(baseline.WalkSpeed));
+            Assert.That(baseline.GetMovementSpeed(LocomotionMode.Run), Is.EqualTo(baseline.RunSpeed));
+            Assert.Throws<ArgumentOutOfRangeException>(
+                () => baseline.GetMovementSpeed((LocomotionMode)99));
+
+            AssertInvalidEnemySpeedPair(definition, 0f, 4f);
+            AssertInvalidEnemySpeedPair(definition, -1f, 4f);
+            AssertInvalidEnemySpeedPair(definition, float.NaN, 4f);
+            AssertInvalidEnemySpeedPair(definition, 2f, 0f);
+            AssertInvalidEnemySpeedPair(definition, 2f, float.PositiveInfinity);
+            AssertInvalidEnemySpeedPair(definition, 2f, 2f);
+            AssertInvalidEnemySpeedPair(definition, 2f, 1f);
+        }
+
+        [Test]
+        public void EnemyBase_NormalizesMovementIntentAndResetsItIdempotently()
+        {
+            var authoredFacing = new Vector2(3f, -4f);
+            var definition = Track(ScriptableObject.CreateInstance<EnemyDefinition>());
+            var enemy = CreateTestEnemy(31, definition, authoredFacing);
+            var facingChanges = new List<Vector2>();
+            var locomotionChanges = new List<LocomotionMode>();
+            enemy.IntendedFacingChanged += facingChanges.Add;
+            enemy.LocomotionModeChanged += locomotionChanges.Add;
+
+            AssertVector2Approximately(enemy.IntendedFacing, new Vector2(0.6f, -0.8f));
+            Assert.That(enemy.CurrentLocomotionMode, Is.EqualTo(LocomotionMode.Idle));
+            SetPrivateField(enemy, "initialIntendedFacing", Vector2.zero);
+            Assert.Throws<ArgumentOutOfRangeException>(() => enemy.Restart());
+            SetPrivateField(enemy, "initialIntendedFacing", new Vector2(float.NaN, 1f));
+            Assert.Throws<ArgumentOutOfRangeException>(() => enemy.Restart());
+            SetPrivateField(enemy, "initialIntendedFacing", authoredFacing);
+
+            enemy.SetFacingForTest(new Vector2(6f, -8f));
+            enemy.SetFacingForTest(Vector2.left);
+            enemy.SetFacingForTest(new Vector2(-3f, 0f));
+            Assert.That(facingChanges, Is.EqualTo(new[] { Vector2.left }));
+            Assert.Throws<ArgumentOutOfRangeException>(() => enemy.SetFacingForTest(Vector2.zero));
+            Assert.Throws<ArgumentOutOfRangeException>(
+                () => enemy.SetFacingForTest(new Vector2(float.NaN, 1f)));
+            Assert.Throws<ArgumentOutOfRangeException>(
+                () => enemy.SetFacingForTest(new Vector2(float.PositiveInfinity, 1f)));
+            Assert.That(enemy.IntendedFacing, Is.EqualTo(Vector2.left));
+
+            enemy.SetLocomotionForTest(LocomotionMode.Idle);
+            enemy.SetLocomotionForTest(LocomotionMode.Walk);
+            enemy.SetLocomotionForTest(LocomotionMode.Walk);
+            enemy.SetLocomotionForTest(LocomotionMode.Run);
+            Assert.That(locomotionChanges, Is.EqualTo(new[] { LocomotionMode.Walk, LocomotionMode.Run }));
+            Assert.Throws<ArgumentOutOfRangeException>(
+                () => enemy.SetLocomotionForTest((LocomotionMode)99));
+            Assert.That(enemy.CurrentLocomotionMode, Is.EqualTo(LocomotionMode.Run));
+
+            enemy.Restart();
+
+            AssertVector2Approximately(enemy.IntendedFacing, new Vector2(0.6f, -0.8f));
+            Assert.That(enemy.CurrentLocomotionMode, Is.EqualTo(LocomotionMode.Idle));
+            Assert.That(facingChanges, Is.EqualTo(new[] { Vector2.left, new Vector2(0.6f, -0.8f) }));
+            Assert.That(
+                locomotionChanges,
+                Is.EqualTo(new[] { LocomotionMode.Walk, LocomotionMode.Run, LocomotionMode.Idle }));
+
+            enemy.Restart();
+
+            Assert.That(facingChanges, Is.EqualTo(new[] { Vector2.left, new Vector2(0.6f, -0.8f) }));
+            Assert.That(
+                locomotionChanges,
+                Is.EqualTo(new[] { LocomotionMode.Walk, LocomotionMode.Run, LocomotionMode.Idle }));
+        }
+
+        [Test]
+        public void MinionAI_UsesFixedLogicDurationWithoutLoadingDirectionalAnimationData()
+        {
+            var executeDuration = typeof(MinionAI).GetField(
+                "ExecuteDuration",
+                BindingFlags.Static | BindingFlags.NonPublic);
+            Assert.That(executeDuration, Is.Not.Null);
+            Assert.That(executeDuration.IsLiteral, Is.True);
+            Assert.That(executeDuration.GetRawConstantValue(), Is.EqualTo(0.25f));
+
+            var source = ReadRuntimeSource("Enemies/MinionAI.cs");
+            StringAssert.DoesNotContain("DirectionalAnimation", source);
+            StringAssert.DoesNotContain("Resources.Load", source);
+            StringAssert.DoesNotContain("LoadAssetAtPath", source);
+            StringAssert.Contains("var judgmentAt = Time.time;", source);
+            StringAssert.Contains("executeEndsAt = judgmentAt + ExecuteDuration;", source);
+            StringAssert.Contains(
+                "judgmentAt + RuntimeStats.RecoveryDuration + RuntimeStats.AttackCooldown;",
+                source);
+
+            var executionStart = source.IndexOf("BeginAttackExecution();", StringComparison.Ordinal);
+            Assert.That(executionStart, Is.GreaterThanOrEqualTo(0));
+            var damageJudgment = source.IndexOf("ApplyAttackDamageOnce();", executionStart, StringComparison.Ordinal);
+            Assert.That(damageJudgment, Is.GreaterThan(executionStart));
+        }
+
 
         [Test]
         public void DamageLedger_KeysAcceptedDamageByAttackAndTargetAndRejectsSelfDamage()
@@ -407,7 +573,8 @@ namespace Overbless.Tests.EditMode
             Assert.That(echo.HasHaste, Is.EqualTo(baseline.HasHaste));
             Assert.That(echo.HasGiant, Is.EqualTo(baseline.HasGiant));
             Assert.That(echo.MaximumHealth, Is.EqualTo(baseline.MaximumHealth));
-            Assert.That(echo.MovementSpeed, Is.EqualTo(baseline.MovementSpeed));
+            Assert.That(echo.WalkSpeed, Is.EqualTo(baseline.WalkSpeed));
+            Assert.That(echo.RunSpeed, Is.EqualTo(baseline.RunSpeed));
             Assert.That(echo.AttackCooldown, Is.EqualTo(baseline.AttackCooldown));
             Assert.That(echo.WarningDuration, Is.EqualTo(baseline.WarningDuration));
             Assert.That(echo.RecoveryDuration, Is.EqualTo(baseline.RecoveryDuration));
@@ -471,7 +638,8 @@ namespace Overbless.Tests.EditMode
                 Assert.That(system.TryApply(duplicateGiantSlot, target, health, out _), Is.False);
                 Assert.That(health.MaximumHealth, Is.EqualTo(canonical.MaximumHealth));
                 Assert.That(health.CurrentHealth, Is.EqualTo(healthAfterGiant));
-                Assert.That(canonical.MovementSpeed, Is.EqualTo(definition.MovementSpeed * BlessingDefinition.Haste.MovementSpeedMultiplier));
+                Assert.That(canonical.WalkSpeed, Is.EqualTo(definition.WalkSpeed * BlessingDefinition.Haste.MovementSpeedMultiplier));
+                Assert.That(canonical.RunSpeed, Is.EqualTo(definition.RunSpeed * BlessingDefinition.Haste.MovementSpeedMultiplier));
                 Assert.That(canonical.AttackCooldown, Is.EqualTo(definition.AttackCooldown * BlessingDefinition.Haste.AttackCooldownMultiplier));
                 Assert.That(canonical.ProjectileSpeed, Is.EqualTo(definition.ProjectileSpeed * BlessingDefinition.Haste.ProjectileSpeedMultiplier));
                 Assert.That(canonical.AttackSpeedMultiplier, Is.EqualTo(BlessingDefinition.Haste.AttackSpeedMultiplier));
@@ -654,7 +822,8 @@ namespace Overbless.Tests.EditMode
         private static void AssertEquivalentStats(EnemyRuntimeStats expected, EnemyRuntimeStats actual)
         {
             Assert.That(actual.MaximumHealth, Is.EqualTo(expected.MaximumHealth));
-            Assert.That(actual.MovementSpeed, Is.EqualTo(expected.MovementSpeed));
+            Assert.That(actual.WalkSpeed, Is.EqualTo(expected.WalkSpeed));
+            Assert.That(actual.RunSpeed, Is.EqualTo(expected.RunSpeed));
             Assert.That(actual.AttackCooldown, Is.EqualTo(expected.AttackCooldown));
             Assert.That(actual.ProjectileSpeed, Is.EqualTo(expected.ProjectileSpeed));
             Assert.That(actual.AttackRange, Is.EqualTo(expected.AttackRange));
@@ -665,6 +834,44 @@ namespace Overbless.Tests.EditMode
             Assert.That(actual.HasGiant, Is.EqualTo(expected.HasGiant));
             Assert.That(actual.HasEcho, Is.EqualTo(expected.HasEcho));
         }
+        private static void AssertInvalidEnemySpeedPair(EnemyDefinition definition, float walkSpeed, float runSpeed)
+        {
+            SetPrivateField(definition, "walkSpeed", walkSpeed);
+            SetPrivateField(definition, "runSpeed", runSpeed);
+            Assert.Throws<InvalidOperationException>(
+                () => EnemyRuntimeStats.Recompute(definition, Array.Empty<BlessingType>()));
+        }
+
+        private TestEnemy CreateTestEnemy(int entityId, EnemyDefinition definition, Vector2 initialFacing)
+        {
+            var gameObject = Track(new GameObject($"TestEnemy-{entityId}"));
+            gameObject.SetActive(false);
+            var health = gameObject.AddComponent<Health>();
+            gameObject.AddComponent<Rigidbody2D>();
+            gameObject.AddComponent<CircleCollider2D>();
+            var enemy = gameObject.AddComponent<TestEnemy>();
+            SetPrivateField(health, "entityId", entityId);
+            SetPrivateField(health, "maximumHealth", definition.MaximumHealth);
+            SetPrivateField(enemy, "definition", definition);
+            SetPrivateField(enemy, "health", health);
+            SetPrivateField(enemy, "initialIntendedFacing", initialFacing);
+            health.ResetHealth();
+            InvokeNonPublicMethod(enemy, "Awake");
+            return enemy;
+        }
+
+        private static void AssertVector2Approximately(Vector2 actual, Vector2 expected)
+        {
+            Assert.That(Vector2.Distance(actual, expected), Is.LessThanOrEqualTo(0.0001f));
+        }
+
+        private static string ReadRuntimeSource(string runtimeRelativePath)
+        {
+            var sourcePath = Path.Combine(Application.dataPath, "_Project", "Runtime", runtimeRelativePath);
+            Assert.That(File.Exists(sourcePath), Is.True, $"Runtime source is missing: {runtimeRelativePath}");
+            return File.ReadAllText(sourcePath);
+        }
+
 
         private Health CreateHealth(int entityId, int maximumHealth)
         {
@@ -729,6 +936,22 @@ namespace Overbless.Tests.EditMode
             method.Invoke(target, null);
         }
 
+        public sealed class TestEnemy : EnemyBase
+        {
+            public void SetFacingForTest(Vector2 facing)
+            {
+                SetIntendedFacing(facing);
+            }
+
+            public void SetLocomotionForTest(LocomotionMode mode)
+            {
+                SetLocomotionMode(mode);
+            }
+
+            protected override void TickBehavior(float deltaTime)
+            {
+            }
+        }
         private sealed class RecordingDamageable : IDamageable
         {
             public RecordingDamageable(int entityId)
