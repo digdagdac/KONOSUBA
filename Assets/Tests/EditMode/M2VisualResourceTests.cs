@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using NUnit.Framework;
@@ -25,6 +26,21 @@ namespace Overbless.Tests.EditMode
             "Docs/AI_Usage/generations/monster_directional_animations_v002.json";
         private const string MonsterAnimationReviewPath =
             "Docs/AI_Usage/edits/monster_directional_animation_review_v002.json";
+        private const string MonsterAnimationLiveReviewPath =
+            "Docs/AI_Usage/edits/monster_directional_animation_live_review_v002.json";
+        private const string MonsterAnimationReviewMediaRoot =
+            "Docs/AI_Usage/reviews/monster_animation_v002/";
+        private const float MonsterAnimationTimingTolerancePercent = 10f;
+        private static readonly string[] MonsterAnimationTimingMetrics =
+        {
+            "chase_to_range",
+            "retreat_to_safe_band",
+            "preparation_to_judgment",
+            "judgment_to_next_eligible_warning_plain",
+            "judgment_to_next_judgment_plain",
+            "judgment_to_next_eligible_warning_haste",
+            "judgment_to_next_judgment_haste"
+        };
         private const string MonsterAnimationPromptPath =
             "Docs/AI_Usage/prompts/monster_directional_animation_prompts_v002.json";
         private const string MonsterAnimationSourceRoot =
@@ -514,6 +530,195 @@ namespace Overbless.Tests.EditMode
                     Is.EqualTo(generatedAtlasHashesByPath[atlasPath]),
                     $"Generated monster atlas bytes drifted: {atlasPath}");
             }
+        }
+
+        [Test]
+        public void MonsterV002LiveReviewRecordAttachesMachineEvidenceWithoutClaimingHumanApproval()
+        {
+            var record = ReadJsonDocument(MonsterAnimationLiveReviewPath);
+            Assert.That(
+                GetRequiredString(record, "review_id"),
+                Is.EqualTo("monster_directional_animation_live_review_v002"));
+            Assert.That(
+                GetRequiredString(record, "status"),
+                Is.EqualTo("machine-live-review-complete-human-approval-pending"));
+
+            var extends = GetRequiredProperty(record, "extends");
+            Assert.That(GetRequiredString(extends, "path"), Is.EqualTo(MonsterAnimationReviewPath));
+            Assert.That(
+                GetRequiredString(extends, "sha256"),
+                Is.EqualTo(ComputeSha256(ResolveProjectPath(MonsterAnimationReviewPath))),
+                "The extended review record must stay byte identical; corrections belong in a new record.");
+
+            var candidate = GetRequiredProperty(record, "candidate");
+            Assert.That(GetRequiredString(candidate, "unity_version"), Is.EqualTo(Application.unityVersion));
+            Assert.That(GetRequiredString(candidate, "commit").Length, Is.EqualTo(40));
+            Assert.That(GetRequiredString(GetRequiredProperty(record, "baseline"), "commit").Length, Is.EqualTo(40));
+
+            var tooling = GetRequiredArray(record, "tooling");
+            Assert.That(tooling.Count, Is.GreaterThanOrEqualTo(2));
+            for (var toolIndex = 0; toolIndex < tooling.Count; toolIndex++)
+            {
+                var toolPath = GetRequiredString(tooling[toolIndex], "path");
+                Assert.That(File.Exists(ResolveProjectPath(toolPath)), Is.True, $"Recorded tool is missing: {toolPath}");
+                Assert.That(
+                    GetRequiredString(tooling[toolIndex], "sha256"),
+                    Is.EqualTo(ComputeSha256(ResolveProjectPath(toolPath))),
+                    $"Recorded tool bytes drifted: {toolPath}");
+            }
+
+            var suites = GetRequiredArray(record, "test_suites");
+            Assert.That(suites.Count, Is.EqualTo(2));
+            var suitePlatforms = new List<string>();
+            for (var suiteIndex = 0; suiteIndex < suites.Count; suiteIndex++)
+            {
+                var suite = suites[suiteIndex];
+                suitePlatforms.Add(GetRequiredString(suite, "platform"));
+                Assert.That(GetRequiredInteger(suite, "failed"), Is.EqualTo(0));
+                Assert.That(
+                    GetRequiredInteger(suite, "passed"),
+                    Is.EqualTo(GetRequiredInteger(suite, "total")),
+                    "A recorded suite must have every case passing.");
+                Assert.That(GetRequiredString(suite, "result"), Is.EqualTo("Passed"));
+            }
+
+            CollectionAssert.AreEquivalent(new[] { "EditMode", "PlayMode" }, suitePlatforms);
+            AssertLiveReviewTimingMetrics(record);
+            AssertLiveReviewVisualMatrix(record);
+            AssertLiveReviewScenarios(record);
+
+            Assert.That(
+                GetRequiredProperty(record, "reviewer").Kind,
+                Is.EqualTo(CanonicalJsonKind.Null),
+                "Machine evidence must never record a reviewer identity.");
+            Assert.That(GetRequiredArray(record, "human_review_remaining").Count, Is.GreaterThan(0));
+        }
+
+        private static void AssertLiveReviewTimingMetrics(CanonicalJsonValue record)
+        {
+            var metrics = GetRequiredArray(record, "timing_metrics");
+            Assert.That(metrics.Count, Is.EqualTo(MonsterAnimationTimingMetrics.Length));
+            var largestDelta = 0f;
+            for (var metricIndex = 0; metricIndex < metrics.Count; metricIndex++)
+            {
+                var metric = metrics[metricIndex];
+                Assert.That(
+                    GetRequiredString(metric, "metric"),
+                    Is.EqualTo(MonsterAnimationTimingMetrics[metricIndex]),
+                    "Timing metrics must stay in the reviewed order.");
+                var baselineSeconds = GetRequiredFloat(metric, "baseline_seconds");
+                var candidateSeconds = GetRequiredFloat(metric, "candidate_seconds");
+                var deltaPercent = GetRequiredFloat(metric, "delta_percent");
+                Assert.That(baselineSeconds, Is.GreaterThan(0f));
+                Assert.That(candidateSeconds, Is.GreaterThan(0f));
+                Assert.That(
+                    deltaPercent,
+                    Is.EqualTo(((candidateSeconds - baselineSeconds) / baselineSeconds) * 100f).Within(0.01f),
+                    "Recorded delta must match its own baseline and candidate seconds.");
+                Assert.That(
+                    Mathf.Abs(deltaPercent),
+                    Is.LessThanOrEqualTo(MonsterAnimationTimingTolerancePercent),
+                    $"Timing metric '{GetRequiredString(metric, "metric")}' left the ten percent band.");
+                Assert.That(GetRequiredString(metric, "status"), Is.EqualTo("within-ten-percent"));
+                largestDelta = Mathf.Max(largestDelta, Mathf.Abs(deltaPercent));
+            }
+
+            var summary = GetRequiredProperty(record, "timing_summary");
+            Assert.That(
+                GetRequiredFloat(summary, "tolerance_percent"),
+                Is.EqualTo(MonsterAnimationTimingTolerancePercent).Within(0.0001f));
+            Assert.That(
+                GetRequiredFloat(summary, "largest_absolute_delta_percent"),
+                Is.EqualTo(largestDelta).Within(0.01f));
+            Assert.That(GetRequiredBoolean(summary, "all_within_tolerance"), Is.True);
+        }
+
+        private static void AssertLiveReviewVisualMatrix(CanonicalJsonValue record)
+        {
+            var matrix = GetRequiredArray(record, "visual_matrix");
+            Assert.That(matrix.Count, Is.EqualTo(4));
+            var seenCells = new List<string>();
+            for (var cellIndex = 0; cellIndex < matrix.Count; cellIndex++)
+            {
+                var cell = matrix[cellIndex];
+                var build = GetRequiredString(cell, "build");
+                var resolution = GetRequiredString(cell, "resolution");
+                seenCells.Add($"{build}@{resolution}");
+                CollectionAssert.AreEqual(
+                    new[] { "dasher", "archer", "minion" },
+                    GetStringArray(GetRequiredProperty(cell, "roles"), "roles"));
+                CollectionAssert.AreEqual(
+                    new[] { "walk", "run", "attack" },
+                    GetStringArray(GetRequiredProperty(cell, "states"), "states"));
+                Assert.That(
+                    GetRequiredString(cell, "status"),
+                    Is.EqualTo("machine-captured-human-approval-pending"));
+
+                var separatorIndex = resolution.IndexOf('x');
+                Assert.That(separatorIndex, Is.GreaterThan(0), $"Resolution must be WIDTHxHEIGHT: {resolution}");
+                var expectedSize = new[]
+                {
+                    int.Parse(resolution.Substring(0, separatorIndex), CultureInfo.InvariantCulture),
+                    int.Parse(resolution.Substring(separatorIndex + 1), CultureInfo.InvariantCulture)
+                };
+                AssertIntArray(cell, "canvas_css", expectedSize);
+                AssertIntArray(cell, "canvas_backing", expectedSize);
+                Assert.That(GetRequiredFloat(cell, "maximum_frame_change"), Is.GreaterThan(0f));
+                Assert.That(GetRequiredInteger(cell, "distinct_screenshot_hashes"), Is.GreaterThan(1));
+
+                var media = GetRequiredArray(cell, "media");
+                Assert.That(media.Count, Is.GreaterThanOrEqualTo(2), "Each matrix cell needs attached review media.");
+                for (var mediaIndex = 0; mediaIndex < media.Count; mediaIndex++)
+                {
+                    var mediaPath = GetRequiredString(media[mediaIndex], "path");
+                    Assert.That(
+                        mediaPath.StartsWith(MonsterAnimationReviewMediaRoot, StringComparison.Ordinal),
+                        Is.True,
+                        $"Review media must live under {MonsterAnimationReviewMediaRoot}: {mediaPath}");
+                    var resolved = ResolveProjectPath(mediaPath);
+                    Assert.That(File.Exists(resolved), Is.True, $"Review media is missing: {mediaPath}");
+                    Assert.That(
+                        ComputeSha256(resolved),
+                        Is.EqualTo(GetRequiredString(media[mediaIndex], "sha256")),
+                        $"Review media bytes drifted: {mediaPath}");
+                    Assert.That(
+                        GetRequiredInteger(media[mediaIndex], "bytes"),
+                        Is.EqualTo((int)new FileInfo(resolved).Length),
+                        $"Review media size drifted: {mediaPath}");
+                }
+            }
+
+            CollectionAssert.AreEquivalent(
+                new[] { "M1@1280x720", "M1@1920x1080", "M2@1280x720", "M2@1920x1080" },
+                seenCells);
+        }
+
+        private static void AssertLiveReviewScenarios(CanonicalJsonValue record)
+        {
+            var priorReview = ReadJsonDocument(MonsterAnimationReviewPath);
+            var priorScenarios = GetRequiredArray(priorReview, "runtime_scenarios");
+            var expectedIds = new List<string>();
+            for (var scenarioIndex = 0; scenarioIndex < priorScenarios.Count; scenarioIndex++)
+            {
+                expectedIds.Add(GetRequiredString(priorScenarios[scenarioIndex], "id"));
+            }
+
+            var scenarios = GetRequiredArray(record, "runtime_scenarios");
+            var recordedIds = new List<string>();
+            for (var scenarioIndex = 0; scenarioIndex < scenarios.Count; scenarioIndex++)
+            {
+                var scenario = scenarios[scenarioIndex];
+                recordedIds.Add(GetRequiredString(scenario, "id"));
+                Assert.That(
+                    GetRequiredArray(scenario, "automated_coverage").Count,
+                    Is.GreaterThan(0),
+                    "Every scenario must name the automated coverage that backs it.");
+                Assert.That(
+                    GetRequiredString(scenario, "status"),
+                    Is.EqualTo("machine-covered-human-approval-pending"));
+            }
+
+            CollectionAssert.AreEquivalent(expectedIds, recordedIds);
         }
 
         private static void AssertMonsterStateContracts(IReadOnlyList<CanonicalJsonValue> states)
