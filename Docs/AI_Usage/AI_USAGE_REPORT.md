@@ -6,11 +6,11 @@
 - Pixel-art calibration is confirmed in `Docs/Decisions/STYLE_DECISION.json`.
 - M1 audio is confirmed as repository-local procedural synthesis only in `Docs/Decisions/OPEN_A3_AUDIO.json`.
 - External recordings, externally generated audio, and AI audio assets are prohibited.
-- Six deterministic procedural WAVs were generated under `Assets/_Project/Audio/M1Functional/`. Each event record under `Docs/AI_Usage/generations/` binds the generator source SHA, Unity version, UTC, seed, parameters, WAV path/SHA, ordered modifications, and `pending-user-gate` reviewer state. Generation is complete; human audio approval is not.
+- Ten deterministic procedural WAVs were generated under `Assets/_Project/Audio/M1Functional/`. Each event record under `Docs/AI_Usage/generations/` binds the generator source SHA, Unity version, UTC, seed, parameters, WAV path/SHA, ordered modifications, and `pending-user-gate` reviewer state. Generation is complete; human audio approval is not.
 
 ## Functional-event provenance contract
 
-Each generated WAV for the following six functional events requires a separate record. Every record must contain actual values, not placeholders, for: generator name; tool name and version; generator source SHA-256; generation UTC; seed; parameters or instruction; original WAV path and SHA-256; ordered modifications; final WAV path and SHA-256; and reviewer.
+Each generated WAV for the following ten functional events requires a separate record. Every record must contain actual values, not placeholders, for: generator name; tool name and version; generator source SHA-256; generation UTC; seed; parameters or instruction; original WAV path and SHA-256; ordered modifications; final WAV path and SHA-256; and reviewer.
 
 | Event requiring its own record |
 | --- |
@@ -20,6 +20,15 @@ Each generated WAV for the following six functional events requires a separate r
 | `PlayerHit` |
 | `SoulCollected` |
 | `ExitOpened` |
+| `BlessingApplied` |
+| `BlessingRejected` |
+| `EnemyDefeated` |
+| `FriendlyFireKill` |
+
+The last four are core-loop cues added after the original six. Applying a blessing and the
+resulting enemy-on-enemy kill are the only actions that express player agency, and both were
+previously silent. The six original clips keep byte-identical WAV hashes across regeneration;
+only their generation timestamp and generator source hash moved when the generator grew.
 
 ## Recording rules
 
@@ -94,3 +103,13 @@ Each generated WAV for the following six functional events requires a separate r
 - Timing: seven metrics were measured on the pre-v002 baseline `dd7ad95` and on the candidate with an identical harness pinned to the 0.02 second fixed step. Chase, retreat and preparation timings are unchanged; the four cadence metrics move by 0.04 seconds, which is 0.78 to 1.18 percent, so every delta stays inside the ten percent band.
 - Visuals: `Tools/capture_webgl_visuals.py` served each build and drove headless Chrome at 1280x720 and 1920x1080, sending a trusted pointer gesture plus a movement burst. Ten gameplay frames per surface are recorded with per-frame hashes and change ratios; two frames per surface are attached under `Docs/AI_Usage/reviews/monster_animation_v002/`.
 - Human gameplay-scale approval is still outstanding. The record leaves `reviewer` null, states what a reviewer must still judge, and does not touch the user-owned `M2EntryGate`.
+
+## M2 character identity layer
+
+- The approved character direction in `Docs/Decisions/M2_IMPLEMENTATION_APPROVAL.json` now has a runtime form. `Assets/_Project/Data/Characters/CharacterIdentityCatalog.asset` binds Rivella to the player and Vera, Lume and Moko to the Dasher, Archer and Minion data assets, together with an age line, a concept line, a motif colour and one habit line that names behaviour a tester can watch happen.
+- `Assets/Tests/EditMode/M2CharacterIdentityTests.cs` reads the approval file and fails if a name, an age or an archetype mapping drifts, so the shipped cast cannot diverge from the approved direction without a test failure.
+- Atra is deliberately absent. The guardian is described in the approval, but golem runtime activation stays out of scope, so shipping an identity for it would activate an excluded actor.
+- `CharacterAppealPresenter` opens a card at the four approved moments only: first encounter, blessing choice, victory and defeat. Each cast member introduces itself once per attempt even though two archers share one rival, a restart earns the introductions back, and no card opens before a trusted gesture starts the run.
+- Portrait art is not produced yet. Every identity declares `portraitSource: RepresentativeCombatSprite` and stands in with its authoritative pixel combat sprite while the four expressions differ by card framing. No record claims cel art that does not exist.
+- The acceptance seam for real art already exists. `Docs/AI_Usage/prompts/m2_character_appeal_prompts_v002.json` holds the exact prompts and the expected output paths under `Docs/AI_Usage/sources/m2_character_appeal_v002/`. Once those sheets are delivered, the panels are extracted from their magenta gutters the same way the other sheets were, the catalog switches each identity to `CelPortraitSheet` with four panels, and the EditMode test already requires that switch as soon as the source directory exists.
+- This is local unsealed implementation of approved M2 scope. It creates no `M2EntryGate` decision, and the M1 guided scene physically excludes the card, which `M1IntegrationTests` asserts the same way it asserts the Echo exclusion.

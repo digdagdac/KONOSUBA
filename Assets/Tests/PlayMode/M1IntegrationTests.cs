@@ -337,6 +337,34 @@ namespace Overbless.Tests.PlayMode
                 SetPrivateField(driftTarget.Health, "entityId", registeredEntityId);
             }
         }
+        /// <summary>
+        /// The named cast is approved M2 scope, so the guided candidate must not contain the
+        /// card at all. This mirrors the Echo exclusion above: absence is physical, not a flag.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator GuidedScene_PhysicallyExcludesTheCharacterIdentityCard()
+        {
+            yield return LoadGuidedScene();
+
+            var scene = SceneManager.GetSceneByPath(GuidedScenePath);
+            Assert.That(
+                FindComponentsInScene<CharacterAppealPresenter>(scene),
+                Is.Empty,
+                "M1 must not contain the character card presenter.");
+            Assert.That(FindGameObjectsInScene(scene, "CharacterAppeal"), Is.Empty);
+            Assert.That(FindGameObjectsInScene(scene, "IdentityPanel"), Is.Empty);
+
+            var transforms = FindTransformsInScene(scene);
+            for (var index = 0; index < transforms.Count; index++)
+            {
+                var name = transforms[index].name;
+                Assert.That(
+                    name.IndexOf("Identity", StringComparison.OrdinalIgnoreCase),
+                    Is.LessThan(0),
+                    $"M1 retains an identity object '{name}'.");
+            }
+        }
+
         [UnityTest]
         public IEnumerator GuidedScene_PhysicallyExcludesEchoFromItsHudAndEnemyViews()
         {

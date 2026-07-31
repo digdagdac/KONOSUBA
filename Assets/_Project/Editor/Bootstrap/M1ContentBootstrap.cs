@@ -180,6 +180,7 @@ namespace Overbless.Editor.Bootstrap
             var room02 = CreateRoomDefinition(Room02DataPath, M1RoomVariant.Room02);
             var room03 = CreateRoomDefinition(Room03DataPath, M1RoomVariant.Room03);
             var audioCatalog = CreateAudioCatalog();
+            var identityCatalog = M2CharacterIdentityBootstrap.CreateOrUpdateCatalog();
             var prefabs = CreateM2Prefabs(sprites, animations, playerConfig, enemyDefinitions);
             var pillar = SavePrefab(
                 M2PrefabRoot + "/WorldPillar.prefab",
@@ -190,6 +191,7 @@ namespace Overbless.Editor.Bootstrap
 
             room02 = RequireAsset<M1RoomDefinition>(Room02DataPath);
             audioCatalog = RequireAsset<FunctionalAudioCatalog>(AudioDataRoot + "/FunctionalAudioCatalog.asset");
+            identityCatalog = RequireAsset<CharacterIdentityCatalog>(M2CharacterIdentityBootstrap.CatalogPath);
             prefabs = LoadPrefabSet(M2PrefabRoot);
             room02.Validate();
             CreateM2Scene(
@@ -198,6 +200,7 @@ namespace Overbless.Editor.Bootstrap
                 "ROOM  02",
                 room02,
                 audioCatalog,
+                identityCatalog,
                 prefabs,
                 sprites,
                 "Room_03",
@@ -205,6 +208,7 @@ namespace Overbless.Editor.Bootstrap
 
             room03 = RequireAsset<M1RoomDefinition>(Room03DataPath);
             audioCatalog = RequireAsset<FunctionalAudioCatalog>(AudioDataRoot + "/FunctionalAudioCatalog.asset");
+            identityCatalog = RequireAsset<CharacterIdentityCatalog>(M2CharacterIdentityBootstrap.CatalogPath);
             prefabs = LoadPrefabSet(M2PrefabRoot);
             pillar = RequireAsset<GameObject>(M2PrefabRoot + "/WorldPillar.prefab");
             room03.Validate();
@@ -214,6 +218,7 @@ namespace Overbless.Editor.Bootstrap
                 "ROOM  03",
                 room03,
                 audioCatalog,
+                identityCatalog,
                 prefabs,
                 sprites,
                 string.Empty,
@@ -1238,6 +1243,7 @@ namespace Overbless.Editor.Bootstrap
             string roomLabel,
             M1RoomDefinition roomDefinition,
             FunctionalAudioCatalog audioCatalog,
+            CharacterIdentityCatalog identityCatalog,
             PrefabSet prefabs,
             M2SpriteSet sprites,
             string nextScene,
@@ -1245,6 +1251,12 @@ namespace Overbless.Editor.Bootstrap
         {
             var roomDefinitionPath = AssetDatabase.GetAssetPath(roomDefinition);
             var audioCatalogPath = AssetDatabase.GetAssetPath(audioCatalog);
+            var identityCatalogPath = AssetDatabase.GetAssetPath(identityCatalog);
+            if (string.IsNullOrEmpty(identityCatalogPath))
+            {
+                throw new InvalidOperationException("The M2 character identity catalog must be a persisted asset.");
+            }
+
             roomDefinition.Validate();
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
@@ -1311,7 +1323,7 @@ namespace Overbless.Editor.Bootstrap
             ConfigureRuntimeBinder(systems, playerHealth, blessingTargeting, enemies, room, true);
             ConfigureFunctionalAudioBridge(systems, audioEmitter, playerHealth, enemies, room, restartController, blessingTargeting);
             ConfigurePauseController(systems, playerInput, blessingTargeting, restartController);
-            CreateHud(
+            var hud = CreateHud(
                 root.transform,
                 playerHealth,
                 player.GetComponent<DashAbility>(),
@@ -1322,6 +1334,14 @@ namespace Overbless.Editor.Bootstrap
                 roomLabel,
                 true,
                 sprites.Echo);
+            var appealPresenter = ConfigureCharacterAppeal(
+                hud,
+                identityCatalogPath,
+                systems.GetComponent<WebStartGate>(),
+                playerLifeCycle,
+                blessingTargeting,
+                exit,
+                enemies);
 
             ValidateSceneAudioListener(scene, camera);
             if (!EditorSceneManager.SaveScene(scene, scenePath))
@@ -1336,6 +1356,32 @@ namespace Overbless.Editor.Bootstrap
                 roomDefinitionPath,
                 audioEmitter,
                 audioCatalogPath);
+            BindPersistentIdentityCatalog(scene, scenePath, appealPresenter, identityCatalogPath);
+        }
+
+        /// <summary>
+        /// Re-points the character card at the catalog asset on disk after the scene is
+        /// saved, the same reason the room definition and audio catalog are rebound: an
+        /// asset created in this session must not linger as an in-memory reference.
+        /// </summary>
+        private static void BindPersistentIdentityCatalog(
+            Scene scene,
+            string scenePath,
+            CharacterAppealPresenter presenter,
+            string identityCatalogPath)
+        {
+            var persistedIdentities = RequireAsset<CharacterIdentityCatalog>(identityCatalogPath);
+            persistedIdentities.Validate();
+
+            var serialized = new SerializedObject(presenter);
+            SetObject(serialized, "catalog", persistedIdentities);
+            Apply(serialized, presenter);
+
+            if (!EditorSceneManager.SaveScene(scene, scenePath))
+            {
+                throw new InvalidOperationException(
+                    $"Unity failed to persist the character identity catalog reference in scene '{scenePath}'.");
+            }
         }
 
         private static void BindPersistentSceneAssets(
@@ -1667,7 +1713,8 @@ namespace Overbless.Editor.Bootstrap
             Apply(serialized, pauseController);
         }
 
-        private static void CreateHud(
+        /// <summary>Builds the HUD and returns its canvas transform for M2-only additions.</summary>
+        private static Transform CreateHud(
             Transform parent,
             Health playerHealth,
             DashAbility dashAbility,
@@ -1860,6 +1907,106 @@ namespace Overbless.Editor.Bootstrap
                 SetObject(serialized, "echoFrame", echoFrame);
             }
             Apply(serialized, controller);
+            return hud.transform;
+        }
+
+        /// <summary>
+        /// Adds the M2-only character card to an existing HUD. M1 never calls this, so the
+        /// guided scene contains no identity card object at all, the same physical
+        /// exclusion the Echo card uses.
+        /// </summary>
+        /// <remarks>
+        /// The catalog is resolved by path rather than by reference because creating the
+        /// scene can release a freshly authored asset instance from memory.
+        /// </remarks>
+        private static CharacterAppealPresenter ConfigureCharacterAppeal(
+            Transform hud,
+            string identityCatalogPath,
+            WebStartGate webStartGate,
+            PlayerLifeCycle playerLifeCycle,
+            BlessingTargeting blessingTargeting,
+            ExitGate exitGate,
+            EnemyBase[] enemies)
+        {
+            if (string.IsNullOrEmpty(identityCatalogPath))
+            {
+                throw new InvalidOperationException("M2 HUD requires a character identity catalog path.");
+            }
+
+            if (webStartGate == null)
+            {
+                throw new InvalidOperationException("M2 character card requires the web start gate.");
+            }
+
+            var identityCatalog = RequireAsset<CharacterIdentityCatalog>(identityCatalogPath);
+            identityCatalog.Validate();
+            var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            if (font == null)
+            {
+                throw new InvalidOperationException("M2 character card requires Unity's LegacyRuntime font.");
+            }
+
+            var holder = new GameObject("CharacterAppeal", typeof(RectTransform), typeof(CharacterAppealPresenter));
+            holder.transform.SetParent(hud, false);
+            ConfigureHudRect(
+                holder.GetComponent<RectTransform>(),
+                new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f),
+                Vector2.zero,
+                new Vector2(760f, 224f));
+
+            var card = CreateHudPanel(
+                holder.transform,
+                "IdentityPanel",
+                new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f),
+                new Vector2(0f, 96f),
+                new Vector2(760f, 224f),
+                new Color32(64, 214, 236, 255));
+            var frameImage = card.GetComponent<Image>();
+
+            var insetObject = new GameObject("Inset", typeof(RectTransform), typeof(Image));
+            insetObject.transform.SetParent(card, false);
+            var insetRect = insetObject.GetComponent<RectTransform>();
+            insetRect.anchorMin = Vector2.zero;
+            insetRect.anchorMax = Vector2.one;
+            insetRect.offsetMin = new Vector2(6f, 6f);
+            insetRect.offsetMax = new Vector2(-6f, -6f);
+            var inset = insetObject.GetComponent<Image>();
+            inset.color = new Color32(10, 17, 30, 246);
+            inset.raycastTarget = false;
+
+            var cardPaleText = new Color32(225, 239, 244, 255);
+            var cardMutedText = new Color32(148, 173, 186, 255);
+            var portrait = CreateHudIcon(
+                card,
+                "Portrait",
+                identityCatalog.GetRequired(CharacterRole.Player).GetPortrait(CharacterExpression.Neutral),
+                new Vector2(22f, -22f),
+                new Vector2(160f, 180f),
+                Color.white);
+            var nameText = CreateHudText(card, "Name", "RIVELLA", font, 44, TextAnchor.MiddleLeft, cardPaleText, new Vector2(200f, -20f), new Vector2(540f, 54f));
+            var roleText = CreateHudText(card, "Role", "AGE 22  ·  CYNICAL FORMER SAINT", font, 20, TextAnchor.MiddleLeft, cardMutedText, new Vector2(200f, -78f), new Vector2(540f, 28f));
+            var habitText = CreateHudText(card, "Habit", string.Empty, font, 22, TextAnchor.UpperLeft, cardPaleText, new Vector2(200f, -112f), new Vector2(540f, 90f));
+
+            var presenter = holder.GetComponent<CharacterAppealPresenter>();
+            var presenterSerialized = new SerializedObject(presenter);
+            SetObject(presenterSerialized, "catalog", identityCatalog);
+            SetObject(presenterSerialized, "webStartGate", webStartGate);
+            SetObject(presenterSerialized, "playerLifeCycle", playerLifeCycle);
+            SetObject(presenterSerialized, "blessingTargeting", blessingTargeting);
+            SetObject(presenterSerialized, "exitGate", exitGate);
+            SetObjectArray(presenterSerialized, "enemies", enemies);
+            SetObject(presenterSerialized, "cardRoot", card.gameObject);
+            SetObject(presenterSerialized, "portraitImage", portrait);
+            SetObject(presenterSerialized, "frameImage", frameImage);
+            SetObject(presenterSerialized, "nameText", nameText);
+            SetObject(presenterSerialized, "roleText", roleText);
+            SetObject(presenterSerialized, "habitText", habitText);
+            Apply(presenterSerialized, presenter);
+
+            card.gameObject.SetActive(false);
+            return presenter;
         }
 
         private static Transform CreateHudPanel(

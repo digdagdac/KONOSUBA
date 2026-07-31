@@ -1102,6 +1102,141 @@ namespace Overbless.Tests.PlayMode
             Assert.That(animator.CurrentDirection, Is.EqualTo(CharacterDirection.West));
         }
 
+        /// <summary>
+        /// The character card is approved for first encounter, blessing choice, victory and
+        /// defeat only. Every assertion here reads the card in the same call that raises it,
+        /// so live enemy behaviour cannot race the expectation.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator Room02_CharacterCardOpensOnlyAtApprovedMomentsAndIntroducesEachRivalOnce()
+        {
+            LoadedRoom room = null;
+            yield return LoadRoom(Room02ScenePath, loadedRoom => room = loadedRoom);
+
+            var presenter = FindComponentInScene<CharacterAppealPresenter>(room.Scene);
+            Assert.That(presenter, Is.Not.Null, "Room_02 must carry the character card.");
+            Assert.That(
+                presenter.IsCardVisible,
+                Is.False,
+                $"No card may open before the trusted gesture, but it shows '{presenter.CurrentIdentity?.DisplayName}'.");
+            Assert.That(presenter.CurrentIdentity, Is.Null);
+            Assert.That(
+                presenter.IsIntroduced(CharacterRole.Archer),
+                Is.False,
+                "A warning raised before the run starts must not spend an introduction.");
+            Assert.That(presenter.IsIntroduced(CharacterRole.Dasher), Is.False);
+            Assert.That(presenter.IsIntroduced(CharacterRole.Minion), Is.False);
+
+            var dasher = FindEnemy(room.Enemies, "Dasher");
+            var minionA = FindEnemy(room.Enemies, "Minion_A");
+            var minionB = FindEnemy(room.Enemies, "Minion_B");
+
+            var mouse = AddMouse();
+            yield return StartWithTrustedGesture(room.WebGate, mouse);
+
+            // Blessing choice. The signal is synchronous, so the card is read before any
+            // enemy can tick again.
+            Assert.That(room.BlessingTargeting.Select(BlessingType.Haste), Is.True);
+            Assert.That(room.BlessingTargeting.SetHoveredTarget(minionA.EntityId), Is.True);
+            Assert.That(room.BlessingTargeting.ApplyHoveredTarget(), Is.True);
+            Assert.That(presenter.IsCardVisible, Is.True, "A blessing choice is an approved card moment.");
+            Assert.That(presenter.CurrentIdentity.DisplayName, Is.EqualTo("MOKO"));
+            Assert.That(presenter.CurrentExpression, Is.EqualTo(CharacterExpression.Confident));
+            Assert.That(presenter.IsIntroduced(CharacterRole.Minion), Is.True);
+
+            // First encounter. The Dasher spawns outside its engagement range in Room_02, so
+            // this warning is the first one it commits to.
+            Assert.That(dasher.CurrentAttackPhase, Is.EqualTo(AttackPhase.Idle));
+            Assert.That(presenter.IsIntroduced(CharacterRole.Dasher), Is.False);
+            dasher.AttackState.BeginWarning(dasher.RuntimeStats.WarningDuration);
+            Assert.That(presenter.IsCardVisible, Is.True, "A first warning must introduce its rival.");
+            Assert.That(presenter.CurrentIdentity.DisplayName, Is.EqualTo("VERA"));
+            Assert.That(presenter.CurrentExpression, Is.EqualTo(CharacterExpression.Neutral));
+            Assert.That(presenter.IsIntroduced(CharacterRole.Dasher), Is.True);
+
+            // The second minion is the same cast member, so it must not introduce Moko twice.
+            if (minionB.CurrentAttackPhase == AttackPhase.Idle)
+            {
+                minionB.AttackState.BeginWarning(minionB.RuntimeStats.WarningDuration);
+                Assert.That(
+                    presenter.CurrentIdentity.DisplayName,
+                    Is.EqualTo("VERA"),
+                    "An already introduced cast member must not take the card back from the current one.");
+            }
+
+            var playerHealth = room.Player.GetComponent<Health>();
+            Assert.That(playerHealth, Is.Not.Null);
+            Assert.That(
+                playerHealth.TryApplyDamage(
+                    new DamageEvent(30001, 91001, playerHealth.EntityId, playerHealth.MaximumHealth)),
+                Is.True);
+            Assert.That(room.Player.IsAlive, Is.False);
+            Assert.That(presenter.IsCardVisible, Is.True, "Defeat is an approved card moment.");
+            Assert.That(presenter.CurrentIdentity.DisplayName, Is.EqualTo("RIVELLA"));
+            Assert.That(presenter.CurrentExpression, Is.EqualTo(CharacterExpression.Hurt));
+        }
+
+        /// <summary>
+        /// Victory is the fourth approved moment. Room_03 ends the sequence, so entering its
+        /// exit completes the run in place instead of loading another scene. The enemies are
+        /// switched off first so the closing behaviour of the card can be observed on its own.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator Room03_CharacterCardClosesTheRunWithoutTakingInputFromTheExit()
+        {
+            LoadedRoom room = null;
+            yield return LoadRoom(Room03ScenePath, loadedRoom => room = loadedRoom);
+
+            var presenter = FindComponentInScene<CharacterAppealPresenter>(room.Scene);
+            Assert.That(presenter, Is.Not.Null);
+            Assert.That(presenter.IsCardVisible, Is.False);
+            Assert.That(room.SequenceController.NextScene, Is.Empty, "Room_03 must end the sequence in place.");
+
+            var mouse = AddMouse();
+            yield return StartWithTrustedGesture(room.WebGate, mouse);
+
+            for (var index = 0; index < room.Enemies.Count; index++)
+            {
+                room.Enemies[index].gameObject.SetActive(false);
+            }
+
+            yield return null;
+
+            var exit = FindComponentInScene<ExitGate>(room.Scene);
+            Assert.That(exit.Open(), Is.True);
+            Assert.That(exit.TryEnter(room.Player), Is.True);
+
+            Assert.That(room.SequenceController.HasHandledEntry, Is.True);
+            Assert.That(presenter.IsCardVisible, Is.True, "Victory is an approved card moment.");
+            Assert.That(presenter.CurrentIdentity.DisplayName, Is.EqualTo("RIVELLA"));
+            Assert.That(presenter.CurrentExpression, Is.EqualTo(CharacterExpression.Confident));
+
+            yield return new WaitForSecondsRealtime(presenter.HoldSeconds + 0.25f);
+            Assert.That(presenter.IsCardVisible, Is.False, "A card must close itself without input.");
+            Assert.That(presenter.CurrentIdentity, Is.Null);
+
+            var cardHolder = FindGameObjectsInScene(room.Scene, "CharacterAppeal");
+            Assert.That(cardHolder.Count, Is.EqualTo(1));
+            var cardGraphics = FindComponentsInScene<Graphic>(room.Scene);
+            var inspected = 0;
+            for (var index = 0; index < cardGraphics.Count; index++)
+            {
+                var graphic = cardGraphics[index];
+                if (!graphic.transform.IsChildOf(cardHolder[0].transform))
+                {
+                    continue;
+                }
+
+                inspected++;
+                Assert.That(
+                    graphic.raycastTarget,
+                    Is.False,
+                    $"'{graphic.name}' on the character card must not take raycasts away from the world.");
+            }
+
+            Assert.That(inspected, Is.GreaterThan(0), "The card must own the graphics this asserts on.");
+        }
+
         private static T GetRequiredDirectChildComponent<T>(Transform parent, string childName) where T : Component
         {
             var child = parent.Find(childName);
