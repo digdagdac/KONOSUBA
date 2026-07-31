@@ -249,6 +249,7 @@ MonoBehaviour:
   targetingCamera: {fileID: 0}
   enemyBodyLayerName: EnemyBody
   echoEnabled: 0
+  inputRouter: {fileID: 1946919474359682458}
 --- !u!114 &8639251610259208311
 MonoBehaviour:
   m_ObjectHideFlags: 0

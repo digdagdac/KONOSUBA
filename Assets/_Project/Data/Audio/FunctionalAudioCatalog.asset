@@ -25,3 +25,11 @@ MonoBehaviour:
     clip: {fileID: 8300000, guid: bc70f43dd17c8d840b06143131aadff8, type: 3}
   - eventType: 5
     clip: {fileID: 8300000, guid: df5979990bb895244ab2aa133ac2f3fa, type: 3}
+  - eventType: 6
+    clip: {fileID: 8300000, guid: a3a4ed729344c5549a566e604738fc5e, type: 3}
+  - eventType: 7
+    clip: {fileID: 8300000, guid: b24de5d22bbc1ba47b5624eca7077d05, type: 3}
+  - eventType: 8
+    clip: {fileID: 8300000, guid: 0974007f6383e9549b14bbb3536dde46, type: 3}
+  - eventType: 9
+    clip: {fileID: 8300000, guid: e3c3063d515b7784d832ac8f2b618866, type: 3}
