@@ -69,6 +69,17 @@ function Assert-FreshFile {
 # 프로젝트 열기
 Invoke-UnityChecked @("-projectPath", $projectPath)
 
+# 생성 콘텐츠를 먼저 만든다. PlayMode 테스트는 생성된 씬과 오디오 카탈로그를 로드하므로
+# 절차 오디오와 콘텐츠 부트스트랩이 테스트보다 먼저 실행되어야 한다.
+Invoke-UnityChecked @(
+    "-batchmode", "-nographics", "-quit", "-projectPath", $projectPath,
+    "-executeMethod", "Overbless.Editor.Audio.ProceduralAudioGenerator.GenerateAll"
+)
+Invoke-UnityChecked @(
+    "-batchmode", "-nographics", "-quit", "-projectPath", $projectPath,
+    "-executeMethod", "Overbless.Editor.Bootstrap.M1ContentBootstrap.CreateForBatchMode"
+)
+
 # EditMode / PlayMode 테스트: 이전 결과를 제거하고 이번 실행이 만든 XML만 허용한다.
 New-Item -ItemType Directory -Path $verificationDirectory -Force | Out-Null
 Remove-Item -LiteralPath $editModeResults, $playModeResults -Force -ErrorAction SilentlyContinue
@@ -87,14 +98,6 @@ Assert-FreshFile $playModeResults $testsStartedAt "PlayMode test result"
 # 이전 빌드를 먼저 제거한다. 이번 빌드가 쓴 manifest가 없으면 서버를 시작하지 않는다.
 Remove-Item -LiteralPath $buildOutput, ($buildOutput + ".sealed") -Recurse -Force -ErrorAction SilentlyContinue
 $buildStartedAt = [DateTime]::UtcNow
-Invoke-UnityChecked @(
-    "-batchmode", "-nographics", "-quit", "-projectPath", $projectPath,
-    "-executeMethod", "Overbless.Editor.Audio.ProceduralAudioGenerator.GenerateAll"
-)
-Invoke-UnityChecked @(
-    "-batchmode", "-nographics", "-quit", "-projectPath", $projectPath,
-    "-executeMethod", "Overbless.Editor.Bootstrap.M1ContentBootstrap.CreateForBatchMode"
-)
 Invoke-UnityChecked @(
     "-batchmode", "-nographics", "-quit", "-projectPath", $projectPath,
     "-executeMethod", "Overbless.Editor.Build.DevelopmentWebGLBuilder.BuildForBatchMode"

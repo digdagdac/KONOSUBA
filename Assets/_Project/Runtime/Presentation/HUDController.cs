@@ -79,6 +79,12 @@ namespace Overbless.Runtime
         private static readonly Color HealthyColor = new Color32(70, 224, 205, 255);
         private static readonly Color DangerColor = new Color32(255, 92, 102, 255);
 
+        // A refused blessing input used to produce no output at all. A short pulse
+        // on the affected card distinguishes "input ignored" from "input refused".
+        private const float FeedbackPulseSeconds = 0.28f;
+        private static readonly Color AppliedPulseColor = new Color32(255, 255, 255, 255);
+        private static readonly Color RejectedPulseColor = new Color32(255, 92, 102, 255);
+
         [Header("Runtime state")]
         [SerializeField] private Health playerHealth;
         [SerializeField] private DashAbility dashAbility;
@@ -106,6 +112,17 @@ namespace Overbless.Runtime
 
         private HudState state;
         private bool hasState;
+        private bool renderedIsSelecting;
+        private BlessingType renderedSelectedType;
+        private bool subscribedToFeedback;
+        private bool pulseActive;
+        private bool pulseIsRejection;
+        private BlessingType pulseType;
+        private float pulseEndsAtUnscaled;
+        private bool renderedPulseActive;
+        private bool renderedPulseIsRejection;
+        private BlessingType renderedPulseType;
+
         private bool EchoEnabled => blessingTargeting != null && blessingTargeting.EchoEnabled;
 
         public event Action<HudState> StateChanged;
@@ -136,12 +153,62 @@ namespace Overbless.Runtime
 
         private void OnEnable()
         {
+            SubscribeToFeedback();
             RefreshFromSources();
+        }
+
+        private void OnDisable()
+        {
+            UnsubscribeFromFeedback();
         }
 
         private void Update()
         {
             RefreshFromSources();
+        }
+
+        private void SubscribeToFeedback()
+        {
+            if (subscribedToFeedback || blessingTargeting == null)
+            {
+                return;
+            }
+
+            blessingTargeting.BlessingApplied += HandleBlessingApplied;
+            blessingTargeting.BlessingRejected += HandleBlessingRejected;
+            subscribedToFeedback = true;
+        }
+
+        private void UnsubscribeFromFeedback()
+        {
+            if (!subscribedToFeedback || blessingTargeting == null)
+            {
+                return;
+            }
+
+            blessingTargeting.BlessingApplied -= HandleBlessingApplied;
+            blessingTargeting.BlessingRejected -= HandleBlessingRejected;
+            subscribedToFeedback = false;
+        }
+
+        private void HandleBlessingApplied(BlessingApplicationSignal signal)
+        {
+            BeginFeedbackPulse(signal.Type, false);
+        }
+
+        private void HandleBlessingRejected(BlessingRejectionSignal signal)
+        {
+            BeginFeedbackPulse(signal.Type, true);
+        }
+
+        private void BeginFeedbackPulse(BlessingType type, bool isRejection)
+        {
+            pulseActive = true;
+            pulseIsRejection = isRejection;
+            pulseType = type;
+            // Selection runs at a reduced time scale, so the pulse must not be
+            // stretched by it.
+            pulseEndsAtUnscaled = Time.unscaledTime + FeedbackPulseSeconds;
         }
 
         public bool TryGetState(out HudState currentState)
@@ -154,14 +221,54 @@ namespace Overbless.Runtime
         {
             ValidateState(newState);
             var changed = !hasState || !StatesEqual(state, newState);
+            var selectionChanged = RefreshDynamicViewInputs();
             state = newState;
             hasState = true;
-            RenderView(newState);
+
+            // Rendering builds interpolated strings, so it must only run when the
+            // rendered result can actually differ. Update() calls SetState every
+            // frame; rendering unconditionally produced per-frame string garbage.
+            if (changed || selectionChanged)
+            {
+                RenderView(newState);
+            }
 
             if (changed)
             {
                 StateChanged?.Invoke(newState);
             }
+        }
+
+        /// <summary>
+        /// Tracks the view inputs RenderView reads outside HudState: the blessing
+        /// selection and the feedback pulse. Without this the render guard would
+        /// miss transitions that never touch HudState.
+        /// </summary>
+        private bool RefreshDynamicViewInputs()
+        {
+            if (pulseActive && Time.unscaledTime >= pulseEndsAtUnscaled)
+            {
+                pulseActive = false;
+            }
+
+            var selecting = blessingTargeting != null && blessingTargeting.IsSelecting;
+            var selected = selecting ? blessingTargeting.SelectedType : default;
+            if (hasState &&
+                selecting == renderedIsSelecting &&
+                selected == renderedSelectedType &&
+                pulseActive == renderedPulseActive &&
+                pulseIsRejection == renderedPulseIsRejection &&
+                pulseType == renderedPulseType)
+            {
+                return false;
+            }
+
+            renderedIsSelecting = selecting;
+            renderedSelectedType = selected;
+            renderedPulseActive = pulseActive;
+            renderedPulseIsRejection = pulseIsRejection;
+            renderedPulseType = pulseType;
+            return true;
         }
 
         private void RefreshFromSources()
@@ -241,6 +348,30 @@ namespace Overbless.Runtime
                     ? UnavailableColor
                     : selectingEcho ? SelectedColor : AvailableEchoColor;
                 echoStatusText.text = value.EchoAvailable ? selectingEcho ? "SELECTED" : "READY" : "BOUND";
+            }
+
+            // The applied and rejected pulses override the resting frame colour, so
+            // they run after the resting colours are written. Echo only exists where
+            // the milestone enables it, so its pulse stays inside that guard.
+            if (pulseActive)
+            {
+                var pulseColor = pulseIsRejection ? RejectedPulseColor : AppliedPulseColor;
+                switch (pulseType)
+                {
+                    case BlessingType.Haste:
+                        hasteFrame.color = pulseColor;
+                        break;
+                    case BlessingType.Giant:
+                        giantFrame.color = pulseColor;
+                        break;
+                    case BlessingType.Echo:
+                        if (echoEnabled)
+                        {
+                            echoFrame.color = pulseColor;
+                        }
+
+                        break;
+                }
             }
 
             if (selectingHaste)

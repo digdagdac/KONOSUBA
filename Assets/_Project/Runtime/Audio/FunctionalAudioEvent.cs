@@ -9,7 +9,15 @@ namespace Overbless.Runtime
         AttackLocked,
         PlayerHit,
         SoulCollected,
-        ExitOpened
+        ExitOpened,
+
+        // Core-loop cues. The player never attacks directly, so applying a
+        // blessing and the resulting enemy-on-enemy kill are the only actions
+        // that express player agency. Both were previously silent.
+        BlessingApplied,
+        BlessingRejected,
+        EnemyDefeated,
+        FriendlyFireKill
     }
 
     public readonly struct FunctionalAudioRecord

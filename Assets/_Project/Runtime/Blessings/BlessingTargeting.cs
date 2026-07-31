@@ -58,6 +58,82 @@ namespace Overbless.Runtime
         public BlessingPreviewData Preview { get; }
     }
 
+    public enum BlessingRejectionReason
+    {
+        /// <summary>The chosen slot is still bound to an earlier target.</summary>
+        SlotUnavailable,
+
+        /// <summary>The hovered target stopped being a legal recipient.</summary>
+        TargetUnavailable,
+
+        /// <summary>The blessing system refused the application.</summary>
+        ApplicationFailed
+    }
+
+    /// <summary>
+    /// Reports a completed blessing application so feedback layers can react.
+    /// Applying a blessing is the player's only offensive action, so it needs an
+    /// explicit signal rather than a log line.
+    /// </summary>
+    public readonly struct BlessingApplicationSignal
+    {
+        public BlessingApplicationSignal(BlessingType type, int targetEntityId, long occurrence)
+        {
+            if (targetEntityId == 0)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(targetEntityId), targetEntityId, "Applied blessings require a non-zero target entity ID.");
+            }
+
+            if (occurrence <= 0)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(occurrence), occurrence, "Feedback occurrences must be positive.");
+            }
+
+            Type = type;
+            TargetEntityId = targetEntityId;
+            Occurrence = occurrence;
+        }
+
+        public BlessingType Type { get; }
+        public int TargetEntityId { get; }
+        public long Occurrence { get; }
+    }
+
+    /// <summary>
+    /// Reports a refused blessing input. Rejections were previously silent, which
+    /// left the player unable to tell a missed input from an unavailable slot.
+    /// </summary>
+    public readonly struct BlessingRejectionSignal
+    {
+        public BlessingRejectionSignal(
+            BlessingType type,
+            int targetEntityId,
+            BlessingRejectionReason reason,
+            long occurrence)
+        {
+            if (occurrence <= 0)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(occurrence), occurrence, "Feedback occurrences must be positive.");
+            }
+
+            Type = type;
+            TargetEntityId = targetEntityId;
+            Reason = reason;
+            Occurrence = occurrence;
+        }
+
+        public BlessingType Type { get; }
+
+        /// <summary>Zero when no specific target was involved.</summary>
+        public int TargetEntityId { get; }
+
+        public BlessingRejectionReason Reason { get; }
+        public long Occurrence { get; }
+    }
+
     [DisallowMultipleComponent]
     public sealed class BlessingTargeting : MonoBehaviour
     {
@@ -70,6 +146,14 @@ namespace Overbless.Runtime
         [SerializeField] private Camera targetingCamera;
         [SerializeField] private string enemyBodyLayerName = EnemyBodyLayerName;
         [SerializeField] private bool echoEnabled;
+
+        /// <summary>
+        /// Optional. When assigned, selection, apply, and cancel arrive through the
+        /// router, which is the only component allowed to read input devices
+        /// (PROJECT_RULES section 3). Left optional so a scene generated before
+        /// this field existed keeps working through the legacy polling path.
+        /// </summary>
+        [SerializeField] private PlayerInputRouter inputRouter;
 
         private readonly SortedDictionary<int, TargetBinding> targetsByEntityId =
             new SortedDictionary<int, TargetBinding>();
@@ -93,13 +177,17 @@ namespace Overbless.Runtime
         private bool isResettingTargets;
         private bool isCleaningUp;
         private bool isCancellingSelection;
+        private bool isRouterSubscribed;
         private long selectionPublicationGeneration;
         private long targetPublicationGeneration;
         private BlessingType selectedType;
         private int hoveredTargetEntityId;
+        private long feedbackOccurrence;
 
         public event Action<BlessingSelectionState> SelectionUiChanged;
         public event Action<IReadOnlyList<BlessingTargetState>> TargetStatesChanged;
+        public event Action<BlessingApplicationSignal> BlessingApplied;
+        public event Action<BlessingRejectionSignal> BlessingRejected;
 
         public bool IsSelecting => isSelecting;
         public BlessingType SelectedType => selectedType;
@@ -135,11 +223,70 @@ namespace Overbless.Runtime
         }
         private void OnEnable()
         {
+            SubscribeToRouter();
             if (isInitialized)
             {
                 PublishSelectionState();
                 PublishTargetStates();
             }
+        }
+
+        private void SubscribeToRouter()
+        {
+            if (isRouterSubscribed || inputRouter == null)
+            {
+                return;
+            }
+
+            inputRouter.BlessingSelectionRequested += HandleRoutedSelection;
+            inputRouter.ApplyRequested += HandleRoutedApply;
+            inputRouter.CancelRequested += HandleRoutedCancel;
+            isRouterSubscribed = true;
+        }
+
+        private void UnsubscribeFromRouter()
+        {
+            if (!isRouterSubscribed || inputRouter == null)
+            {
+                return;
+            }
+
+            inputRouter.BlessingSelectionRequested -= HandleRoutedSelection;
+            inputRouter.ApplyRequested -= HandleRoutedApply;
+            inputRouter.CancelRequested -= HandleRoutedCancel;
+            isRouterSubscribed = false;
+        }
+
+        private void HandleRoutedSelection(int blessingIndex)
+        {
+            switch (blessingIndex)
+            {
+                case 1:
+                    Select(BlessingType.Haste);
+                    break;
+                case 2:
+                    Select(BlessingType.Giant);
+                    break;
+                case 3:
+                    Select(BlessingType.Echo);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(
+                        nameof(blessingIndex), blessingIndex, "Only blessing slots one through three exist.");
+            }
+        }
+
+        private void HandleRoutedApply()
+        {
+            if (isSelecting)
+            {
+                ApplyHoveredTarget();
+            }
+        }
+
+        private void HandleRoutedCancel()
+        {
+            CancelSelection();
         }
 
 
@@ -174,6 +321,7 @@ namespace Overbless.Runtime
 
         private void OnDisable()
         {
+            UnsubscribeFromRouter();
             if (!isInitialized)
             {
                 return;
@@ -352,9 +500,25 @@ namespace Overbless.Runtime
                 return false;
             }
 
-            var slot = GetSlot(type);
-            if (!slot.IsAvailable || Time.timeScale <= 0f)
+            // A dead owner must not be able to open a new selection. Pause and the
+            // web focus gate are covered by the zero time-scale check below, but
+            // the life-cycle block is not expressed through time scale.
+            if (!ReferenceEquals(ownerHealth, null) && ownerHealth.IsDead)
             {
+                return false;
+            }
+
+            var slot = GetSlot(type);
+            var isPlayable = Time.timeScale > 0f;
+            if (!slot.IsAvailable || !isPlayable)
+            {
+                if (isPlayable)
+                {
+                    // The slot is still bound to a previous target. Surfacing this
+                    // is the only signal the player gets that the input was read.
+                    RaiseBlessingRejected(type, NoTarget, BlessingRejectionReason.SlotUnavailable);
+                }
+
                 return false;
             }
 
@@ -418,20 +582,52 @@ namespace Overbless.Runtime
             }
 
             var slot = GetSlot(selectedType);
+            var attemptedType = selectedType;
+            var attemptedTargetEntityId = hoveredTargetEntityId;
             if (RequiresForcedForget(hoveredTargetEntityId, binding))
             {
                 PublishTargetStates();
+                RaiseBlessingRejected(attemptedType, attemptedTargetEntityId, BlessingRejectionReason.TargetUnavailable);
                 return false;
             }
             if (!blessingSystem.TryApply(slot, binding.Runtime, binding.Health, out var application))
             {
                 PublishTargetStates();
+                RaiseBlessingRejected(attemptedType, attemptedTargetEntityId, BlessingRejectionReason.ApplicationFailed);
                 return false;
             }
 
             Debug.Log(FormatApplyLog(application));
             CancelSelection();
+            // Raised after cancellation so observers see settled selection state.
+            RaiseBlessingApplied(attemptedType, attemptedTargetEntityId);
             return true;
+        }
+
+        private void RaiseBlessingApplied(BlessingType type, int targetEntityId)
+        {
+            BlessingApplied?.Invoke(
+                new BlessingApplicationSignal(type, targetEntityId, NextFeedbackOccurrence()));
+        }
+
+        private void RaiseBlessingRejected(BlessingType type, int targetEntityId, BlessingRejectionReason reason)
+        {
+            BlessingRejected?.Invoke(
+                new BlessingRejectionSignal(type, targetEntityId, reason, NextFeedbackOccurrence()));
+        }
+
+        /// <summary>
+        /// Monotonic occurrence used by feedback consumers to build de-duplication
+        /// tokens. Repeated identical rejections must remain distinguishable.
+        /// </summary>
+        private long NextFeedbackOccurrence()
+        {
+            if (feedbackOccurrence == long.MaxValue)
+            {
+                throw new InvalidOperationException("Blessing feedback occurrence overflowed.");
+            }
+
+            return ++feedbackOccurrence;
         }
 
         public void CancelSelection()
@@ -611,6 +807,19 @@ namespace Overbless.Runtime
 
         private void HandleInput()
         {
+            if (inputRouter != null)
+            {
+                // Selection, apply, and cancel arrive as router events, so nothing
+                // here reads a device. Hover is still re-evaluated every frame
+                // because targets keep moving while the pointer stays still.
+                if (isSelecting)
+                {
+                    UpdateHoveredTargetFromMouse(inputRouter.MousePosition);
+                }
+
+                return;
+            }
+
             var keyboard = Keyboard.current;
             if (keyboard != null)
             {

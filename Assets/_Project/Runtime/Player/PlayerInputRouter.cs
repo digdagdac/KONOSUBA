@@ -21,6 +21,7 @@ namespace Overbless.Runtime
         private InputAction dashAction;
         private InputAction firstBlessingAction;
         private InputAction secondBlessingAction;
+        private InputAction thirdBlessingAction;
         private InputAction applyAction;
         private InputAction cancelAction;
         private InputAction pauseAction;
@@ -136,10 +137,18 @@ namespace Overbless.Runtime
             dashAction.performed += HandleDash;
 
             firstBlessingAction = inputActions.AddAction("FirstBlessing", InputActionType.Button, "<Keyboard>/1");
+            firstBlessingAction.AddBinding("<Keyboard>/numpad1");
             firstBlessingAction.performed += HandleFirstBlessing;
 
             secondBlessingAction = inputActions.AddAction("SecondBlessing", InputActionType.Button, "<Keyboard>/2");
+            secondBlessingAction.AddBinding("<Keyboard>/numpad2");
             secondBlessingAction.performed += HandleSecondBlessing;
+
+            // Echo is part of the approved M2 scope and was previously reachable
+            // only through direct keyboard polling inside BlessingTargeting.
+            thirdBlessingAction = inputActions.AddAction("ThirdBlessing", InputActionType.Button, "<Keyboard>/3");
+            thirdBlessingAction.AddBinding("<Keyboard>/numpad3");
+            thirdBlessingAction.performed += HandleThirdBlessing;
 
             applyAction = inputActions.AddAction("Apply", InputActionType.Button, "<Mouse>/leftButton");
             applyAction.performed += HandleApply;
@@ -195,6 +204,14 @@ namespace Overbless.Runtime
             if (CanRouteInput())
             {
                 InvokeObservers(BlessingSelectionRequested, 2, "Blessing selection request");
+            }
+        }
+
+        private void HandleThirdBlessing(InputAction.CallbackContext context)
+        {
+            if (CanRouteInput())
+            {
+                InvokeObservers(BlessingSelectionRequested, 3, "Blessing selection request");
             }
         }
 

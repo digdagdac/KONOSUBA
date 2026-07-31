@@ -25,7 +25,13 @@ namespace Overbless.Editor.Audio
             ("AttackLocked", 760f, 104743),
             ("PlayerHit", 110f, 104759),
             ("SoulCollected", 940f, 104761),
-            ("ExitOpened", 660f, 104773)
+            ("ExitOpened", 660f, 104773),
+            // Core-loop cues. Frequencies stay clear of the existing set so each
+            // cue remains identifiable without relying on volume or timing.
+            ("BlessingApplied", 1180f, 104779),
+            ("BlessingRejected", 240f, 104789),
+            ("EnemyDefeated", 330f, 104801),
+            ("FriendlyFireKill", 1480f, 104803)
         };
 
         public static void GenerateAll()

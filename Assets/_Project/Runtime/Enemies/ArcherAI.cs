@@ -30,6 +30,13 @@ namespace Overbless.Runtime
         private AttackContext echoStopNotificationContext;
         private Vector2 lastSeparationDirection = Vector2.right;
 
+        // Validity predicates are captured once per projectile instead of once per
+        // frame. The captured context and generation are constant for the whole
+        // lifetime of a projectile, so re-creating the closure every frame only
+        // produced garbage.
+        private Func<bool> primaryProjectileValidity;
+        private Func<bool> echoProjectileValidity;
+
         public event Action<AttackContext, Vector2> ProjectileFired;
         public event Action<AttackContext, Vector2> ProjectileMoved;
         public event Action<AttackContext, Vector2> ProjectileStopped;
@@ -280,6 +287,7 @@ namespace Overbless.Runtime
             projectileActive = true;
             activeProjectileContext = context;
             var generation = ++projectileGeneration;
+            primaryProjectileValidity = () => IsPrimaryProjectileCurrent(context, generation);
 
             if (echoBlessingActive)
             {
@@ -316,7 +324,7 @@ namespace Overbless.Runtime
                     context,
                     projectilePosition,
                     errors,
-                    () => IsPrimaryProjectileCurrent(context, generation));
+                    primaryProjectileValidity);
             }
 
             if (!IsPrimaryProjectileCurrent(context, generation))
@@ -401,7 +409,7 @@ namespace Overbless.Runtime
             }
 
             var travelDistance = requestedDistance;
-            var stoppedByWall = TryGetWallDistance(
+            var stoppedByWall = TryGetObstacleDistance(
                 projectilePosition,
                 context.Width * 0.5f,
                 context.NormalizedDirection,
@@ -413,11 +421,12 @@ namespace Overbless.Runtime
             }
 
             var errors = new List<Exception>();
-            if (!ApplyDamageAlongSweep(
+            var validity = RequirePrimaryProjectileValidity(context, generation);
+            if (!SweepAttackDamage(
                     projectilePosition,
                     context,
                     travelDistance,
-                    () => IsPrimaryProjectileCurrent(context, generation)))
+                    validity))
             {
                 TerminateProjectile(false, errors);
                 ThrowProjectileErrors(errors);
@@ -430,7 +439,7 @@ namespace Overbless.Runtime
                 context,
                 projectilePosition,
                 errors,
-                () => IsPrimaryProjectileCurrent(context, generation));
+                validity);
 
             if (!IsPrimaryProjectileCurrent(context, generation))
             {
@@ -469,6 +478,7 @@ namespace Overbless.Runtime
             echoProjectileActive = true;
             activeEchoProjectileContext = context;
             var generation = ++echoProjectileGeneration;
+            echoProjectileValidity = () => IsEchoProjectileCurrent(context, sourceContext, generation);
             var errors = new List<Exception>();
 
             if (IsEchoProjectileCurrent(context, sourceContext, generation))
@@ -478,7 +488,7 @@ namespace Overbless.Runtime
                     context,
                     echoProjectilePosition,
                     errors,
-                    () => IsEchoProjectileCurrent(context, sourceContext, generation));
+                    echoProjectileValidity);
             }
 
             if (!IsEchoProjectileCurrent(context, sourceContext, generation))
@@ -528,7 +538,7 @@ namespace Overbless.Runtime
             }
 
             var travelDistance = requestedDistance;
-            var stoppedByWall = TryGetWallDistance(
+            var stoppedByWall = TryGetObstacleDistance(
                 echoProjectilePosition,
                 context.Width * 0.5f,
                 context.NormalizedDirection,
@@ -540,11 +550,12 @@ namespace Overbless.Runtime
             }
 
             var errors = new List<Exception>();
-            if (!ApplyDamageAlongSweep(
+            var validity = RequireEchoProjectileValidity(context, sourceContext, generation);
+            if (!SweepAttackDamage(
                     echoProjectilePosition,
                     context,
                     travelDistance,
-                    () => IsEchoProjectileCurrent(context, sourceContext, generation)))
+                    validity))
             {
                 TerminateEchoProjectile(false, errors);
                 ThrowProjectileErrors(errors);
@@ -557,7 +568,7 @@ namespace Overbless.Runtime
                 context,
                 echoProjectilePosition,
                 errors,
-                () => IsEchoProjectileCurrent(context, sourceContext, generation));
+                validity);
 
             if (!IsEchoProjectileCurrent(context, sourceContext, generation))
             {
@@ -677,6 +688,7 @@ namespace Overbless.Runtime
             {
                 activeProjectileContext = null;
                 projectileStopNotificationContext = null;
+                primaryProjectileValidity = null;
                 ++projectileGeneration;
                 return;
             }
@@ -685,6 +697,7 @@ namespace Overbless.Runtime
             var position = projectilePosition;
             projectileActive = false;
             activeProjectileContext = null;
+            primaryProjectileValidity = null;
             projectileStopNotificationContext = context;
             var notificationGeneration = ++projectileGeneration;
 
@@ -714,6 +727,7 @@ namespace Overbless.Runtime
                 echoProjectileSpeed = 0f;
                 echoSourceContext = null;
                 echoStopNotificationContext = null;
+                echoProjectileValidity = null;
                 ++echoProjectileGeneration;
                 if (allowRecovery)
                 {
@@ -727,6 +741,7 @@ namespace Overbless.Runtime
             var position = echoProjectilePosition;
             echoProjectileActive = false;
             activeEchoProjectileContext = null;
+            echoProjectileValidity = null;
             echoPending = false;
             echoExecutionAt = 0f;
             pendingEchoContext = null;
@@ -776,6 +791,24 @@ namespace Overbless.Runtime
             {
                 recoveryEndsAt = Time.time + RuntimeStats.RecoveryDuration;
             }
+        }
+
+        /// <summary>
+        /// Returns the cached validity predicate for the live primary projectile,
+        /// creating it only if the projectile started before this field existed.
+        /// </summary>
+        private Func<bool> RequirePrimaryProjectileValidity(AttackContext context, long generation)
+        {
+            return primaryProjectileValidity ??= () => IsPrimaryProjectileCurrent(context, generation);
+        }
+
+        /// <summary>Returns the cached validity predicate for the live echo projectile.</summary>
+        private Func<bool> RequireEchoProjectileValidity(
+            AttackContext context,
+            AttackContext sourceContext,
+            long generation)
+        {
+            return echoProjectileValidity ??= () => IsEchoProjectileCurrent(context, sourceContext, generation);
         }
 
         private bool IsPrimaryProjectileCurrent(AttackContext context, long generation)
@@ -854,64 +887,5 @@ namespace Overbless.Runtime
             }
         }
 
-        private bool TryGetWallDistance(
-            Vector2 origin,
-            float radius,
-            Vector2 direction,
-            float distance,
-            out float nearestWallDistance)
-        {
-            nearestWallDistance = distance;
-            var hits = Physics2D.CircleCastAll(origin, radius, direction, distance, Definition.WorldCollisionMask);
-            var foundWall = false;
-
-            foreach (var hit in hits)
-            {
-                if (hit.collider == null || IsOwnerCollider(hit.collider))
-                {
-                    continue;
-                }
-
-                if (!foundWall || hit.distance < nearestWallDistance)
-                {
-                    nearestWallDistance = hit.distance;
-                    foundWall = true;
-                }
-            }
-
-            return foundWall;
-        }
-
-        private bool ApplyDamageAlongSweep(
-            Vector2 origin,
-            AttackContext context,
-            float distance,
-            Func<bool> continueCondition)
-        {
-            var hits = Physics2D.CircleCastAll(
-                origin,
-                context.Width * 0.5f,
-                context.NormalizedDirection,
-                distance,
-                context.TargetMask);
-
-            foreach (var hit in hits)
-            {
-                if (!continueCondition())
-                {
-                    return false;
-                }
-
-                TryApplyAttackDamage(context, hit.collider);
-            }
-
-            return continueCondition();
-        }
-
-        private bool IsOwnerCollider(Collider2D collider)
-        {
-            var colliderHealth = collider.GetComponentInParent<Health>();
-            return colliderHealth != null && colliderHealth.EntityId == EntityId;
-        }
     }
 }

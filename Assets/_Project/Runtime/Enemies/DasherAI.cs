@@ -123,7 +123,7 @@ namespace Overbless.Runtime
 
             var origin = (Vector2)transform.position;
             var travelDistance = requestedDistance;
-            var stoppedByWall = TryGetWallDistance(
+            var stoppedByWall = TryGetObstacleDistance(
                 origin,
                 context.Width * 0.5f,
                 context.NormalizedDirection,
@@ -135,7 +135,7 @@ namespace Overbless.Runtime
                 travelDistance = Mathf.Max(0f, wallDistance - WallStopOffset);
             }
 
-            ApplyDamageAlongSweep(origin, context, travelDistance);
+            SweepAttackDamage(origin, context, travelDistance, null);
             MoveInDirection(context.NormalizedDirection, travelDistance);
             chargeDistanceTravelled += travelDistance;
 
@@ -163,53 +163,5 @@ namespace Overbless.Runtime
             recoveryEndsAt = Time.time + RuntimeStats.RecoveryDuration;
         }
 
-        private bool TryGetWallDistance(
-            Vector2 origin,
-            float radius,
-            Vector2 direction,
-            float distance,
-            out float nearestWallDistance)
-        {
-            nearestWallDistance = distance;
-            var hits = Physics2D.CircleCastAll(origin, radius, direction, distance, Definition.WorldCollisionMask);
-            var foundWall = false;
-
-            foreach (var hit in hits)
-            {
-                if (hit.collider == null || IsOwnerCollider(hit.collider))
-                {
-                    continue;
-                }
-
-                if (!foundWall || hit.distance < nearestWallDistance)
-                {
-                    nearestWallDistance = hit.distance;
-                    foundWall = true;
-                }
-            }
-
-            return foundWall;
-        }
-
-        private void ApplyDamageAlongSweep(Vector2 origin, AttackContext context, float distance)
-        {
-            var hits = Physics2D.CircleCastAll(
-                origin,
-                context.Width * 0.5f,
-                context.NormalizedDirection,
-                distance,
-                context.TargetMask);
-
-            foreach (var hit in hits)
-            {
-                TryApplyAttackDamage(context, hit.collider);
-            }
-        }
-
-        private bool IsOwnerCollider(Collider2D collider)
-        {
-            var colliderHealth = collider.GetComponentInParent<Health>();
-            return colliderHealth != null && colliderHealth.EntityId == EntityId;
-        }
     }
 }

@@ -12,6 +12,13 @@ namespace Overbless.Runtime
         [SerializeField] private EnemyBase[] enemies;
         [SerializeField] private M1RoomLifecycle roomLifecycle;
         [SerializeField] private RoomRestartController restartController;
+
+        /// <summary>
+        /// Optional. When assigned, blessing apply and reject cues are emitted.
+        /// Left optional so a scene generated before this field existed keeps
+        /// working instead of failing configuration validation.
+        /// </summary>
+        [SerializeField] private BlessingTargeting blessingTargeting;
         private readonly Dictionary<AttackStateMachine, Action<AttackPhase>> phaseHandlers =
             new Dictionary<AttackStateMachine, Action<AttackPhase>>();
         private readonly Dictionary<AttackIdentity, long> attackTokens =
@@ -73,6 +80,12 @@ namespace Overbless.Runtime
                 playerHealth.Damaged += HandlePlayerDamaged;
                 roomLifecycle.SoulCountChanged += HandleSoulCountChanged;
                 roomLifecycle.ExitOpened += HandleExitOpened;
+                roomLifecycle.EnemyDeathProcessed += HandleEnemyDeathProcessed;
+                if (blessingTargeting != null)
+                {
+                    blessingTargeting.BlessingApplied += HandleBlessingApplied;
+                    blessingTargeting.BlessingRejected += HandleBlessingRejected;
+                }
 
                 for (var index = 0; index < enemies.Length; index++)
                 {
@@ -128,6 +141,12 @@ namespace Overbless.Runtime
             playerHealth.Damaged -= HandlePlayerDamaged;
             roomLifecycle.SoulCountChanged -= HandleSoulCountChanged;
             roomLifecycle.ExitOpened -= HandleExitOpened;
+            roomLifecycle.EnemyDeathProcessed -= HandleEnemyDeathProcessed;
+            if (blessingTargeting != null)
+            {
+                blessingTargeting.BlessingApplied -= HandleBlessingApplied;
+                blessingTargeting.BlessingRejected -= HandleBlessingRejected;
+            }
 
             for (var index = 0; index < enemies.Length; index++)
             {
@@ -206,6 +225,36 @@ namespace Overbless.Runtime
             emitter.Emit(
                 FunctionalAudioEvent.PlayerHit,
                 GetAttackToken(damageEvent.AttackerEntityId, damageEvent.AttackInstanceId));
+        }
+
+        /// <summary>
+        /// Attributes an enemy death. A kill dealt by another enemy is the
+        /// friendly-fire outcome the blessing loop exists to produce, so it gets a
+        /// distinct cue from an ordinary defeat.
+        /// </summary>
+        private void HandleEnemyDeathProcessed(DeathEvent deathEvent)
+        {
+            var killedByEnemy = roomLifecycle.IsEnemyEntity(deathEvent.DamageEvent.AttackerEntityId);
+            emitter.Emit(
+                killedByEnemy ? FunctionalAudioEvent.FriendlyFireKill : FunctionalAudioEvent.EnemyDefeated,
+                GetCueToken(
+                    killedByEnemy ? CueDomain.FriendlyFire : CueDomain.Defeat,
+                    deathEvent.EntityId,
+                    deathEvent.DeathToken));
+        }
+
+        private void HandleBlessingApplied(BlessingApplicationSignal signal)
+        {
+            emitter.Emit(
+                FunctionalAudioEvent.BlessingApplied,
+                GetCueToken(CueDomain.BlessingApply, signal.TargetEntityId, signal.Occurrence));
+        }
+
+        private void HandleBlessingRejected(BlessingRejectionSignal signal)
+        {
+            emitter.Emit(
+                FunctionalAudioEvent.BlessingRejected,
+                GetCueToken(CueDomain.BlessingReject, signal.TargetEntityId, signal.Occurrence));
         }
 
         private void HandleSoulCountChanged(int soulCount)
@@ -394,7 +443,11 @@ namespace Overbless.Runtime
         {
             Ready,
             Soul,
-            Exit
+            Exit,
+            Defeat,
+            FriendlyFire,
+            BlessingApply,
+            BlessingReject
         }
 
         private readonly struct CueIdentity : IEquatable<CueIdentity>

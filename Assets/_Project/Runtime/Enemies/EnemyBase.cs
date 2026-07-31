@@ -28,6 +28,14 @@ namespace Overbless.Runtime
 
         private readonly DamageLedger damageLedger = new DamageLedger();
         private readonly List<RaycastHit2D> movementHits = new List<RaycastHit2D>();
+        // Separate reusable buffers: an obstacle probe and a damage sweep run
+        // back to back inside a single frame and must not share storage.
+        private readonly List<RaycastHit2D> obstacleHits = new List<RaycastHit2D>();
+        private readonly List<RaycastHit2D> damageSweepHits = new List<RaycastHit2D>();
+        private readonly Dictionary<Collider2D, bool> ownedColliderCache =
+            new Dictionary<Collider2D, bool>();
+        private Transform cachedPlayerHealthSource;
+        private Health cachedPlayerHealth;
         private Vector3 spawnPosition;
         private Quaternion spawnRotation;
         private EnemyRuntimeStats runtimeStats;
@@ -218,6 +226,7 @@ namespace Overbless.Runtime
             }
 
             damageLedger.Clear();
+            ownedColliderCache.Clear();
             body.linearVelocity = Vector2.zero;
             body.angularVelocity = 0f;
             body.position = spawnPosition;
@@ -292,7 +301,7 @@ namespace Overbless.Runtime
                 return false;
             }
 
-            var targetHealth = playerTarget.GetComponentInParent<Health>();
+            var targetHealth = GetCachedPlayerHealth();
             if (targetHealth != null && targetHealth.IsDead)
             {
                 ResetMovementIntent();
@@ -363,6 +372,141 @@ namespace Overbless.Runtime
             return facing / magnitude;
         }
 
+
+        /// <summary>
+        /// Resolves the player's Health once per target transform. This runs every
+        /// frame from the AI tick, so the hierarchy walk must not repeat per frame.
+        /// </summary>
+        private Health GetCachedPlayerHealth()
+        {
+            if (!ReferenceEquals(cachedPlayerHealthSource, playerTarget))
+            {
+                cachedPlayerHealthSource = playerTarget;
+                cachedPlayerHealth = playerTarget == null
+                    ? null
+                    : playerTarget.GetComponentInParent<Health>();
+            }
+
+            return cachedPlayerHealth;
+        }
+
+        /// <summary>
+        /// Reusable circle sweep. The allocating <c>CircleCastAll</c> variants ran
+        /// every frame while a projectile or charge was live and dominated the
+        /// per-frame garbage on the WebGL frame-time budget.
+        /// </summary>
+        private static int CircleSweep(
+            Vector2 origin,
+            float radius,
+            Vector2 direction,
+            float distance,
+            LayerMask mask,
+            List<RaycastHit2D> results)
+        {
+            var filter = new ContactFilter2D();
+            filter.SetLayerMask(mask);
+            // CircleCastAll honours the global trigger-query setting; preserve it
+            // so switching to the filtered overload cannot change hit results.
+            filter.useTriggers = Physics2D.queriesHitTriggers;
+            results.Clear();
+            return Physics2D.CircleCast(origin, radius, direction, filter, results, distance);
+        }
+
+        /// <summary>
+        /// Finds the nearest world obstacle along a swept circle, ignoring the
+        /// attacker's own colliders. Shared by the archer projectile and the
+        /// dasher charge, which previously carried duplicate copies.
+        /// </summary>
+        protected bool TryGetObstacleDistance(
+            Vector2 origin,
+            float radius,
+            Vector2 direction,
+            float distance,
+            out float nearestObstacleDistance)
+        {
+            nearestObstacleDistance = distance;
+            var hitCount = CircleSweep(origin, radius, direction, distance, definition.WorldCollisionMask, obstacleHits);
+            var foundObstacle = false;
+
+            for (var index = 0; index < hitCount && index < obstacleHits.Count; index++)
+            {
+                var hit = obstacleHits[index];
+                if (hit.collider == null || IsOwnedCollider(hit.collider))
+                {
+                    continue;
+                }
+
+                if (!foundObstacle || hit.distance < nearestObstacleDistance)
+                {
+                    nearestObstacleDistance = hit.distance;
+                    foundObstacle = true;
+                }
+            }
+
+            obstacleHits.Clear();
+            return foundObstacle;
+        }
+
+        /// <summary>
+        /// Applies locked-attack damage along a swept circle. <paramref name="continueCondition"/>
+        /// aborts the sweep when the owning attack is invalidated mid-iteration;
+        /// the return value reports whether the sweep is still authoritative.
+        /// </summary>
+        protected bool SweepAttackDamage(
+            Vector2 origin,
+            AttackContext attackContext,
+            float distance,
+            Func<bool> continueCondition)
+        {
+            var hitCount = CircleSweep(
+                origin,
+                attackContext.Width * 0.5f,
+                attackContext.NormalizedDirection,
+                distance,
+                attackContext.TargetMask,
+                damageSweepHits);
+
+            try
+            {
+                for (var index = 0; index < hitCount && index < damageSweepHits.Count; index++)
+                {
+                    if (continueCondition != null && !continueCondition())
+                    {
+                        return false;
+                    }
+
+                    TryApplyAttackDamage(attackContext, damageSweepHits[index].collider);
+                }
+            }
+            finally
+            {
+                damageSweepHits.Clear();
+            }
+
+            return continueCondition == null || continueCondition();
+        }
+
+        /// <summary>
+        /// Caches whether a collider belongs to this attacker. The uncached
+        /// hierarchy walk ran for every hit of every sweep frame.
+        /// </summary>
+        protected bool IsOwnedCollider(Collider2D collider)
+        {
+            if (collider == null)
+            {
+                return false;
+            }
+
+            if (ownedColliderCache.TryGetValue(collider, out var owned))
+            {
+                return owned;
+            }
+
+            var colliderHealth = collider.GetComponentInParent<Health>();
+            owned = colliderHealth != null && colliderHealth.EntityId == EntityId;
+            ownedColliderCache[collider] = owned;
+            return owned;
+        }
 
         protected void MoveTowards(Vector2 targetPosition, float maximumDistanceDelta)
         {

@@ -11,6 +11,14 @@ namespace Overbless.Runtime
         private const float HitDisplayDuration = 0.18f;
         private const float DiagonalBoundaryTangent = 0.41421356237f;
 
+        // Damage and death previously changed only the sprite state. A brief tint
+        // and a death fade add a second, redundant channel so a hit stays readable
+        // when the silhouette is small or overlapped.
+        private const float DeathFadeDuration = 0.45f;
+        private const float DeathFadeMinimumAlpha = 0.3f;
+        private static readonly Color NeutralTint = Color.white;
+        private static readonly Color HitTint = new Color32(255, 140, 140, 255);
+
         [SerializeField] private CharacterAnimationDriver driver;
         [SerializeField] private CharacterDirection initialDirection = CharacterDirection.South;
         [SerializeField] private SpriteRenderer spriteRenderer;
@@ -26,6 +34,7 @@ namespace Overbless.Runtime
         private Vector3 previousPosition;
         private float frameElapsed;
         private float hitRemaining;
+        private float deathElapsed;
         private int frameIndex;
         private bool initialized;
         private bool subscribed;
@@ -70,6 +79,13 @@ namespace Overbless.Runtime
                 }
             }
 
+            deathElapsed = health.IsDead ? deathElapsed + Time.deltaTime : 0f;
+            UpdatePresentation();
+            ApplyFeedbackTint();
+        }
+
+        private void UpdatePresentation()
+        {
             if (driver == CharacterAnimationDriver.Player)
             {
                 UpdatePlayerPresentation();
@@ -82,6 +98,28 @@ namespace Overbless.Runtime
             }
 
             AdvanceClip(Time.deltaTime);
+        }
+
+        /// <summary>
+        /// Applies the damage and death tint. This animator already owns the
+        /// renderer's sprite, so it also owns its colour; no other system writes it.
+        /// </summary>
+        private void ApplyFeedbackTint()
+        {
+            if (health.IsDead)
+            {
+                var fade = DeathFadeDuration <= 0f
+                    ? 1f
+                    : Mathf.Clamp01(deathElapsed / DeathFadeDuration);
+                spriteRenderer.color = new Color(
+                    NeutralTint.r,
+                    NeutralTint.g,
+                    NeutralTint.b,
+                    Mathf.Lerp(NeutralTint.a, DeathFadeMinimumAlpha, fade));
+                return;
+            }
+
+            spriteRenderer.color = hitRemaining > 0f ? HitTint : NeutralTint;
         }
 
         public void SetInitialFacing(Vector2 facing)
@@ -422,6 +460,7 @@ namespace Overbless.Runtime
         private void HandleDied(DeathEvent deathEvent)
         {
             hitRemaining = 0f;
+            deathElapsed = 0f;
             if (driver != CharacterAnimationDriver.Player)
             {
                 RefreshEnemyPresentation();

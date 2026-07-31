@@ -76,6 +76,17 @@ namespace Overbless.Runtime
             return blessingTargeting == targeting;
         }
 
+        /// <summary>
+        /// Reports whether an entity ID belongs to a room enemy. Feedback layers
+        /// use this to attribute a kill: an enemy killed by another enemy is the
+        /// friendly-fire outcome the player was steering toward.
+        /// </summary>
+        public bool IsEnemyEntity(int entityId)
+        {
+            EnsureInitialized();
+            return entityId != 0 && enemiesByEntityId.ContainsKey(entityId);
+        }
+
         private void Awake()
         {
             ResetForRoom();

@@ -107,7 +107,11 @@ namespace Overbless.Editor.Bootstrap
             FunctionalAudioEvent.AttackLocked,
             FunctionalAudioEvent.PlayerHit,
             FunctionalAudioEvent.SoulCollected,
-            FunctionalAudioEvent.ExitOpened
+            FunctionalAudioEvent.ExitOpened,
+            FunctionalAudioEvent.BlessingApplied,
+            FunctionalAudioEvent.BlessingRejected,
+            FunctionalAudioEvent.EnemyDefeated,
+            FunctionalAudioEvent.FriendlyFireKill
         };
         private static readonly InputActionDefinition[] InputActionDefinitions =
         {
@@ -731,6 +735,7 @@ namespace Overbless.Editor.Bootstrap
             var controller = root.AddComponent<PlayerController>();
             var lifeCycle = root.AddComponent<PlayerLifeCycle>();
             var targeting = root.AddComponent<BlessingTargeting>();
+            ConfigureBlessingTargetingInput(targeting, input);
 
             ConfigureDash(dash, config, root.transform, health);
             ConfigurePlayerController(controller, config, root.transform, input, dash);
@@ -1199,7 +1204,7 @@ namespace Overbless.Editor.Bootstrap
             var restartController = ConfigureRestartController(systems, playerLifeCycle, enemies, blessingTargeting, room);
             var audioEmitter = ConfigureAudioAndWebStart(systems, audioCatalog, playerInput);
             ConfigureRuntimeBinder(systems, playerHealth, blessingTargeting, enemies, room, false);
-            ConfigureFunctionalAudioBridge(systems, audioEmitter, playerHealth, enemies, room, restartController);
+            ConfigureFunctionalAudioBridge(systems, audioEmitter, playerHealth, enemies, room, restartController, blessingTargeting);
             ConfigurePauseController(systems, playerInput, blessingTargeting, restartController);
             CreateHud(
                 root.transform,
@@ -1304,7 +1309,7 @@ namespace Overbless.Editor.Bootstrap
             ConfigureRoomSequence(systems, exit, nextScene);
             var audioEmitter = ConfigureAudioAndWebStart(systems, audioCatalog, playerInput);
             ConfigureRuntimeBinder(systems, playerHealth, blessingTargeting, enemies, room, true);
-            ConfigureFunctionalAudioBridge(systems, audioEmitter, playerHealth, enemies, room, restartController);
+            ConfigureFunctionalAudioBridge(systems, audioEmitter, playerHealth, enemies, room, restartController, blessingTargeting);
             ConfigurePauseController(systems, playerInput, blessingTargeting, restartController);
             CreateHud(
                 root.transform,
@@ -1615,13 +1620,27 @@ namespace Overbless.Editor.Bootstrap
             Apply(serialized, binder);
         }
 
+        /// <summary>
+        /// Routes blessing input through PlayerInputRouter. Both components live on
+        /// the player root, so the reference is authored into the prefab.
+        /// </summary>
+        private static void ConfigureBlessingTargetingInput(
+            BlessingTargeting targeting,
+            PlayerInputRouter input)
+        {
+            var serialized = new SerializedObject(targeting);
+            SetObject(serialized, "inputRouter", input);
+            Apply(serialized, targeting);
+        }
+
         private static void ConfigureFunctionalAudioBridge(
             GameObject systems,
             FunctionalAudioEmitter emitter,
             Health playerHealth,
             EnemyBase[] enemies,
             M1RoomLifecycle room,
-            RoomRestartController restartController)
+            RoomRestartController restartController,
+            BlessingTargeting targeting)
         {
             var bridge = systems.AddComponent<M1FunctionalAudioBridge>();
             var serialized = new SerializedObject(bridge);
@@ -1630,6 +1649,7 @@ namespace Overbless.Editor.Bootstrap
             SetObjectArray(serialized, "enemies", enemies);
             SetObject(serialized, "roomLifecycle", room);
             SetObject(serialized, "restartController", restartController);
+            SetObject(serialized, "blessingTargeting", targeting);
             Apply(serialized, bridge);
         }
 
