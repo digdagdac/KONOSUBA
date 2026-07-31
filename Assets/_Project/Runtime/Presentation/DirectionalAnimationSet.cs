@@ -6,16 +6,16 @@ namespace Overbless.Runtime
 {
     public enum CharacterAnimationState
     {
-        Idle,
-        Move,
-        Dash,
-        BlessCast,
-        AttackCharge,
-        AttackExecute,
-        Recover,
-        BasicAttack,
-        Hit,
-        Death
+        Idle = 0,
+        Walk = 1,
+        Dash = 2,
+        BlessCast = 3,
+        AttackCharge = 4,
+        AttackExecute = 5,
+        Recover = 6,
+        Hit = 8,
+        Death = 9,
+        Run = 10
     }
 
     public enum CharacterDirection
@@ -32,9 +32,9 @@ namespace Overbless.Runtime
 
     public enum CharacterAnimationDriver
     {
-        Player,
-        MajorEnemy,
-        Minion
+        Player = 0,
+        MajorEnemy = 1,
+        Minion = 2
     }
 
     [Serializable]
@@ -65,6 +65,15 @@ namespace Overbless.Runtime
 
         public void Validate()
         {
+            if (!Enum.IsDefined(typeof(CharacterAnimationState), state))
+            {
+                throw new InvalidOperationException($"{state} is not a defined animation state.");
+            }
+
+            if (!Enum.IsDefined(typeof(CharacterDirection), direction))
+            {
+                throw new InvalidOperationException($"{direction} is not a defined character direction.");
+            }
             if (float.IsNaN(framesPerSecond) || float.IsInfinity(framesPerSecond) || framesPerSecond <= 0f)
             {
                 throw new InvalidOperationException($"{state}/{direction} requires a positive finite frame rate.");
