@@ -8,7 +8,8 @@ namespace Overbless.Runtime
     {
         private EnemyRuntimeStats(
             int maximumHealth,
-            float movementSpeed,
+            float walkSpeed,
+            float runSpeed,
             float attackCooldown,
             float warningDuration,
             float recoveryDuration,
@@ -27,7 +28,8 @@ namespace Overbless.Runtime
             bool hasEcho)
         {
             MaximumHealth = maximumHealth;
-            MovementSpeed = movementSpeed;
+            WalkSpeed = walkSpeed;
+            RunSpeed = runSpeed;
             AttackCooldown = attackCooldown;
             WarningDuration = warningDuration;
             RecoveryDuration = recoveryDuration;
@@ -47,7 +49,8 @@ namespace Overbless.Runtime
         }
 
         public int MaximumHealth { get; }
-        public float MovementSpeed { get; }
+        public float WalkSpeed { get; }
+        public float RunSpeed { get; }
         public float AttackCooldown { get; }
         public float WarningDuration { get; }
         public float RecoveryDuration { get; }
@@ -64,6 +67,21 @@ namespace Overbless.Runtime
         public bool HasHaste { get; }
         public bool HasGiant { get; }
         public bool HasEcho { get; }
+        public float GetMovementSpeed(LocomotionMode mode)
+        {
+            switch (mode)
+            {
+                case LocomotionMode.Idle:
+                    return 0f;
+                case LocomotionMode.Walk:
+                    return WalkSpeed;
+                case LocomotionMode.Run:
+                    return RunSpeed;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(mode), mode, "Unsupported locomotion mode.");
+            }
+        }
+
 
         public static EnemyRuntimeStats Recompute(
             EnemyDefinition definition,
@@ -130,7 +148,8 @@ namespace Overbless.Runtime
 
             RequirePositiveFinite(healthMultiplier, nameof(healthMultiplier));
             var maximumHealth = ScaleMaximumHealth(definition.MaximumHealth, healthMultiplier);
-            var movementSpeed = definition.MovementSpeed * movementMultiplier;
+            var walkSpeed = definition.WalkSpeed * movementMultiplier;
+            var runSpeed = definition.RunSpeed * movementMultiplier;
             var attackCooldown = definition.AttackCooldown * attackCooldownMultiplier;
             var warningDuration = Mathf.Max(
                 definition.WarningDuration / attackSpeedMultiplier,
@@ -143,7 +162,12 @@ namespace Overbless.Runtime
             var projectileSpeed = definition.ProjectileSpeed * projectileSpeedMultiplier;
             var preferredDistance = definition.PreferredDistance;
 
-            RequirePositiveFinite(movementSpeed, nameof(movementSpeed));
+            RequirePositiveFinite(walkSpeed, nameof(walkSpeed));
+            RequirePositiveFinite(runSpeed, nameof(runSpeed));
+            if (runSpeed <= walkSpeed)
+            {
+                throw new InvalidOperationException("Derived run speed must exceed walk speed.");
+            }
             RequirePositiveFinite(attackCooldown, nameof(attackCooldown));
             RequirePositiveFinite(warningDuration, nameof(warningDuration));
             RequireNonNegativeFinite(recoveryDuration, nameof(recoveryDuration));
@@ -159,7 +183,8 @@ namespace Overbless.Runtime
 
             return new EnemyRuntimeStats(
                 maximumHealth,
-                movementSpeed,
+                walkSpeed,
+                runSpeed,
                 attackCooldown,
                 warningDuration,
                 recoveryDuration,

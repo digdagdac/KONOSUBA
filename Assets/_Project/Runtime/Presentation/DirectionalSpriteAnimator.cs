@@ -29,6 +29,10 @@ namespace Overbless.Runtime
         private int frameIndex;
         private bool initialized;
         private bool subscribed;
+        private CharacterDirection lockedAttackDirection;
+        private AttackStateMachine subscribedAttackState;
+        private bool hasLockedAttackDirection;
+        private bool skipEnemyAdvanceOnce;
 
         public CharacterAnimationState CurrentState => currentState;
         public CharacterDirection CurrentDirection => currentDirection;
@@ -45,37 +49,39 @@ namespace Overbless.Runtime
         {
             Initialize();
             Subscribe();
+            SynchronizeEnemyPresentation();
         }
 
         private void OnDisable()
         {
             Unsubscribe();
+            skipEnemyAdvanceOnce = false;
         }
 
         private void LateUpdate()
         {
             Initialize();
-            var movement = transform.position - previousPosition;
-            previousPosition = transform.position;
-            if (movement.sqrMagnitude > MovementThresholdSquared)
-            {
-                currentDirection = DirectionFromVector(movement);
-            }
-
             if (hitRemaining > 0f)
             {
                 hitRemaining = Mathf.Max(0f, hitRemaining - Time.deltaTime);
+                if (hitRemaining <= 0f && driver != CharacterAnimationDriver.Player)
+                {
+                    RefreshEnemyPresentation();
+                }
             }
 
-            var desiredState = ResolveState(movement.sqrMagnitude > MovementThresholdSquared);
-            if (desiredState != currentState || currentClip == null || currentClip.Direction != currentDirection)
+            if (driver == CharacterAnimationDriver.Player)
             {
-                BeginClip(desiredState, currentDirection);
+                UpdatePlayerPresentation();
+                return;
             }
-            else
+            if (skipEnemyAdvanceOnce)
             {
-                AdvanceClip(Time.deltaTime);
+                skipEnemyAdvanceOnce = false;
+                return;
             }
+
+            AdvanceClip(Time.deltaTime);
         }
 
         public void SetInitialFacing(Vector2 facing)
@@ -88,9 +94,9 @@ namespace Overbless.Runtime
             }
 
             initialDirection = DirectionFromVector(facing);
-            currentDirection = initialDirection;
-            if (initialized)
+            if (initialized && driver == CharacterAnimationDriver.Player)
             {
+                currentDirection = initialDirection;
                 BeginClip(currentState, currentDirection);
             }
         }
@@ -104,7 +110,9 @@ namespace Overbless.Runtime
 
             ValidateConfiguration();
             animationSet.Validate();
-            currentDirection = initialDirection;
+            currentDirection = driver == CharacterAnimationDriver.Player
+                ? initialDirection
+                : DirectionFromVector(enemy.IntendedFacing);
             previousPosition = transform.position;
             initialized = true;
             BeginClip(CharacterAnimationState.Idle, currentDirection);
@@ -117,38 +125,92 @@ namespace Overbless.Runtime
                 return;
             }
 
+            if (driver != CharacterAnimationDriver.Player)
+            {
+                subscribedAttackState = enemy.AttackState;
+                if (subscribedAttackState == null)
+                {
+                    throw new InvalidOperationException("Enemy animation requires an initialized attack state.");
+                }
+            }
+
             health.Damaged += HandleDamaged;
             health.Died += HandleDied;
+            if (driver != CharacterAnimationDriver.Player)
+            {
+                enemy.IntendedFacingChanged += HandleEnemyIntendedFacingChanged;
+                enemy.LocomotionModeChanged += HandleEnemyLocomotionModeChanged;
+                subscribedAttackState.ContextLocked += HandleEnemyAttackContextLocked;
+                subscribedAttackState.PhaseChanged += HandleEnemyAttackPhaseChanged;
+            }
+
             subscribed = true;
         }
 
         private void Unsubscribe()
         {
-            if (!subscribed || health == null)
+            if (!subscribed)
             {
                 return;
             }
 
-            health.Damaged -= HandleDamaged;
-            health.Died -= HandleDied;
+            if (health != null)
+            {
+                health.Damaged -= HandleDamaged;
+                health.Died -= HandleDied;
+            }
+
+            if (enemy != null)
+            {
+                enemy.IntendedFacingChanged -= HandleEnemyIntendedFacingChanged;
+                enemy.LocomotionModeChanged -= HandleEnemyLocomotionModeChanged;
+            }
+
+            if (subscribedAttackState != null)
+            {
+                subscribedAttackState.ContextLocked -= HandleEnemyAttackContextLocked;
+                subscribedAttackState.PhaseChanged -= HandleEnemyAttackPhaseChanged;
+                subscribedAttackState = null;
+            }
+
             subscribed = false;
         }
 
-        private CharacterAnimationState ResolveState(bool moved)
+        private void UpdatePlayerPresentation()
+        {
+            var movement = transform.position - previousPosition;
+            previousPosition = transform.position;
+            if (movement.sqrMagnitude > MovementThresholdSquared)
+            {
+                currentDirection = DirectionFromVector(movement);
+            }
+
+            var desiredState = ResolveState(movement.sqrMagnitude > MovementThresholdSquared);
+            if (desiredState != currentState || currentClip == null || currentClip.Direction != currentDirection)
+            {
+                BeginClip(desiredState, currentDirection);
+            }
+            else
+            {
+                AdvanceClip(Time.deltaTime);
+            }
+        }
+
+        private CharacterAnimationState ResolveState(bool playerMoved)
         {
             if (health.IsDead)
             {
                 return CharacterAnimationState.Death;
             }
 
-            if (hitRemaining > 0f)
-            {
-                return CharacterAnimationState.Hit;
-            }
-
             switch (driver)
             {
                 case CharacterAnimationDriver.Player:
+                    if (hitRemaining > 0f)
+                    {
+                        return CharacterAnimationState.Hit;
+                    }
+
                     if (dashAbility.IsDashing)
                     {
                         return CharacterAnimationState.Dash;
@@ -159,17 +221,16 @@ namespace Overbless.Runtime
                         return CharacterAnimationState.BlessCast;
                     }
 
-                    return moved ? CharacterAnimationState.Move : CharacterAnimationState.Idle;
+                    return playerMoved ? CharacterAnimationState.Walk : CharacterAnimationState.Idle;
                 case CharacterAnimationDriver.MajorEnemy:
-                    return ResolveMajorEnemyState(moved);
                 case CharacterAnimationDriver.Minion:
-                    return ResolveMinionState(moved);
+                    return ResolveEnemyState();
                 default:
                     throw new ArgumentOutOfRangeException(nameof(driver), driver, "Unsupported animation driver.");
             }
         }
 
-        private CharacterAnimationState ResolveMajorEnemyState(bool moved)
+        private CharacterAnimationState ResolveEnemyState()
         {
             switch (enemy.CurrentAttackPhase)
             {
@@ -181,26 +242,89 @@ namespace Overbless.Runtime
                 case AttackPhase.Recovery:
                     return CharacterAnimationState.Recover;
                 case AttackPhase.Idle:
-                    return moved ? CharacterAnimationState.Move : CharacterAnimationState.Idle;
+                    if (hitRemaining > 0f)
+                    {
+                        return CharacterAnimationState.Hit;
+                    }
+
+                    return ResolveEnemyLocomotionState();
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
 
-        private CharacterAnimationState ResolveMinionState(bool moved)
+        private CharacterAnimationState ResolveEnemyLocomotionState()
         {
-            switch (enemy.CurrentAttackPhase)
+            switch (enemy.CurrentLocomotionMode)
             {
-                case AttackPhase.Warning:
-                case AttackPhase.Locked:
-                case AttackPhase.Executing:
-                    return CharacterAnimationState.BasicAttack;
-                case AttackPhase.Idle:
-                case AttackPhase.Recovery:
-                    return moved ? CharacterAnimationState.Move : CharacterAnimationState.Idle;
+                case LocomotionMode.Idle:
+                    return CharacterAnimationState.Idle;
+                case LocomotionMode.Walk:
+                    return CharacterAnimationState.Walk;
+                case LocomotionMode.Run:
+                    return CharacterAnimationState.Run;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+        }
+
+        private CharacterDirection ResolveEnemyDirection()
+        {
+            switch (enemy.CurrentAttackPhase)
+            {
+                case AttackPhase.Locked:
+                case AttackPhase.Executing:
+                case AttackPhase.Recovery:
+                    if (hasLockedAttackDirection)
+                    {
+                        return lockedAttackDirection;
+                    }
+
+                    break;
+                case AttackPhase.Idle:
+                case AttackPhase.Warning:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            return DirectionFromVector(enemy.IntendedFacing);
+        }
+
+        private void RefreshEnemyPresentation()
+        {
+            if (!initialized || driver == CharacterAnimationDriver.Player)
+            {
+                return;
+            }
+
+            var desiredState = ResolveState(false);
+            var desiredDirection = ResolveEnemyDirection();
+            if (desiredState != currentState || currentClip == null || currentClip.Direction != desiredDirection)
+            {
+                BeginClip(desiredState, desiredDirection);
+                skipEnemyAdvanceOnce = true;
+            }
+        }
+        private void SynchronizeEnemyPresentation()
+        {
+            if (driver == CharacterAnimationDriver.Player)
+            {
+                return;
+            }
+
+            var attackState = enemy.AttackState;
+            if (attackState.CurrentContext != null)
+            {
+                lockedAttackDirection = DirectionFromVector(attackState.CurrentContext.NormalizedDirection);
+                hasLockedAttackDirection = true;
+            }
+            else if (attackState.Phase == AttackPhase.Idle)
+            {
+                hasLockedAttackDirection = false;
+            }
+
+            RefreshEnemyPresentation();
         }
 
         private void BeginClip(CharacterAnimationState state, CharacterDirection direction)
@@ -248,18 +372,60 @@ namespace Overbless.Runtime
         {
             spriteRenderer.sprite = currentClip.GetFrame(frameIndex);
         }
+        private void HandleEnemyIntendedFacingChanged(Vector2 facing)
+        {
+            RefreshEnemyPresentation();
+        }
+
+        private void HandleEnemyLocomotionModeChanged(LocomotionMode mode)
+        {
+            RefreshEnemyPresentation();
+        }
+
+        private void HandleEnemyAttackContextLocked(AttackContext context)
+        {
+            if (context == null)
+            {
+                hasLockedAttackDirection = false;
+                RefreshEnemyPresentation();
+                return;
+            }
+
+            lockedAttackDirection = DirectionFromVector(context.NormalizedDirection);
+            hasLockedAttackDirection = true;
+            RefreshEnemyPresentation();
+        }
+
+        private void HandleEnemyAttackPhaseChanged(AttackPhase phase)
+        {
+            if (phase == AttackPhase.Idle)
+            {
+                hasLockedAttackDirection = false;
+            }
+
+            RefreshEnemyPresentation();
+        }
+
 
         private void HandleDamaged(DamageEvent damageEvent)
         {
             if (!health.IsDead)
             {
                 hitRemaining = HitDisplayDuration;
+                if (driver != CharacterAnimationDriver.Player)
+                {
+                    RefreshEnemyPresentation();
+                }
             }
         }
 
         private void HandleDied(DeathEvent deathEvent)
         {
             hitRemaining = 0f;
+            if (driver != CharacterAnimationDriver.Player)
+            {
+                RefreshEnemyPresentation();
+            }
         }
 
         private void ValidateConfiguration()

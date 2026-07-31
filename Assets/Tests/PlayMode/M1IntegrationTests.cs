@@ -146,19 +146,19 @@ namespace Overbless.Tests.PlayMode
             Assert.That(playerAnimator.CurrentState, Is.EqualTo(CharacterAnimationState.Idle));
             Assert.That(playerAnimator.AnimationSet.ClipCount, Is.EqualTo(48));
             Assert.That(
-                playerAnimator.AnimationSet.GetClip(CharacterAnimationState.Move, CharacterDirection.East).FrameCount,
+                playerAnimator.AnimationSet.GetClip(CharacterAnimationState.Walk, CharacterDirection.East).FrameCount,
                 Is.EqualTo(6));
             Assert.That(
-                playerAnimator.AnimationSet.GetClip(CharacterAnimationState.Move, CharacterDirection.SouthEast).FrameCount,
+                playerAnimator.AnimationSet.GetClip(CharacterAnimationState.Walk, CharacterDirection.SouthEast).FrameCount,
                 Is.EqualTo(6));
             Assert.That(
-                playerAnimator.AnimationSet.GetClip(CharacterAnimationState.Move, CharacterDirection.SouthWest).FrameCount,
+                playerAnimator.AnimationSet.GetClip(CharacterAnimationState.Walk, CharacterDirection.SouthWest).FrameCount,
                 Is.EqualTo(6));
             Assert.That(
-                playerAnimator.AnimationSet.GetClip(CharacterAnimationState.Move, CharacterDirection.NorthEast).FrameCount,
+                playerAnimator.AnimationSet.GetClip(CharacterAnimationState.Walk, CharacterDirection.NorthEast).FrameCount,
                 Is.EqualTo(6));
             Assert.That(
-                playerAnimator.AnimationSet.GetClip(CharacterAnimationState.Move, CharacterDirection.NorthWest).FrameCount,
+                playerAnimator.AnimationSet.GetClip(CharacterAnimationState.Walk, CharacterDirection.NorthWest).FrameCount,
                 Is.EqualTo(6));
             AssertPosition(enemies, "Dasher", new Vector2(0f, 3f));
             AssertPosition(enemies, "Archer_A", new Vector2(0f, -0.5f));
@@ -222,14 +222,14 @@ namespace Overbless.Tests.PlayMode
             Assert.That(inputRouter.Movement.x, Is.GreaterThan(0f), "D key did not route movement through PlayerInputRouter.");
             yield return null;
             Assert.That(playerAnimator.CurrentDirection, Is.EqualTo(CharacterDirection.East));
-            Assert.That(playerAnimator.CurrentState, Is.EqualTo(CharacterAnimationState.Move));
+            Assert.That(playerAnimator.CurrentState, Is.EqualTo(CharacterAnimationState.Walk));
             Assert.That(player.transform.position.x, Is.GreaterThan(eastMovementStart.x));
 
             var northEastMovementStart = player.transform.position;
             yield return SetKeyboardState(keyboard, Key.W, Key.D);
             yield return null;
             Assert.That(playerAnimator.CurrentDirection, Is.EqualTo(CharacterDirection.NorthEast));
-            Assert.That(playerAnimator.CurrentState, Is.EqualTo(CharacterAnimationState.Move));
+            Assert.That(playerAnimator.CurrentState, Is.EqualTo(CharacterAnimationState.Walk));
             Assert.That(player.transform.position.x, Is.GreaterThan(northEastMovementStart.x));
             Assert.That(player.transform.position.y, Is.GreaterThan(northEastMovementStart.y));
 

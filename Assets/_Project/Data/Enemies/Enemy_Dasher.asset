@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: Enemy_Dasher
   m_EditorClassIdentifier: 
   maximumHealth: 12
-  movementSpeed: 1.5
+  walkSpeed: 1
+  runSpeed: 1.5
   attackCooldown: 3
   attackDamage: 1
   engagementRange: 8

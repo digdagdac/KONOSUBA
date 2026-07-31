@@ -131,8 +131,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 16d722555d983d34fa69496cd4f027db, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   health: {fileID: 2870362542144384182}
   backgroundLine: {fileID: 8385241140729056797}
   fillLine: {fileID: 816541871801871264}
@@ -355,8 +355,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cc451b99adaadb74883e5904e23b115c, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   hasteRenderer: {fileID: 1526050144190682143}
   giantRenderer: {fileID: 3493498265119907698}
   echoRenderer: {fileID: 3077619100291999010}
@@ -667,8 +667,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f5e2809eb3bd16249aaa255fec2b7854, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   line: {fileID: 7315311617695679853}
   warningColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   lockedColor: {r: 1, g: 0, b: 0, a: 1}
@@ -840,8 +840,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b313561adb966bb4b9e7c8e6684ab0b4, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   entityId: 1
   maximumHealth: 5
   startsInvulnerable: 0
@@ -855,12 +855,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 67e8b8ab15f57df49a54c014c253b4d4, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   definition: {fileID: 11400000, guid: aad80f903af9a314bb55ca29c5e9eef5, type: 2}
   health: {fileID: 2870362542144384182}
   playerTarget: {fileID: 0}
   spawnTransform: {fileID: 2064710821991025483}
+  initialIntendedFacing: {x: 0, y: -1}
 --- !u!114 &273009183405657972
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -871,8 +872,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 027a2d32dcd2aab44a32719a69178b01, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   driver: 2
   initialDirection: 0
   spriteRenderer: {fileID: 1596520165323302273}

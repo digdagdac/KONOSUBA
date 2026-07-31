@@ -465,8 +465,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b313561adb966bb4b9e7c8e6684ab0b4, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   entityId: 1
   maximumHealth: 8
   startsInvulnerable: 0
@@ -480,12 +480,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5faa23feccb82f04c97f038c0aa9c5a0, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   definition: {fileID: 11400000, guid: 6beef3f224273d043ab2f649cb75a0f7, type: 2}
   health: {fileID: 3330200742550209125}
   playerTarget: {fileID: 0}
   spawnTransform: {fileID: 2813988330936394836}
+  initialIntendedFacing: {x: 0, y: -1}
 --- !u!114 &7549628027619136042
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -496,8 +497,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 027a2d32dcd2aab44a32719a69178b01, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   driver: 1
   initialDirection: 0
   spriteRenderer: {fileID: 7351194959692004782}
@@ -637,8 +638,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 16d722555d983d34fa69496cd4f027db, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   health: {fileID: 3330200742550209125}
   backgroundLine: {fileID: 5807252129818783108}
   fillLine: {fileID: 8859723173158413765}
@@ -801,8 +802,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a5b5ba0a221542f4dab098c03e12862d, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   line: {fileID: 6377751858548450632}
 --- !u!1 &7990059630471783157
 GameObject:
@@ -963,8 +964,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f5e2809eb3bd16249aaa255fec2b7854, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   line: {fileID: 2107364743565649481}
   warningColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   lockedColor: {r: 1, g: 0, b: 0, a: 1}
@@ -1099,8 +1100,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cc451b99adaadb74883e5904e23b115c, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   hasteRenderer: {fileID: 7745175645776581031}
   giantRenderer: {fileID: 8216433982562196608}
   echoRenderer: {fileID: 0}

@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 82b8e52050040ea44b7782b0b9e61927, type: 3}
   m_Name: Room_02
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   seed: 104729
   fixedTimeStep: 0.02
   bounds:

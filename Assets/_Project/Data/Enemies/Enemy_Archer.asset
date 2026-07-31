@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: Enemy_Archer
   m_EditorClassIdentifier: 
   maximumHealth: 8
-  movementSpeed: 0.75
+  walkSpeed: 0.5
+  runSpeed: 0.75
   attackCooldown: 3.5
   attackDamage: 1
   engagementRange: 10

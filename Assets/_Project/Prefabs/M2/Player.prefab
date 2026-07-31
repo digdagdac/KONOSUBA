@@ -169,8 +169,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b313561adb966bb4b9e7c8e6684ab0b4, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   entityId: 1
   maximumHealth: 6
   startsInvulnerable: 0
@@ -184,8 +184,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 685bf8a9e911e2549b7711ec304d31e6, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &1611328834144246346
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -196,8 +196,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: adb5c62da031ed0488bf25b6ccfc5224, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   config: {fileID: 11400000, guid: a7b1cedd15542624c8a8de9784e67315, type: 2}
   playerTransform: {fileID: 5307226585586329572}
   health: {fileID: 5625118852818147673}
@@ -211,8 +211,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 84b08700bed4c514f904bca453d7753f, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   config: {fileID: 11400000, guid: a7b1cedd15542624c8a8de9784e67315, type: 2}
   playerTransform: {fileID: 5307226585586329572}
   inputRouter: {fileID: 1946919474359682458}
@@ -227,8 +227,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 25be3e8425e11b844aa167031bcbc76e, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   playerTransform: {fileID: 5307226585586329572}
   health: {fileID: 5625118852818147673}
   inputRouter: {fileID: 1946919474359682458}
@@ -244,8 +244,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 44f4496c6277d364db13baa4f26c7c35, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   targetingCamera: {fileID: 0}
   enemyBodyLayerName: EnemyBody
   echoEnabled: 0
@@ -259,8 +259,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 027a2d32dcd2aab44a32719a69178b01, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   driver: 0
   initialDirection: 0
   spriteRenderer: {fileID: 1118922054608699792}

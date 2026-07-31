@@ -1,0 +1,246 @@
+{
+  "schema": "overbless.monster-directional-animation-prompts/v2",
+  "schema_version": 2,
+  "version": "v002",
+  "created_utc": "2026-07-30T00:00:00Z",
+  "project": "Overbless",
+  "approved_reference_paths": {
+    "style_bible": "Docs/Style/STYLE_BIBLE.md",
+    "relative_scale_reference": "Docs/Style/References/chr_relative_scale_v001.png",
+    "role_references": {
+      "dasher": "Docs/Style/References/chr_dasher_reference_v001.png",
+      "archer": "Docs/Style/References/chr_archer_reference_v001.png",
+      "minion": "Docs/Style/References/chr_minion_reference_v001.png"
+    },
+    "approved_v001_south_sprites": {
+      "dasher": "Assets/_Project/Art/M1Production/Characters/chr_dasher_idle_south_a_v001.png",
+      "archer": "Assets/_Project/Art/M1Production/Characters/chr_archer_idle_south_a_v001.png",
+      "minion": "Assets/_Project/Art/M1Production/Characters/chr_minion_idle_south_a_v001.png"
+    }
+  },
+  "source_contract": {
+    "source_root": "Docs/AI_Usage/sources/monster_animation_v002",
+    "filename_template": "{role}_{direction}_motion_sheet_source.png",
+    "roles": ["dasher", "archer", "minion"],
+    "direct_directions": ["south", "north", "east", "southeast", "northeast"],
+    "sheet_count": 15,
+    "sheet_size_pixels": [1536, 1024],
+    "sheet_mode": "RGB or RGBA PNG",
+    "grid": {
+      "columns": 8,
+      "rows": 5,
+      "partition_rule": "equal integer grid partitions: x=[floor(1536*c/8), floor(1536*(c+1)/8)); y=[floor(1024*r/5), floor(1024*(r+1)/5))"
+    },
+    "row_order": ["walk", "run", "attack_charge", "attack_execute", "recover"],
+    "row_contract": [
+      {"row": 0, "action": "walk", "active_frames": 6, "fps": 8, "loop": true, "active_columns": [0, 1, 2, 3, 4, 5], "unused_columns": [6, 7]},
+      {"row": 1, "action": "run", "active_frames": 8, "fps": 12, "loop": true, "active_columns": [0, 1, 2, 3, 4, 5, 6, 7], "unused_columns": []},
+      {"row": 2, "action": "attack_charge", "active_frames": 6, "fps": 8, "loop": false, "active_columns": [0, 1, 2, 3, 4, 5], "unused_columns": [6, 7]},
+      {"row": 3, "action": "attack_execute", "active_frames": 6, "fps": {"dasher": 14, "archer": 14, "minion": 24}, "loop": false, "active_columns": [0, 1, 2, 3, 4, 5], "unused_columns": [6, 7]},
+      {"row": 4, "action": "recover", "active_frames": 4, "fps": 7, "loop": false, "active_columns": [0, 1, 2, 3], "unused_columns": [4, 5, 6, 7]}
+    ],
+    "placement": "Each active cell contains one complete character pose, bottom-centered inside its own cell, with both feet readable and no clipping. All unused cells are flat pure chroma magenta.",
+    "direct_authorship": "Every listed source sheet is an independently authored direct view. It must not be a mirror, recolor, rotation, translation, diagonal composite, or derivation of another direction."
+  },
+  "derived_direction_contract": {
+    "west": "exact horizontal pixel mirror of east only",
+    "southwest": "exact horizontal pixel mirror of southeast only",
+    "northwest": "exact horizontal pixel mirror of northeast only",
+    "prohibited": ["derive south", "derive north", "derive east", "derive southeast", "derive northeast", "diagonal composite", "idle transform"]
+  },
+  "processing_contract": {
+    "canvas_size_pixels": [128, 128],
+    "role_content_heights_pixels": {"dasher": 126, "archer": 126, "minion": 70},
+    "allowed_operations": [
+      "equal-grid cell extraction",
+      "pure or near chroma-magenta removal to binary alpha",
+      "tight alpha-bounds crop",
+      "proportional nearest-neighbor normalization",
+      "bottom-center placement",
+      "exact horizontal pixel mirror for west, southwest, and northwest only",
+      "exact active-frame pixel copy from v001 idle, hit, and death rows only",
+      "transparent atlas packing and deterministic PNG encoding"
+    ],
+    "forbidden_operations": [
+      "derive any of the five direct directions",
+      "idle transforms",
+      "diagonal composites",
+      "interpolation",
+      "rotation",
+      "translation after placement",
+      "scale after normalization",
+      "palette or tint adjustment",
+      "blur or antialiasing",
+      "synthesizing, repeating, or filling missing active frames",
+      "using v001 Move or attack rows"
+    ]
+  },
+  "shared_visual_constraints": "Create original production-ready 2D pixel art for the fixed-camera three-quarter top-down dark-fantasy dungeon game. Use the supplied role reference and v001 south sprite as binding design references: preserve role silhouette, costume, palette family, body proportions, foot baseline, upper-left lighting, and readable fixed-camera perspective. Crisp hand-placed pixel clusters only: hard edges, no antialiasing, no blur, no smooth vector lines, no painterly rendering, and no photorealism. Render one strict 1536x1024 source PNG with an exact 8-column by 5-row grid and no gutters, borders, panel labels, grid lines, text, letters, numbers, logos, signatures, or watermark. The whole background and every unused cell must be uniform #FF00FF chroma magenta; never use magenta in a character. Every active frame must be visibly authored and distinct enough to convey its row action. No ground plane, cast shadow, glow spill, particles, projectile, detached weapon, telegraph, duplicate character, alternate costume, or effect may cross a cell boundary.",
+  "sheets": [
+    {
+      "id": "dasher_south_motion_sheet",
+      "role": "dasher",
+      "direction": "south",
+      "source_path": "Docs/AI_Usage/sources/monster_animation_v002/dasher_south_motion_sheet_source.png",
+      "reference_paths": ["Docs/Style/References/chr_dasher_reference_v001.png", "Assets/_Project/Art/M1Production/Characters/chr_dasher_idle_south_a_v001.png", "Docs/Style/References/chr_relative_scale_v001.png"],
+      "provenance": {"tool": null, "model": null, "provider": null, "seed": null, "generated_at_utc": null, "status": "record with the real generated source"},
+      "prompt": "Create the approved coral-red charging knight facing south/front toward the camera as an independently authored direct view. Preserve the helmet crest, broad shoulders, compact shield, lance-like charge weapon, pale-gold accents, and strong forward wedge silhouette. In row 0 make six connected measured walking poses. In row 1 make eight faster running poses with a readable armor cadence. In row 2 make six escalating charge-warning poses that compress into a locked south-facing lance-and-shield line without a visible telegraph. In row 3 make six committed forward charge-execute poses, showing body follow-through but no trail or detached effect. In row 4 make four recovery poses that settle from commitment to a ready stance. Use exactly the shared 8x5 sheet contract and leave every declared unused cell pure magenta.",
+      "negative_prompt": ["mirror of another direction", "diagonal composite", "idle transform", "projectile", "telegraph", "motion trail", "extra weapon", "text", "watermark"]
+    },
+    {
+      "id": "dasher_north_motion_sheet",
+      "role": "dasher",
+      "direction": "north",
+      "source_path": "Docs/AI_Usage/sources/monster_animation_v002/dasher_north_motion_sheet_source.png",
+      "reference_paths": ["Docs/Style/References/chr_dasher_reference_v001.png", "Assets/_Project/Art/M1Production/Characters/chr_dasher_idle_south_a_v001.png", "Docs/Style/References/chr_relative_scale_v001.png"],
+      "provenance": {"tool": null, "model": null, "provider": null, "seed": null, "generated_at_utc": null, "status": "record with the real generated source"},
+      "prompt": "Create the approved coral-red charging knight facing north/away from the camera as an independently authored direct rear view. Preserve the exact crest, rear armor, shield, lance-like charge weapon, pale-gold accents, and wedge-shaped charge read; both feet remain readable. In row 0 make six connected walking poses. In row 1 make eight faster running poses. In row 2 make six escalating charge-warning poses that lock into a north-facing line without drawing a telegraph. In row 3 make six committed charge-execute poses with readable rear follow-through and no trail or detached effect. In row 4 make four recovery poses returning to a ready rear stance. Use exactly the shared 8x5 sheet contract and leave every declared unused cell pure magenta.",
+      "negative_prompt": ["mirror of another direction", "diagonal composite", "idle transform", "projectile", "telegraph", "motion trail", "extra weapon", "text", "watermark"]
+    },
+    {
+      "id": "dasher_east_motion_sheet",
+      "role": "dasher",
+      "direction": "east",
+      "source_path": "Docs/AI_Usage/sources/monster_animation_v002/dasher_east_motion_sheet_source.png",
+      "reference_paths": ["Docs/Style/References/chr_dasher_reference_v001.png", "Assets/_Project/Art/M1Production/Characters/chr_dasher_idle_south_a_v001.png", "Docs/Style/References/chr_relative_scale_v001.png"],
+      "provenance": {"tool": null, "model": null, "provider": null, "seed": null, "generated_at_utc": null, "status": "record with the real generated source"},
+      "prompt": "Create the approved coral-red charging knight facing east/right as an independently authored direct side view. Preserve the exact helmet crest, shield, lance-like charge weapon, pale-gold accents, and right-facing wedge silhouette. In row 0 make six connected walking poses. In row 1 make eight faster running poses. In row 2 make six charge-warning poses that visibly compress and lock toward east without a telegraph. In row 3 make six committed eastward charge-execute poses with a clear weapon axis but no trail or detached effect. In row 4 make four recovery poses that settle to the ready side stance. Use exactly the shared 8x5 sheet contract and leave every declared unused cell pure magenta.",
+      "negative_prompt": ["mirror of another direction", "diagonal composite", "idle transform", "projectile", "telegraph", "motion trail", "extra weapon", "text", "watermark"]
+    },
+    {
+      "id": "dasher_southeast_motion_sheet",
+      "role": "dasher",
+      "direction": "southeast",
+      "source_path": "Docs/AI_Usage/sources/monster_animation_v002/dasher_southeast_motion_sheet_source.png",
+      "reference_paths": ["Docs/Style/References/chr_dasher_reference_v001.png", "Assets/_Project/Art/M1Production/Characters/chr_dasher_idle_south_a_v001.png", "Docs/Style/References/chr_relative_scale_v001.png"],
+      "provenance": {"tool": null, "model": null, "provider": null, "seed": null, "generated_at_utc": null, "status": "record with the real generated source"},
+      "prompt": "Create the approved coral-red charging knight facing southeast/down-right as an independently authored direct diagonal view, halfway between south and east and not a composite. Preserve the exact crest, broad shoulder mass, compact shield, lance-like weapon, pale-gold accents, and diagonal forward wedge. In row 0 make six connected walking poses. In row 1 make eight faster running poses. In row 2 make six escalating southeast charge-warning poses that lock to that diagonal with no telegraph. In row 3 make six committed southeast charge-execute poses with no trail or detached effect. In row 4 make four recovery poses returning to a ready diagonal stance. Use exactly the shared 8x5 sheet contract and leave every declared unused cell pure magenta.",
+      "negative_prompt": ["mirror of another direction", "south plus east composite", "idle transform", "projectile", "telegraph", "motion trail", "text", "watermark"]
+    },
+    {
+      "id": "dasher_northeast_motion_sheet",
+      "role": "dasher",
+      "direction": "northeast",
+      "source_path": "Docs/AI_Usage/sources/monster_animation_v002/dasher_northeast_motion_sheet_source.png",
+      "reference_paths": ["Docs/Style/References/chr_dasher_reference_v001.png", "Assets/_Project/Art/M1Production/Characters/chr_dasher_idle_south_a_v001.png", "Docs/Style/References/chr_relative_scale_v001.png"],
+      "provenance": {"tool": null, "model": null, "provider": null, "seed": null, "generated_at_utc": null, "status": "record with the real generated source"},
+      "prompt": "Create the approved coral-red charging knight facing northeast/up-right as an independently authored direct diagonal rear-three-quarter view, halfway between north and east and not a composite. Preserve the exact crest, rear armor, compact shield, lance-like weapon, pale-gold accents, and diagonal forward wedge. In row 0 make six connected walking poses. In row 1 make eight faster running poses. In row 2 make six escalating northeast charge-warning poses that lock to that diagonal with no telegraph. In row 3 make six committed northeast charge-execute poses with no trail or detached effect. In row 4 make four recovery poses returning to a ready diagonal rear stance. Use exactly the shared 8x5 sheet contract and leave every declared unused cell pure magenta.",
+      "negative_prompt": ["mirror of another direction", "north plus east composite", "idle transform", "projectile", "telegraph", "motion trail", "text", "watermark"]
+    },
+    {
+      "id": "archer_south_motion_sheet",
+      "role": "archer",
+      "direction": "south",
+      "source_path": "Docs/AI_Usage/sources/monster_animation_v002/archer_south_motion_sheet_source.png",
+      "reference_paths": ["Docs/Style/References/chr_archer_reference_v001.png", "Assets/_Project/Art/M1Production/Characters/chr_archer_idle_south_a_v001.png", "Docs/Style/References/chr_relative_scale_v001.png"],
+      "provenance": {"tool": null, "model": null, "provider": null, "seed": null, "generated_at_utc": null, "status": "record with the real generated source"},
+      "prompt": "Create the approved violet piercing archer facing south/front toward the camera as an independently authored direct view. Preserve the hood, lavender accents, compact humanoid proportions, and long asymmetrical bow with a clear south-facing firing axis. In row 0 make six connected walking poses with the bow carried consistently. In row 1 make eight faster running poses. In row 2 make six aim-and-draw charge poses that visibly lock south without a telegraph. In row 3 make six bow-release execute poses with readable recoil and no detached arrow, projectile, or effect. In row 4 make four recover and re-ready poses. Use exactly the shared 8x5 sheet contract and leave every declared unused cell pure magenta.",
+      "negative_prompt": ["mirror of another direction", "diagonal composite", "idle transform", "detached arrow", "projectile", "telegraph", "glow", "text", "watermark"]
+    },
+    {
+      "id": "archer_north_motion_sheet",
+      "role": "archer",
+      "direction": "north",
+      "source_path": "Docs/AI_Usage/sources/monster_animation_v002/archer_north_motion_sheet_source.png",
+      "reference_paths": ["Docs/Style/References/chr_archer_reference_v001.png", "Assets/_Project/Art/M1Production/Characters/chr_archer_idle_south_a_v001.png", "Docs/Style/References/chr_relative_scale_v001.png"],
+      "provenance": {"tool": null, "model": null, "provider": null, "seed": null, "generated_at_utc": null, "status": "record with the real generated source"},
+      "prompt": "Create the approved violet piercing archer facing north/away from the camera as an independently authored direct rear view. Preserve the hood back, lavender accents, exact bow design, and a readable north-facing firing axis. In row 0 make six connected walking poses. In row 1 make eight faster running poses. In row 2 make six aim-and-draw charge poses that visibly lock north without a telegraph. In row 3 make six bow-release execute poses with rear-view recoil and no detached arrow, projectile, or effect. In row 4 make four recover and re-ready poses. Use exactly the shared 8x5 sheet contract and leave every declared unused cell pure magenta.",
+      "negative_prompt": ["mirror of another direction", "diagonal composite", "idle transform", "detached arrow", "projectile", "telegraph", "glow", "text", "watermark"]
+    },
+    {
+      "id": "archer_east_motion_sheet",
+      "role": "archer",
+      "direction": "east",
+      "source_path": "Docs/AI_Usage/sources/monster_animation_v002/archer_east_motion_sheet_source.png",
+      "reference_paths": ["Docs/Style/References/chr_archer_reference_v001.png", "Assets/_Project/Art/M1Production/Characters/chr_archer_idle_south_a_v001.png", "Docs/Style/References/chr_relative_scale_v001.png"],
+      "provenance": {"tool": null, "model": null, "provider": null, "seed": null, "generated_at_utc": null, "status": "record with the real generated source"},
+      "prompt": "Create the approved violet piercing archer facing east/right as an independently authored direct side view. Preserve the hood, lavender accents, and long asymmetrical bow with an unmistakable east-facing firing axis. In row 0 make six connected walking poses. In row 1 make eight faster running poses. In row 2 make six aim-and-draw charge poses that visibly lock east without a telegraph. In row 3 make six bow-release execute poses with side-view recoil and no detached arrow, projectile, or effect. In row 4 make four recover and re-ready poses. Use exactly the shared 8x5 sheet contract and leave every declared unused cell pure magenta.",
+      "negative_prompt": ["mirror of another direction", "diagonal composite", "idle transform", "detached arrow", "projectile", "telegraph", "glow", "text", "watermark"]
+    },
+    {
+      "id": "archer_southeast_motion_sheet",
+      "role": "archer",
+      "direction": "southeast",
+      "source_path": "Docs/AI_Usage/sources/monster_animation_v002/archer_southeast_motion_sheet_source.png",
+      "reference_paths": ["Docs/Style/References/chr_archer_reference_v001.png", "Assets/_Project/Art/M1Production/Characters/chr_archer_idle_south_a_v001.png", "Docs/Style/References/chr_relative_scale_v001.png"],
+      "provenance": {"tool": null, "model": null, "provider": null, "seed": null, "generated_at_utc": null, "status": "record with the real generated source"},
+      "prompt": "Create the approved violet piercing archer facing southeast/down-right as an independently authored direct diagonal view, halfway between south and east and not a composite. Preserve the hood, lavender accents, and long asymmetrical bow with a clear diagonal firing axis. In row 0 make six connected walking poses. In row 1 make eight faster running poses. In row 2 make six aim-and-draw charge poses that lock southeast without a telegraph. In row 3 make six bow-release execute poses with no detached arrow, projectile, or effect. In row 4 make four recover and re-ready poses. Use exactly the shared 8x5 sheet contract and leave every declared unused cell pure magenta.",
+      "negative_prompt": ["mirror of another direction", "south plus east composite", "idle transform", "detached arrow", "projectile", "telegraph", "glow", "text", "watermark"]
+    },
+    {
+      "id": "archer_northeast_motion_sheet",
+      "role": "archer",
+      "direction": "northeast",
+      "source_path": "Docs/AI_Usage/sources/monster_animation_v002/archer_northeast_motion_sheet_source.png",
+      "reference_paths": ["Docs/Style/References/chr_archer_reference_v001.png", "Assets/_Project/Art/M1Production/Characters/chr_archer_idle_south_a_v001.png", "Docs/Style/References/chr_relative_scale_v001.png"],
+      "provenance": {"tool": null, "model": null, "provider": null, "seed": null, "generated_at_utc": null, "status": "record with the real generated source"},
+      "prompt": "Create the approved violet piercing archer facing northeast/up-right as an independently authored direct diagonal rear-three-quarter view, halfway between north and east and not a composite. Preserve the hood back, lavender accents, and long asymmetrical bow with a clear diagonal firing axis. In row 0 make six connected walking poses. In row 1 make eight faster running poses. In row 2 make six aim-and-draw charge poses that lock northeast without a telegraph. In row 3 make six bow-release execute poses with no detached arrow, projectile, or effect. In row 4 make four recover and re-ready poses. Use exactly the shared 8x5 sheet contract and leave every declared unused cell pure magenta.",
+      "negative_prompt": ["mirror of another direction", "north plus east composite", "idle transform", "detached arrow", "projectile", "telegraph", "glow", "text", "watermark"]
+    },
+    {
+      "id": "minion_south_motion_sheet",
+      "role": "minion",
+      "direction": "south",
+      "source_path": "Docs/AI_Usage/sources/monster_animation_v002/minion_south_motion_sheet_source.png",
+      "reference_paths": ["Docs/Style/References/chr_minion_reference_v001.png", "Assets/_Project/Art/M1Production/Characters/chr_minion_idle_south_a_v001.png", "Docs/Style/References/chr_relative_scale_v001.png"],
+      "provenance": {"tool": null, "model": null, "provider": null, "seed": null, "generated_at_utc": null, "status": "record with the real generated source"},
+      "prompt": "Create the approved compact green dungeon minion facing south/front toward the camera as an independently authored direct view. Preserve the tiny rounded-square head-and-body silhouette, short limbs, simple clothing, green palette, and clearly smaller scale than the humanoid enemies. In row 0 make six connected short walking poses. In row 1 make eight quicker running poses. In row 2 make six crouching close-attack charge poses that lock south without a telegraph. In row 3 make six brisk bite-or-claw execute poses with readable impact follow-through but no detached effect. In row 4 make four recovery poses returning to the compact ready stance. Use exactly the shared 8x5 sheet contract and leave every declared unused cell pure magenta.",
+      "negative_prompt": ["mirror of another direction", "diagonal composite", "idle transform", "circle telegraph", "projectile", "glow", "large humanoid proportions", "text", "watermark"]
+    },
+    {
+      "id": "minion_north_motion_sheet",
+      "role": "minion",
+      "direction": "north",
+      "source_path": "Docs/AI_Usage/sources/monster_animation_v002/minion_north_motion_sheet_source.png",
+      "reference_paths": ["Docs/Style/References/chr_minion_reference_v001.png", "Assets/_Project/Art/M1Production/Characters/chr_minion_idle_south_a_v001.png", "Docs/Style/References/chr_relative_scale_v001.png"],
+      "provenance": {"tool": null, "model": null, "provider": null, "seed": null, "generated_at_utc": null, "status": "record with the real generated source"},
+      "prompt": "Create the approved compact green dungeon minion facing north/away from the camera as an independently authored direct rear view. Preserve the tiny rounded-square silhouette, short limbs, simple clothing, green palette, and clearly smaller scale than humanoids. In row 0 make six connected short walking poses. In row 1 make eight quicker running poses. In row 2 make six crouching close-attack charge poses that lock north without a telegraph. In row 3 make six brisk bite-or-claw execute poses with readable rear-view follow-through and no detached effect. In row 4 make four recovery poses returning to the compact ready rear stance. Use exactly the shared 8x5 sheet contract and leave every declared unused cell pure magenta.",
+      "negative_prompt": ["mirror of another direction", "diagonal composite", "idle transform", "circle telegraph", "projectile", "glow", "large humanoid proportions", "text", "watermark"]
+    },
+    {
+      "id": "minion_east_motion_sheet",
+      "role": "minion",
+      "direction": "east",
+      "source_path": "Docs/AI_Usage/sources/monster_animation_v002/minion_east_motion_sheet_source.png",
+      "reference_paths": ["Docs/Style/References/chr_minion_reference_v001.png", "Assets/_Project/Art/M1Production/Characters/chr_minion_idle_south_a_v001.png", "Docs/Style/References/chr_relative_scale_v001.png"],
+      "provenance": {"tool": null, "model": null, "provider": null, "seed": null, "generated_at_utc": null, "status": "record with the real generated source"},
+      "prompt": "Create the approved compact green dungeon minion facing east/right as an independently authored direct side view. Preserve the tiny rounded-square silhouette, short limbs, simple clothing, green palette, and clearly smaller scale than humanoids. In row 0 make six connected short walking poses. In row 1 make eight quicker running poses. In row 2 make six crouching close-attack charge poses that lock east without a telegraph. In row 3 make six brisk bite-or-claw execute poses with a clear eastward reach and no detached effect. In row 4 make four recovery poses returning to the compact ready side stance. Use exactly the shared 8x5 sheet contract and leave every declared unused cell pure magenta.",
+      "negative_prompt": ["mirror of another direction", "diagonal composite", "idle transform", "circle telegraph", "projectile", "glow", "large humanoid proportions", "text", "watermark"]
+    },
+    {
+      "id": "minion_southeast_motion_sheet",
+      "role": "minion",
+      "direction": "southeast",
+      "source_path": "Docs/AI_Usage/sources/monster_animation_v002/minion_southeast_motion_sheet_source.png",
+      "reference_paths": ["Docs/Style/References/chr_minion_reference_v001.png", "Assets/_Project/Art/M1Production/Characters/chr_minion_idle_south_a_v001.png", "Docs/Style/References/chr_relative_scale_v001.png"],
+      "provenance": {"tool": null, "model": null, "provider": null, "seed": null, "generated_at_utc": null, "status": "record with the real generated source"},
+      "prompt": "Create the approved compact green dungeon minion facing southeast/down-right as an independently authored direct diagonal view, halfway between south and east and not a composite. Preserve the tiny rounded-square silhouette, short limbs, simple clothing, green palette, and small scale. In row 0 make six connected short walking poses. In row 1 make eight quicker running poses. In row 2 make six crouching close-attack charge poses that lock southeast without a telegraph. In row 3 make six brisk bite-or-claw execute poses with diagonal follow-through and no detached effect. In row 4 make four recovery poses returning to the compact ready diagonal stance. Use exactly the shared 8x5 sheet contract and leave every declared unused cell pure magenta.",
+      "negative_prompt": ["mirror of another direction", "south plus east composite", "idle transform", "circle telegraph", "projectile", "glow", "large humanoid proportions", "text", "watermark"]
+    },
+    {
+      "id": "minion_northeast_motion_sheet",
+      "role": "minion",
+      "direction": "northeast",
+      "source_path": "Docs/AI_Usage/sources/monster_animation_v002/minion_northeast_motion_sheet_source.png",
+      "reference_paths": ["Docs/Style/References/chr_minion_reference_v001.png", "Assets/_Project/Art/M1Production/Characters/chr_minion_idle_south_a_v001.png", "Docs/Style/References/chr_relative_scale_v001.png"],
+      "provenance": {"tool": null, "model": null, "provider": null, "seed": null, "generated_at_utc": null, "status": "record with the real generated source"},
+      "prompt": "Create the approved compact green dungeon minion facing northeast/up-right as an independently authored direct diagonal rear-three-quarter view, halfway between north and east and not a composite. Preserve the tiny rounded-square silhouette, short limbs, simple clothing, green palette, and small scale. In row 0 make six connected short walking poses. In row 1 make eight quicker running poses. In row 2 make six crouching close-attack charge poses that lock northeast without a telegraph. In row 3 make six brisk bite-or-claw execute poses with diagonal rear follow-through and no detached effect. In row 4 make four recovery poses returning to the compact ready diagonal rear stance. Use exactly the shared 8x5 sheet contract and leave every declared unused cell pure magenta.",
+      "negative_prompt": ["mirror of another direction", "north plus east composite", "idle transform", "circle telegraph", "projectile", "glow", "large humanoid proportions", "text", "watermark"]
+    }
+  ],
+  "output_contract": {
+    "atlases": [
+      "Assets/_Project/Art/M1Production/Characters/Animation/chr_dasher_animation_atlas_v002.png",
+      "Assets/_Project/Art/M1Production/Characters/Animation/chr_archer_animation_atlas_v002.png",
+      "Assets/_Project/Art/M1Production/Characters/Animation/chr_minion_animation_atlas_v002.png"
+    ],
+    "index": "Docs/AI_Usage/generations/monster_directional_animation_index_v002.json",
+    "atlas_size_pixels": [8192, 1024],
+    "atlas_rows": ["idle", "walk", "run", "attack_charge", "attack_execute", "recover", "hit", "death"],
+    "atlas_direction_blocks": ["south", "north", "east", "west", "southeast", "southwest", "northeast", "northwest"],
+    "frames_per_direction_block": 8,
+    "inherited_v001_states": ["idle", "hit", "death"],
+    "v001_states_never_used": ["move", "attack_charge", "attack_execute", "recover", "basic_attack"],
+    "classification_counts": {"authored": 450, "derived": 270, "inherited": 312}
+  }
+}

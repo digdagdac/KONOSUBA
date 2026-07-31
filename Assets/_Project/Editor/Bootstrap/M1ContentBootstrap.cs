@@ -495,20 +495,21 @@ namespace Overbless.Editor.Bootstrap
         private static EnemyDefinitions CreateEnemyDefinitions()
         {
             var dasher = GetOrCreateAsset<EnemyDefinition>(EnemyDataRoot + "/Enemy_Dasher.asset");
-            ConfigureEnemyDefinition(dasher, 12, 1.5f, 3f, 1, 8f, 8f, 0.7f, 0.75f, 0.4f, 10f, 8f, 4f);
+            ConfigureEnemyDefinition(dasher, 12, 1f, 1.5f, 3f, 1, 8f, 8f, 0.7f, 0.75f, 0.4f, 10f, 8f, 4f);
 
             var archer = GetOrCreateAsset<EnemyDefinition>(EnemyDataRoot + "/Enemy_Archer.asset");
-            ConfigureEnemyDefinition(archer, 8, 0.75f, 3.5f, 1, 10f, 10f, 0.35f, 0.7f, 0.35f, 8f, 9f, 4f);
+            ConfigureEnemyDefinition(archer, 8, 0.5f, 0.75f, 3.5f, 1, 10f, 10f, 0.35f, 0.7f, 0.35f, 8f, 9f, 4f);
 
             var minion = GetOrCreateAsset<EnemyDefinition>(EnemyDataRoot + "/Enemy_Minion.asset");
-            ConfigureEnemyDefinition(minion, 5, 1.25f, 4f, 1, 8f, 1f, 0.5f, 0.75f, 0.35f, 6f, 6f, 0f);
+            ConfigureEnemyDefinition(minion, 5, 0.8333333f, 1.25f, 4f, 1, 8f, 1f, 0.5f, 0.75f, 0.35f, 6f, 6f, 0f);
             return new EnemyDefinitions(dasher, archer, minion);
         }
 
         private static void ConfigureEnemyDefinition(
             EnemyDefinition definition,
             int maximumHealth,
-            float movementSpeed,
+            float walkSpeed,
+            float runSpeed,
             float attackCooldown,
             int attackDamage,
             float engagementRange,
@@ -522,7 +523,8 @@ namespace Overbless.Editor.Bootstrap
         {
             var serialized = new SerializedObject(definition);
             SetInt(serialized, "maximumHealth", maximumHealth);
-            SetFloat(serialized, "movementSpeed", movementSpeed);
+            SetFloat(serialized, "walkSpeed", walkSpeed);
+            SetFloat(serialized, "runSpeed", runSpeed);
             SetFloat(serialized, "attackCooldown", attackCooldown);
             SetInt(serialized, "attackDamage", attackDamage);
             SetFloat(serialized, "engagementRange", engagementRange);
@@ -779,6 +781,7 @@ namespace Overbless.Editor.Bootstrap
             SetObject(serialized, "definition", definition);
             SetObject(serialized, "health", health);
             SetObject(serialized, "spawnTransform", root.transform);
+            SetVector2(serialized, "initialIntendedFacing", Vector2.down);
             Apply(serialized, enemy);
             ConfigureDirectionalAnimator(
                 root.AddComponent<DirectionalSpriteAnimator>(),
@@ -1486,6 +1489,7 @@ namespace Overbless.Editor.Bootstrap
             var serialized = new SerializedObject(enemy);
             SetObject(serialized, "playerTarget", playerTarget);
             SetObject(serialized, "spawnTransform", instance.transform);
+            SetVector2(serialized, "initialIntendedFacing", initialFacing.normalized);
             Apply(serialized, enemy);
             return enemy;
         }

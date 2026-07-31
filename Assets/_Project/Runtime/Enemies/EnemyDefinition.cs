@@ -8,7 +8,8 @@ namespace Overbless.Runtime
     {
         [Header("Base")]
         [SerializeField, Min(1)] private int maximumHealth = 10;
-        [SerializeField, Min(0.01f)] private float movementSpeed = 2f;
+        [SerializeField, Min(0.01f)] private float walkSpeed = 1f;
+        [SerializeField, Min(0.01f)] private float runSpeed = 1.5f;
         [SerializeField, Min(0.01f)] private float attackCooldown = 2f;
         [SerializeField, Min(1)] private int attackDamage = 1;
         [SerializeField, Min(0.01f)] private float engagementRange = 6f;
@@ -30,7 +31,8 @@ namespace Overbless.Runtime
 
 
         public int MaximumHealth => maximumHealth;
-        public float MovementSpeed => movementSpeed;
+        public float WalkSpeed => walkSpeed;
+        public float RunSpeed => runSpeed;
         public float AttackCooldown => attackCooldown;
         public int AttackDamage => attackDamage;
         public float EngagementRange => engagementRange;
@@ -51,7 +53,12 @@ namespace Overbless.Runtime
                 throw new InvalidOperationException("Enemy definitions require positive maximum health.");
             }
 
-            RequirePositive(movementSpeed, nameof(movementSpeed));
+            RequirePositive(walkSpeed, nameof(walkSpeed));
+            RequirePositive(runSpeed, nameof(runSpeed));
+            if (runSpeed <= walkSpeed)
+            {
+                throw new InvalidOperationException("Enemy definitions require run speed to exceed walk speed.");
+            }
             RequirePositive(attackCooldown, nameof(attackCooldown));
 
             if (attackDamage <= 0)

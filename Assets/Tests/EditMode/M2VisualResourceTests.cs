@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using NUnit.Framework;
 using Overbless.Editor.Evidence;
+using Overbless.Runtime;
 using UnityEditor;
 using UnityEngine;
 
@@ -18,6 +19,18 @@ namespace Overbless.Tests.EditMode
         private const string M2ProductionRoot = "Assets/_Project/Art/M2Production";
         private const string M2PreproductionRoot = "Assets/_Project/Art/M2Preproduction";
         private const string M1GuidedScenePath = "Assets/_Project/Scenes/M1_GuidedValidation.unity";
+        private const string MonsterAnimationIndexPath =
+            "Docs/AI_Usage/generations/monster_directional_animation_index_v002.json";
+        private const string MonsterAnimationGenerationPath =
+            "Docs/AI_Usage/generations/monster_directional_animations_v002.json";
+        private const string MonsterAnimationReviewPath =
+            "Docs/AI_Usage/edits/monster_directional_animation_review_v002.json";
+        private const string MonsterAnimationPromptPath =
+            "Docs/AI_Usage/prompts/monster_directional_animation_prompts_v002.json";
+        private const string MonsterAnimationSourceRoot =
+            "Docs/AI_Usage/sources/monster_animation_v002";
+        private const string MonsterAnimationAtlasRoot =
+            "Assets/_Project/Art/M1Production/Characters/Animation";
 
         private static readonly RuntimeVisualSpec[] RuntimeVisuals =
         {
@@ -41,6 +54,45 @@ namespace Overbless.Tests.EditMode
                 "echo_line_telegraph",
                 "Assets/_Project/Art/M2Production/VFX/vfx_echo_line_telegraph_a_v002.png",
                 new Vector2(0.5f, 0.5f))
+        };
+        private static readonly MonsterAnimationRoleSpec[] MonsterAnimationRoles =
+        {
+            new MonsterAnimationRoleSpec(
+                "dasher",
+                "Assets/_Project/Art/M1Production/Characters/Animation/chr_dasher_animation_atlas_v002.png",
+                "Assets/_Project/Data/Animations/DasherDirectionalAnimationSet.asset"),
+            new MonsterAnimationRoleSpec(
+                "archer",
+                "Assets/_Project/Art/M1Production/Characters/Animation/chr_archer_animation_atlas_v002.png",
+                "Assets/_Project/Data/Animations/ArcherDirectionalAnimationSet.asset"),
+            new MonsterAnimationRoleSpec(
+                "minion",
+                "Assets/_Project/Art/M1Production/Characters/Animation/chr_minion_animation_atlas_v002.png",
+                "Assets/_Project/Data/Animations/MinionDirectionalAnimationSet.asset")
+        };
+
+        private static readonly MonsterAnimationStateSpec[] MonsterAnimationStates =
+        {
+            new MonsterAnimationStateSpec("idle", CharacterAnimationState.Idle, 4, 4f, true),
+            new MonsterAnimationStateSpec("walk", CharacterAnimationState.Walk, 6, 8f, true),
+            new MonsterAnimationStateSpec("run", CharacterAnimationState.Run, 8, 12f, true),
+            new MonsterAnimationStateSpec("attack_charge", CharacterAnimationState.AttackCharge, 6, 8f, false),
+            new MonsterAnimationStateSpec("attack_execute", CharacterAnimationState.AttackExecute, 6, 14f, false),
+            new MonsterAnimationStateSpec("recover", CharacterAnimationState.Recover, 4, 7f, false),
+            new MonsterAnimationStateSpec("hit", CharacterAnimationState.Hit, 3, 12f, false),
+            new MonsterAnimationStateSpec("death", CharacterAnimationState.Death, 6, 8f, false)
+        };
+
+        private static readonly string[] MonsterAnimationDirections =
+        {
+            "south",
+            "north",
+            "east",
+            "west",
+            "southeast",
+            "southwest",
+            "northeast",
+            "northwest"
         };
 
         private static readonly string[] M1PrefabPaths =
@@ -253,6 +305,796 @@ namespace Overbless.Tests.EditMode
             }
 
             Assert.That(totalSpriteCount, Is.EqualTo(944), "The authoritative M1 atlas frame topology must remain unchanged.");
+        }
+        [Test]
+        public void MonsterV002GenerationReviewAndProvenanceStayLinked()
+        {
+            var requiredPaths = new[]
+            {
+                MonsterAnimationIndexPath,
+                MonsterAnimationGenerationPath,
+                MonsterAnimationReviewPath,
+                MonsterAnimationPromptPath
+            };
+            for (var pathIndex = 0; pathIndex < requiredPaths.Length; pathIndex++)
+            {
+                var requiredPath = requiredPaths[pathIndex];
+                Assert.That(File.Exists(ResolveProjectPath(requiredPath)), Is.True, $"Monster v002 evidence is missing: {requiredPath}");
+            }
+
+            var index = ReadJsonDocument(MonsterAnimationIndexPath);
+            var generation = ReadJsonDocument(MonsterAnimationGenerationPath);
+            var review = ReadJsonDocument(MonsterAnimationReviewPath);
+            Assert.That(GetRequiredString(index, "schema"), Is.EqualTo("overbless.monster-directional-animation-index/v2"));
+            Assert.That(GetRequiredString(index, "version"), Is.EqualTo("v002"));
+            Assert.That(GetRequiredString(generation, "generation_id"), Is.EqualTo("monster_directional_animations_v002"));
+            Assert.That(GetRequiredString(review, "review_id"), Is.EqualTo("monster_directional_animation_review_v002"));
+            Assert.That(GetRequiredString(generation, "status"), Is.EqualTo("machine-pass-live-review-pending"));
+            Assert.That(GetRequiredString(review, "status"), Is.EqualTo("machine-pass-live-review-pending"));
+            Assert.That(GetRequiredString(review, "generation_record"), Is.EqualTo(MonsterAnimationGenerationPath));
+            Assert.That(GetRequiredString(review, "atlas_index"), Is.EqualTo(MonsterAnimationIndexPath));
+            Assert.That(
+                GetRequiredString(GetRequiredProperty(generation, "atlas_index"), "sha256"),
+                Is.EqualTo(ComputeSha256(ResolveProjectPath(MonsterAnimationIndexPath))));
+            Assert.That(
+                GetRequiredString(GetRequiredProperty(generation, "prompt_file"), "path"),
+                Is.EqualTo(MonsterAnimationPromptPath));
+            Assert.That(
+                GetRequiredString(GetRequiredProperty(generation, "prompt_file"), "sha256"),
+                Is.EqualTo(ComputeSha256(ResolveProjectPath(MonsterAnimationPromptPath))));
+
+            var sourceContract = GetRequiredProperty(index, "source_contract");
+            Assert.That(GetRequiredInteger(sourceContract, "source_sheet_count"), Is.EqualTo(15));
+            CollectionAssert.AreEqual(
+                new[] { "south", "north", "east", "southeast", "northeast" },
+                GetStringArray(GetRequiredProperty(sourceContract, "direct_directions"), "direct_directions"));
+            AssertIntArray(sourceContract, "source_sheet_size", new[] { 1536, 1024 });
+            AssertIntArray(sourceContract, "source_grid", new[] { 8, 5 });
+            CollectionAssert.AreEqual(
+                new[] { "dasher", "archer", "minion" },
+                GetStringArray(GetRequiredProperty(sourceContract, "roles"), "roles"));
+
+            var derivation = GetRequiredProperty(index, "direction_derivation");
+            CollectionAssert.AreEqual(
+                new[] { "south", "north", "east", "southeast", "northeast" },
+                GetStringArray(GetRequiredProperty(derivation, "authored_direct_directions"), "authored_direct_directions"));
+            var derivedDirections = GetRequiredProperty(derivation, "derived_directions");
+            Assert.That(GetRequiredString(derivedDirections, "west"), Is.EqualTo("east"));
+            Assert.That(GetRequiredString(derivedDirections, "southwest"), Is.EqualTo("southeast"));
+            Assert.That(GetRequiredString(derivedDirections, "northwest"), Is.EqualTo("northeast"));
+            Assert.That(derivedDirections.Properties.Count, Is.EqualTo(3));
+
+            var sourceSheets = GetRequiredArray(index, "source_sheets");
+            Assert.That(sourceSheets.Count, Is.EqualTo(15));
+            var indexedSources = new Dictionary<string, CanonicalJsonValue>(StringComparer.Ordinal);
+            for (var sourceIndex = 0; sourceIndex < sourceSheets.Count; sourceIndex++)
+            {
+                var source = sourceSheets[sourceIndex];
+                var sourcePath = GetRequiredString(source, "path");
+                Assert.That(indexedSources.ContainsKey(sourcePath), Is.False, $"Monster v002 source repeats '{sourcePath}'.");
+                indexedSources.Add(sourcePath, source);
+                Assert.That(File.Exists(ResolveProjectPath(sourcePath)), Is.True, $"Monster v002 source is missing: {sourcePath}");
+                Assert.That(
+                    ComputeSha256(ResolveProjectPath(sourcePath)),
+                    Is.EqualTo(GetRequiredString(source, "sha256")),
+                    $"Monster v002 source bytes drifted: {sourcePath}");
+                AssertIntArray(source, "size", new[] { 1536, 1024 });
+                AssertIntArray(source, "grid", new[] { 8, 5 });
+            }
+            var directDirections = new[] { "south", "north", "east", "southeast", "northeast" };
+            for (var roleIndex = 0; roleIndex < MonsterAnimationRoles.Length; roleIndex++)
+            {
+                var role = MonsterAnimationRoles[roleIndex];
+                for (var directionIndex = 0; directionIndex < directDirections.Length; directionIndex++)
+                {
+                    var direction = directDirections[directionIndex];
+                    var sourcePath =
+                        $"{MonsterAnimationSourceRoot}/{role.Role}_{direction}_motion_sheet_source.png";
+                    Assert.That(
+                        indexedSources.TryGetValue(sourcePath, out var source),
+                        Is.True,
+                        $"Monster v002 source index is missing '{sourcePath}'.");
+                    Assert.That(GetRequiredString(source, "role"), Is.EqualTo(role.Role));
+                    Assert.That(GetRequiredString(source, "direction"), Is.EqualTo(direction));
+                }
+            }
+
+            var sourceFiles = Directory.GetFiles(
+                ResolveProjectPath(MonsterAnimationSourceRoot),
+                "*.png",
+                SearchOption.TopDirectoryOnly);
+            var sourcePaths = new List<string>();
+            for (var sourceFileIndex = 0; sourceFileIndex < sourceFiles.Length; sourceFileIndex++)
+            {
+                sourcePaths.Add(ToProjectRelativePath(sourceFiles[sourceFileIndex]));
+            }
+
+            CollectionAssert.AreEquivalent(indexedSources.Keys, sourcePaths);
+            AssertMonsterGenerationSourcesMatchIndex(generation, indexedSources);
+        }
+
+        [Test]
+        public void MonsterV002AtlasesKeepIndexedPixelsTopologyImportAndRuntimeClipContracts()
+        {
+            var index = ReadJsonDocument(MonsterAnimationIndexPath);
+            var atlasContract = GetRequiredProperty(index, "atlas_contract");
+            AssertIntArray(atlasContract, "atlas_size", new[] { 8192, 1024 });
+            AssertIntArray(atlasContract, "cell_size", new[] { 128, 128 });
+            Assert.That(GetRequiredInteger(atlasContract, "max_frames_per_direction"), Is.EqualTo(8));
+            CollectionAssert.AreEqual(
+                MonsterAnimationDirections,
+                GetStringArray(GetRequiredProperty(atlasContract, "directions"), "directions"));
+            AssertMonsterStateContracts(GetRequiredArray(atlasContract, "states"));
+
+            var charactersByRole = GetMonsterCharactersByRole(index);
+            var framesByName = GetMonsterFramesByName(index, out var classificationCounts);
+            Assert.That(framesByName.Count, Is.EqualTo(1032));
+            Assert.That(classificationCounts["authored"], Is.EqualTo(450));
+            Assert.That(classificationCounts["derived"], Is.EqualTo(270));
+            Assert.That(classificationCounts["inherited"], Is.EqualTo(312));
+            var indexedClassificationCounts = GetRequiredProperty(index, "frame_classification_counts");
+            Assert.That(GetRequiredInteger(indexedClassificationCounts, "authored"), Is.EqualTo(450));
+            Assert.That(GetRequiredInteger(indexedClassificationCounts, "derived"), Is.EqualTo(270));
+            Assert.That(GetRequiredInteger(indexedClassificationCounts, "inherited"), Is.EqualTo(312));
+
+            var atlasFiles = Directory.GetFiles(
+                ResolveProjectPath(MonsterAnimationAtlasRoot),
+                "*_animation_atlas_v002.png",
+                SearchOption.TopDirectoryOnly);
+            var atlasPaths = new List<string>();
+            for (var atlasFileIndex = 0; atlasFileIndex < atlasFiles.Length; atlasFileIndex++)
+            {
+                atlasPaths.Add(ToProjectRelativePath(atlasFiles[atlasFileIndex]));
+            }
+
+            CollectionAssert.AreEquivalent(GetMonsterAnimationAtlasPaths(), atlasPaths);
+            for (var roleIndex = 0; roleIndex < MonsterAnimationRoles.Length; roleIndex++)
+            {
+                var role = MonsterAnimationRoles[roleIndex];
+                Assert.That(
+                    charactersByRole.TryGetValue(role.Role, out var character),
+                    Is.True,
+                    $"Monster v002 index is missing role '{role.Role}'.");
+                AssertMonsterAtlasContract(role, character, framesByName);
+            }
+
+            Assert.That((int)CharacterAnimationState.Idle, Is.EqualTo(0));
+            Assert.That((int)CharacterAnimationState.Walk, Is.EqualTo(1));
+            Assert.That((int)CharacterAnimationState.Dash, Is.EqualTo(2));
+            Assert.That((int)CharacterAnimationState.BlessCast, Is.EqualTo(3));
+            Assert.That((int)CharacterAnimationState.AttackCharge, Is.EqualTo(4));
+            Assert.That((int)CharacterAnimationState.AttackExecute, Is.EqualTo(5));
+            Assert.That((int)CharacterAnimationState.Recover, Is.EqualTo(6));
+            Assert.That(Enum.IsDefined(typeof(CharacterAnimationState), 7), Is.False);
+            Assert.That((int)CharacterAnimationState.Hit, Is.EqualTo(8));
+            Assert.That((int)CharacterAnimationState.Death, Is.EqualTo(9));
+            Assert.That((int)CharacterAnimationState.Run, Is.EqualTo(10));
+        }
+        private static void AssertMonsterGenerationSourcesMatchIndex(
+            CanonicalJsonValue generation,
+            IReadOnlyDictionary<string, CanonicalJsonValue> indexedSources)
+        {
+            var generatedSources = GetRequiredArray(generation, "accepted_sources");
+            Assert.That(generatedSources.Count, Is.EqualTo(15));
+            var generatedHashesByPath = new Dictionary<string, string>(StringComparer.Ordinal);
+            for (var sourceIndex = 0; sourceIndex < generatedSources.Count; sourceIndex++)
+            {
+                var source = generatedSources[sourceIndex];
+                var sourcePath = GetRequiredString(source, "path");
+                Assert.That(generatedHashesByPath.ContainsKey(sourcePath), Is.False, $"Generation record repeats source '{sourcePath}'.");
+                generatedHashesByPath.Add(sourcePath, GetRequiredString(source, "sha256"));
+            }
+
+            CollectionAssert.AreEquivalent(indexedSources.Keys, generatedHashesByPath.Keys);
+            foreach (var sourcePath in indexedSources.Keys)
+            {
+                Assert.That(
+                    generatedHashesByPath[sourcePath],
+                    Is.EqualTo(GetRequiredString(indexedSources[sourcePath], "sha256")),
+                    $"Generation provenance hash drifted for '{sourcePath}'.");
+            }
+
+            var generatedAtlases = GetRequiredArray(generation, "atlases");
+            Assert.That(generatedAtlases.Count, Is.EqualTo(MonsterAnimationRoles.Length));
+            var generatedAtlasHashesByPath = new Dictionary<string, string>(StringComparer.Ordinal);
+            for (var atlasIndex = 0; atlasIndex < generatedAtlases.Count; atlasIndex++)
+            {
+                var atlas = generatedAtlases[atlasIndex];
+                var atlasPath = GetRequiredString(atlas, "path");
+                Assert.That(generatedAtlasHashesByPath.ContainsKey(atlasPath), Is.False, $"Generation record repeats atlas '{atlasPath}'.");
+                generatedAtlasHashesByPath.Add(atlasPath, GetRequiredString(atlas, "sha256"));
+            }
+
+            CollectionAssert.AreEquivalent(GetMonsterAnimationAtlasPaths(), generatedAtlasHashesByPath.Keys);
+            foreach (var atlasPath in generatedAtlasHashesByPath.Keys)
+            {
+                Assert.That(File.Exists(ResolveProjectPath(atlasPath)), Is.True, $"Generated monster atlas is missing: {atlasPath}");
+                Assert.That(
+                    ComputeSha256(ResolveProjectPath(atlasPath)),
+                    Is.EqualTo(generatedAtlasHashesByPath[atlasPath]),
+                    $"Generated monster atlas bytes drifted: {atlasPath}");
+            }
+        }
+
+        private static void AssertMonsterStateContracts(IReadOnlyList<CanonicalJsonValue> states)
+        {
+            Assert.That(states.Count, Is.EqualTo(MonsterAnimationStates.Length));
+            for (var stateIndex = 0; stateIndex < MonsterAnimationStates.Length; stateIndex++)
+            {
+                var expected = MonsterAnimationStates[stateIndex];
+                var state = states[stateIndex];
+                Assert.That(GetRequiredString(state, "name"), Is.EqualTo(expected.Name));
+                Assert.That(GetRequiredInteger(state, "frames"), Is.EqualTo(expected.FrameCount));
+                var framesPerSecond = GetRequiredProperty(state, "fps");
+                if (framesPerSecond.Kind == CanonicalJsonKind.Number)
+                {
+                    Assert.That(framesPerSecond.NumberValue, Is.EqualTo(expected.FramesPerSecond).Within(0.0001f));
+                }
+                else
+                {
+                    Assert.That(expected.State, Is.EqualTo(CharacterAnimationState.AttackExecute));
+                    Assert.That(framesPerSecond.Kind, Is.EqualTo(CanonicalJsonKind.Object));
+                    Assert.That(
+                        GetRequiredFloat(framesPerSecond, "default"),
+                        Is.EqualTo(expected.FramesPerSecond).Within(0.0001f));
+                    Assert.That(GetRequiredFloat(framesPerSecond, "minion"), Is.EqualTo(24f).Within(0.0001f));
+                }
+
+                Assert.That(GetRequiredBoolean(state, "loop"), Is.EqualTo(expected.Loop));
+            }
+        }
+
+        private static Dictionary<string, CanonicalJsonValue> GetMonsterCharactersByRole(CanonicalJsonValue index)
+        {
+            var characters = GetRequiredArray(index, "characters");
+            Assert.That(characters.Count, Is.EqualTo(MonsterAnimationRoles.Length));
+            var charactersByRole = new Dictionary<string, CanonicalJsonValue>(StringComparer.Ordinal);
+            for (var characterIndex = 0; characterIndex < characters.Count; characterIndex++)
+            {
+                var character = characters[characterIndex];
+                var role = GetRequiredString(character, "role");
+                Assert.That(charactersByRole.ContainsKey(role), Is.False, $"Monster v002 index repeats role '{role}'.");
+                charactersByRole.Add(role, character);
+            }
+
+            return charactersByRole;
+        }
+
+        private static Dictionary<string, CanonicalJsonValue> GetMonsterFramesByName(
+            CanonicalJsonValue index,
+            out Dictionary<string, int> classificationCounts)
+        {
+            classificationCounts = new Dictionary<string, int>(StringComparer.Ordinal)
+            {
+                { "authored", 0 },
+                { "derived", 0 },
+                { "inherited", 0 }
+            };
+            var frames = GetRequiredArray(index, "frames");
+            var framesByName = new Dictionary<string, CanonicalJsonValue>(StringComparer.Ordinal);
+            for (var frameIndex = 0; frameIndex < frames.Count; frameIndex++)
+            {
+                var frame = frames[frameIndex];
+                var name = GetRequiredString(frame, "name");
+                Assert.That(framesByName.ContainsKey(name), Is.False, $"Monster v002 index repeats frame '{name}'.");
+                framesByName.Add(name, frame);
+
+                var classification = GetRequiredString(frame, "classification");
+                Assert.That(
+                    classificationCounts.ContainsKey(classification),
+                    Is.True,
+                    $"Monster v002 frame '{name}' has an unknown classification '{classification}'.");
+                classificationCounts[classification]++;
+            }
+
+            return framesByName;
+        }
+
+        private static string[] GetMonsterAnimationAtlasPaths()
+        {
+            var paths = new string[MonsterAnimationRoles.Length];
+            for (var roleIndex = 0; roleIndex < MonsterAnimationRoles.Length; roleIndex++)
+            {
+                paths[roleIndex] = MonsterAnimationRoles[roleIndex].AtlasPath;
+            }
+
+            return paths;
+        }
+
+        private static void AssertMonsterAtlasContract(
+            MonsterAnimationRoleSpec role,
+            CanonicalJsonValue character,
+            IReadOnlyDictionary<string, CanonicalJsonValue> framesByName)
+        {
+            Assert.That(GetRequiredString(character, "role"), Is.EqualTo(role.Role));
+            Assert.That(GetRequiredString(character, "atlas_path"), Is.EqualTo(role.AtlasPath));
+            AssertIntArray(character, "atlas_size", new[] { 8192, 1024 });
+            AssertMonsterCharacterStateContracts(role, GetRequiredArray(character, "states"));
+            var frameCounts = GetRequiredProperty(character, "frame_counts");
+            Assert.That(GetRequiredInteger(frameCounts, "authored"), Is.EqualTo(150));
+            Assert.That(GetRequiredInteger(frameCounts, "derived"), Is.EqualTo(90));
+            Assert.That(GetRequiredInteger(frameCounts, "inherited"), Is.EqualTo(104));
+
+            var atlasPath = ResolveProjectPath(role.AtlasPath);
+            Assert.That(File.Exists(atlasPath), Is.True, $"Monster v002 atlas is missing: {role.AtlasPath}");
+            Assert.That(File.Exists(atlasPath + ".meta"), Is.True, $"Monster v002 atlas metadata is missing: {role.AtlasPath}.meta");
+            Assert.That(
+                ComputeSha256(atlasPath),
+                Is.EqualTo(GetRequiredString(character, "atlas_sha256")),
+                $"Monster v002 atlas bytes drifted: {role.AtlasPath}");
+
+            var atlasBytes = File.ReadAllBytes(atlasPath);
+            AssertStaticRgbaPngHeader(atlasBytes, role.AtlasPath, 8192, 1024);
+            AssertMonsterAtlasImporter(role);
+            var spritesByName = GetMonsterAtlasSprites(role);
+            Assert.That(spritesByName.Count, Is.EqualTo(344), $"Monster v002 atlas has the wrong sprite count: {role.AtlasPath}");
+            AssertMonsterRuntimeAnimationSet(role, character, spritesByName);
+            AssertMonsterAtlasFramePixels(role, atlasBytes, spritesByName, framesByName);
+        }
+
+        private static void AssertMonsterCharacterStateContracts(
+            MonsterAnimationRoleSpec role,
+            IReadOnlyList<CanonicalJsonValue> states)
+        {
+            Assert.That(states.Count, Is.EqualTo(MonsterAnimationStates.Length));
+            for (var stateIndex = 0; stateIndex < MonsterAnimationStates.Length; stateIndex++)
+            {
+                var expected = MonsterAnimationStates[stateIndex];
+                var state = states[stateIndex];
+                var expectedFramesPerSecond = expected.FramesPerSecond;
+                if (role.Role == "minion" && expected.Name == "attack_execute")
+                {
+                    expectedFramesPerSecond = 24f;
+                }
+
+                Assert.That(GetRequiredString(state, "name"), Is.EqualTo(expected.Name));
+                Assert.That(GetRequiredInteger(state, "frames"), Is.EqualTo(expected.FrameCount));
+                Assert.That(GetRequiredFloat(state, "fps"), Is.EqualTo(expectedFramesPerSecond).Within(0.0001f));
+                Assert.That(GetRequiredBoolean(state, "loop"), Is.EqualTo(expected.Loop));
+            }
+        }
+
+        private static void AssertMonsterAtlasImporter(MonsterAnimationRoleSpec role)
+        {
+            Assert.That(
+                AssetDatabase.AssetPathToGUID(role.AtlasPath),
+                Is.Not.Empty,
+                $"Monster v002 atlas has no stable asset GUID: {role.AtlasPath}");
+            var importer = AssetImporter.GetAtPath(role.AtlasPath) as TextureImporter;
+            Assert.That(importer, Is.Not.Null, $"Monster v002 atlas has no TextureImporter: {role.AtlasPath}");
+            Assert.That(importer.textureType, Is.EqualTo(TextureImporterType.Sprite));
+            Assert.That(importer.spriteImportMode, Is.EqualTo(SpriteImportMode.Multiple));
+            Assert.That(importer.spritePixelsPerUnit, Is.EqualTo(128f));
+            Assert.That(importer.filterMode, Is.EqualTo(FilterMode.Point));
+            Assert.That(importer.textureCompression, Is.EqualTo(TextureImporterCompression.Uncompressed));
+            Assert.That(importer.crunchedCompression, Is.False);
+            Assert.That(importer.mipmapEnabled, Is.False);
+            Assert.That(importer.streamingMipmaps, Is.False);
+            Assert.That(importer.wrapMode, Is.EqualTo(TextureWrapMode.Clamp));
+            Assert.That(importer.isReadable, Is.False);
+
+            var settings = new TextureImporterSettings();
+            importer.ReadTextureSettings(settings);
+            Assert.That(settings.spriteAlignment, Is.EqualTo((int)SpriteAlignment.Custom));
+            Assert.That(Vector2.Distance(settings.spritePivot, new Vector2(0.5f, 0f)), Is.LessThanOrEqualTo(0.0001f));
+        }
+
+        private static Dictionary<string, Sprite> GetMonsterAtlasSprites(MonsterAnimationRoleSpec role)
+        {
+            var assets = AssetDatabase.LoadAllAssetsAtPath(role.AtlasPath);
+            var spritesByName = new Dictionary<string, Sprite>(StringComparer.Ordinal);
+            for (var assetIndex = 0; assetIndex < assets.Length; assetIndex++)
+            {
+                var sprite = assets[assetIndex] as Sprite;
+                if (sprite == null)
+                {
+                    continue;
+                }
+
+                Assert.That(
+                    spritesByName.ContainsKey(sprite.name),
+                    Is.False,
+                    $"Monster v002 atlas repeats sprite '{sprite.name}': {role.AtlasPath}");
+                spritesByName.Add(sprite.name, sprite);
+            }
+
+            return spritesByName;
+        }
+
+        private static void AssertMonsterRuntimeAnimationSet(
+            MonsterAnimationRoleSpec role,
+            CanonicalJsonValue character,
+            IReadOnlyDictionary<string, Sprite> spritesByName)
+        {
+            var animationSet = AssetDatabase.LoadAssetAtPath<DirectionalAnimationSet>(role.AnimationSetPath);
+            Assert.That(animationSet, Is.Not.Null, $"Monster v002 animation set is missing: {role.AnimationSetPath}");
+            Assert.That(animationSet.Role, Is.EqualTo(role.Role));
+            Assert.That(animationSet.ClipCount, Is.EqualTo(64));
+            animationSet.Validate();
+
+            var animationSetText = ReadAssetText(role.AnimationSetPath);
+            AssertTextExcludes(animationSetText, role.AnimationSetPath, "state: 7");
+            var v001AtlasPath = GetRequiredString(GetRequiredProperty(character, "inherited_v001_source"), "path");
+            var v001AtlasGuid = AssetDatabase.AssetPathToGUID(v001AtlasPath);
+            Assert.That(v001AtlasGuid, Is.Not.Empty, $"Monster v001 atlas has no GUID: {v001AtlasPath}");
+            AssertTextExcludes(animationSetText, role.AnimationSetPath, v001AtlasGuid);
+
+            for (var stateIndex = 0; stateIndex < MonsterAnimationStates.Length; stateIndex++)
+            {
+                var expectedState = MonsterAnimationStates[stateIndex];
+                var expectedFramesPerSecond = expectedState.FramesPerSecond;
+                if (role.Role == "minion" && expectedState.Name == "attack_execute")
+                {
+                    expectedFramesPerSecond = 24f;
+                }
+
+                for (var directionIndex = 0; directionIndex < MonsterAnimationDirections.Length; directionIndex++)
+                {
+                    var direction = MonsterAnimationDirections[directionIndex];
+                    var clip = animationSet.GetClip(
+                        expectedState.State,
+                        GetMonsterAnimationDirection(direction));
+                    Assert.That(clip.FrameCount, Is.EqualTo(expectedState.FrameCount));
+                    Assert.That(clip.FramesPerSecond, Is.EqualTo(expectedFramesPerSecond).Within(0.0001f));
+                    Assert.That(clip.Loop, Is.EqualTo(expectedState.Loop));
+                    for (var frameIndex = 0; frameIndex < expectedState.FrameCount; frameIndex++)
+                    {
+                        var spriteName = GetMonsterFrameName(
+                            role.Role,
+                            expectedState.Name,
+                            direction,
+                            frameIndex);
+                        Assert.That(
+                            spritesByName.TryGetValue(spriteName, out var sprite),
+                            Is.True,
+                            $"Monster v002 atlas is missing sprite '{spriteName}'.");
+                        Assert.That(
+                            clip.GetFrame(frameIndex),
+                            Is.SameAs(sprite),
+                            $"Monster v002 clip {expectedState.Name}/{direction} references a stale or wrong sprite.");
+                    }
+                }
+            }
+        }
+        private static void AssertMonsterAtlasFramePixels(
+            MonsterAnimationRoleSpec role,
+            byte[] atlasBytes,
+            IReadOnlyDictionary<string, Sprite> spritesByName,
+            IReadOnlyDictionary<string, CanonicalJsonValue> framesByName)
+        {
+            var texture = new Texture2D(2, 2, TextureFormat.RGBA32, false, false);
+            try
+            {
+                Assert.That(
+                    ImageConversion.LoadImage(texture, atlasBytes, false),
+                    Is.True,
+                    $"Unity cannot decode monster v002 atlas: {role.AtlasPath}");
+                Assert.That(texture.width, Is.EqualTo(8192));
+                Assert.That(texture.height, Is.EqualTo(1024));
+                var atlasPixels = texture.GetPixels32();
+                var frameCount = 0;
+                for (var stateIndex = 0; stateIndex < MonsterAnimationStates.Length; stateIndex++)
+                {
+                    var expectedState = MonsterAnimationStates[stateIndex];
+                    for (var directionIndex = 0; directionIndex < MonsterAnimationDirections.Length; directionIndex++)
+                    {
+                        var direction = MonsterAnimationDirections[directionIndex];
+                        for (var frameIndex = 0; frameIndex < expectedState.FrameCount; frameIndex++)
+                        {
+                            var frameName = GetMonsterFrameName(
+                                role.Role,
+                                expectedState.Name,
+                                direction,
+                                frameIndex);
+                            Assert.That(
+                                framesByName.TryGetValue(frameName, out var frame),
+                                Is.True,
+                                $"Monster v002 index is missing frame '{frameName}'.");
+                            AssertMonsterFrameContract(
+                                role,
+                                expectedState,
+                                direction,
+                                directionIndex,
+                                frameIndex,
+                                frame,
+                                spritesByName);
+                            var pixels = GetIndexedFramePixels(atlasPixels, texture.width, texture.height, frame);
+                            AssertMonsterFramePixelEvidence(frameName, frame, pixels);
+
+                            var mirrorSourceDirection = GetMonsterMirrorSourceDirection(direction);
+                            var expectedClassification =
+                                expectedState.Name == "idle" ||
+                                expectedState.Name == "hit" ||
+                                expectedState.Name == "death"
+                                    ? "inherited"
+                                    : mirrorSourceDirection == null
+                                        ? "authored"
+                                        : "derived";
+                            var classification = GetRequiredString(frame, "classification");
+                            Assert.That(classification, Is.EqualTo(expectedClassification));
+                            if (expectedClassification == "derived")
+                            {
+                                var mirrorSourceName = GetMonsterFrameName(
+                                    role.Role,
+                                    expectedState.Name,
+                                    mirrorSourceDirection,
+                                    frameIndex);
+                                Assert.That(
+                                    GetRequiredString(frame, "mirror_source"),
+                                    Is.EqualTo(mirrorSourceName));
+                                Assert.That(
+                                    framesByName.TryGetValue(mirrorSourceName, out var mirrorSource),
+                                    Is.True,
+                                    $"Monster v002 mirror source is missing: {mirrorSourceName}");
+                                Assert.That(GetRequiredString(mirrorSource, "classification"), Is.EqualTo("authored"));
+                                Assert.That(GetRequiredString(mirrorSource, "role"), Is.EqualTo(role.Role));
+                                Assert.That(GetRequiredString(mirrorSource, "state"), Is.EqualTo(expectedState.Name));
+                                Assert.That(GetRequiredString(mirrorSource, "direction"), Is.EqualTo(mirrorSourceDirection));
+                                Assert.That(GetRequiredInteger(mirrorSource, "frame"), Is.EqualTo(frameIndex));
+                                var sourcePixels = GetIndexedFramePixels(
+                                    atlasPixels,
+                                    texture.width,
+                                    texture.height,
+                                    mirrorSource);
+                                AssertExactHorizontalPixelMirror(frameName, pixels, mirrorSourceName, sourcePixels);
+                            }
+                            else
+                            {
+                                Assert.That(
+                                    GetRequiredProperty(frame, "mirror_source").Kind,
+                                    Is.EqualTo(CanonicalJsonKind.Null),
+                                    $"Only derived monster v002 frames may declare a mirror source: {frameName}");
+                            }
+
+                            frameCount++;
+                        }
+                    }
+                }
+
+                Assert.That(frameCount, Is.EqualTo(344));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(texture);
+            }
+        }
+
+        private static void AssertMonsterFrameContract(
+            MonsterAnimationRoleSpec role,
+            MonsterAnimationStateSpec expectedState,
+            string direction,
+            int directionIndex,
+            int frameIndex,
+            CanonicalJsonValue frame,
+            IReadOnlyDictionary<string, Sprite> spritesByName)
+        {
+            var frameName = GetMonsterFrameName(role.Role, expectedState.Name, direction, frameIndex);
+            Assert.That(GetRequiredString(frame, "name"), Is.EqualTo(frameName));
+            Assert.That(GetRequiredString(frame, "role"), Is.EqualTo(role.Role));
+            Assert.That(GetRequiredString(frame, "state"), Is.EqualTo(expectedState.Name));
+            Assert.That(GetRequiredString(frame, "direction"), Is.EqualTo(direction));
+            Assert.That(GetRequiredInteger(frame, "frame"), Is.EqualTo(frameIndex));
+            Assert.That(
+                GetRequiredString(frame, "frame_letter"),
+                Is.EqualTo("abcdefgh"[frameIndex].ToString()));
+            Assert.That(GetRequiredInteger(frame, "frame_count"), Is.EqualTo(expectedState.FrameCount));
+            var expectedFramesPerSecond = expectedState.FramesPerSecond;
+            if (role.Role == "minion" && expectedState.Name == "attack_execute")
+            {
+                expectedFramesPerSecond = 24f;
+            }
+
+            Assert.That(GetRequiredFloat(frame, "fps"), Is.EqualTo(expectedFramesPerSecond).Within(0.0001f));
+            Assert.That(GetRequiredBoolean(frame, "loop"), Is.EqualTo(expectedState.Loop));
+            var expectedRect = new[]
+            {
+                (directionIndex * 8 * 128) + (frameIndex * 128),
+                Array.IndexOf(MonsterAnimationStates, expectedState) * 128,
+                128,
+                128
+            };
+            AssertIntArray(frame, "rect", expectedRect);
+            Assert.That(GetRequiredString(frame, "alpha"), Is.EqualTo("binary"));
+            Assert.That(
+                spritesByName.TryGetValue(frameName, out var sprite),
+                Is.True,
+                $"Monster v002 atlas is missing indexed sprite '{frameName}'.");
+            Assert.That(AssetDatabase.GetAssetPath(sprite), Is.EqualTo(role.AtlasPath));
+            Assert.That(sprite.rect.x, Is.EqualTo(expectedRect[0]));
+            Assert.That(sprite.rect.y, Is.EqualTo(1024 - expectedRect[1] - expectedRect[3]));
+            Assert.That(sprite.rect.width, Is.EqualTo(expectedRect[2]));
+            Assert.That(sprite.rect.height, Is.EqualTo(expectedRect[3]));
+        }
+
+        private static byte[] GetIndexedFramePixels(
+            Color32[] atlasPixels,
+            int atlasWidth,
+            int atlasHeight,
+            CanonicalJsonValue frame)
+        {
+            var rect = GetRequiredArray(frame, "rect");
+            Assert.That(rect.Count, Is.EqualTo(4));
+            var x = GetArrayInteger(rect, 0, "rect");
+            var topY = GetArrayInteger(rect, 1, "rect");
+            var width = GetArrayInteger(rect, 2, "rect");
+            var height = GetArrayInteger(rect, 3, "rect");
+            Assert.That(width, Is.EqualTo(128));
+            Assert.That(height, Is.EqualTo(128));
+            Assert.That(x, Is.GreaterThanOrEqualTo(0));
+            Assert.That(topY, Is.GreaterThanOrEqualTo(0));
+            Assert.That(x + width, Is.LessThanOrEqualTo(atlasWidth));
+            Assert.That(topY + height, Is.LessThanOrEqualTo(atlasHeight));
+
+            var pixels = new byte[width * height * 4];
+            var pixelOffset = 0;
+            for (var topRow = 0; topRow < height; topRow++)
+            {
+                var unityRow = atlasHeight - 1 - topY - topRow;
+                var atlasOffset = (unityRow * atlasWidth) + x;
+                for (var column = 0; column < width; column++)
+                {
+                    var pixel = atlasPixels[atlasOffset + column];
+                    pixels[pixelOffset++] = pixel.r;
+                    pixels[pixelOffset++] = pixel.g;
+                    pixels[pixelOffset++] = pixel.b;
+                    pixels[pixelOffset++] = pixel.a;
+                }
+            }
+
+            return pixels;
+        }
+
+        private static void AssertMonsterFramePixelEvidence(
+            string frameName,
+            CanonicalJsonValue frame,
+            byte[] pixels)
+        {
+            Assert.That(
+                CanonicalJson.Sha256Hex(pixels),
+                Is.EqualTo(GetRequiredString(frame, "pixel_sha256")),
+                $"Monster v002 frame pixels drifted: {frameName}");
+
+            var minimumX = 128;
+            var minimumY = 128;
+            var maximumX = -1;
+            var maximumY = -1;
+            for (var pixelIndex = 0; pixelIndex < pixels.Length; pixelIndex += 4)
+            {
+                var alpha = pixels[pixelIndex + 3];
+                if (alpha != 0 && alpha != 255)
+                {
+                    Assert.Fail($"Monster v002 frame alpha must be binary: {frameName} at byte {pixelIndex}.");
+                }
+
+                if (alpha == 0)
+                {
+                    continue;
+                }
+
+                var pixel = pixelIndex / 4;
+                var x = pixel % 128;
+                var y = pixel / 128;
+                minimumX = Math.Min(minimumX, x);
+                minimumY = Math.Min(minimumY, y);
+                maximumX = Math.Max(maximumX, x);
+                maximumY = Math.Max(maximumY, y);
+            }
+
+            Assert.That(maximumX, Is.GreaterThanOrEqualTo(0), $"Monster v002 frame has no opaque pixels: {frameName}");
+            var opaqueBounds = new[] { minimumX, minimumY, maximumX + 1, maximumY + 1 };
+            AssertIntArray(frame, "opaque_bounds", opaqueBounds);
+            Assert.That(GetRequiredInteger(frame, "opaque_foot_y"), Is.EqualTo(opaqueBounds[3]));
+        }
+
+        private static void AssertExactHorizontalPixelMirror(
+            string derivedName,
+            byte[] derivedPixels,
+            string sourceName,
+            byte[] sourcePixels)
+        {
+            Assert.That(derivedPixels.Length, Is.EqualTo(128 * 128 * 4));
+            Assert.That(sourcePixels.Length, Is.EqualTo(derivedPixels.Length));
+            for (var y = 0; y < 128; y++)
+            {
+                for (var x = 0; x < 128; x++)
+                {
+                    var derivedOffset = ((y * 128) + x) * 4;
+                    var sourceOffset = ((y * 128) + (127 - x)) * 4;
+                    for (var channel = 0; channel < 4; channel++)
+                    {
+                        if (derivedPixels[derivedOffset + channel] != sourcePixels[sourceOffset + channel])
+                        {
+                            Assert.Fail(
+                                $"Monster v002 frame '{derivedName}' is not an exact horizontal pixel mirror of " +
+                                $"'{sourceName}' at ({x}, {y}), channel {channel}.");
+                        }
+                    }
+                }
+            }
+        }
+
+        private static string GetMonsterFrameName(string role, string state, string direction, int frameIndex)
+        {
+            Assert.That(frameIndex, Is.GreaterThanOrEqualTo(0));
+            Assert.That(frameIndex, Is.LessThan(8));
+            var frameLetter = "abcdefgh"[frameIndex];
+            return $"chr_{role}_{state}_{direction}_{frameLetter}_v002";
+        }
+        private static string GetMonsterMirrorSourceDirection(string direction)
+        {
+            switch (direction)
+            {
+                case "west":
+                    return "east";
+                case "southwest":
+                    return "southeast";
+                case "northwest":
+                    return "northeast";
+                default:
+                    return null;
+            }
+        }
+
+        private static CharacterDirection GetMonsterAnimationDirection(string direction)
+        {
+            switch (direction)
+            {
+                case "south":
+                    return CharacterDirection.South;
+                case "north":
+                    return CharacterDirection.North;
+                case "east":
+                    return CharacterDirection.East;
+                case "west":
+                    return CharacterDirection.West;
+                case "southeast":
+                    return CharacterDirection.SouthEast;
+                case "southwest":
+                    return CharacterDirection.SouthWest;
+                case "northeast":
+                    return CharacterDirection.NorthEast;
+                case "northwest":
+                    return CharacterDirection.NorthWest;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(direction), direction, "Unknown monster animation direction.");
+            }
+        }
+
+        private static int GetArrayInteger(
+            IReadOnlyList<CanonicalJsonValue> values,
+            int index,
+            string propertyName)
+        {
+            Assert.That(index, Is.GreaterThanOrEqualTo(0));
+            Assert.That(index, Is.LessThan(values.Count));
+            var value = values[index];
+            Assert.That(value.Kind, Is.EqualTo(CanonicalJsonKind.Number), $"'{propertyName}' must contain numbers.");
+            Assert.That(value.NumberValue, Is.EqualTo(Math.Round(value.NumberValue)), $"'{propertyName}' must contain integers.");
+            return (int)value.NumberValue;
+        }
+
+        private static void AssertStaticRgbaPngHeader(
+            byte[] bytes,
+            string assetPath,
+            int expectedWidth,
+            int expectedHeight)
+        {
+            Assert.That(bytes.Length, Is.GreaterThanOrEqualTo(33), $"PNG is too short: {assetPath}");
+            var signature = new byte[] { 137, 80, 78, 71, 13, 10, 26, 10 };
+            for (var signatureIndex = 0; signatureIndex < signature.Length; signatureIndex++)
+            {
+                Assert.That(bytes[signatureIndex], Is.EqualTo(signature[signatureIndex]), $"PNG signature is invalid: {assetPath}");
+            }
+
+            Assert.That(ReadBigEndianInt32(bytes, 8, assetPath), Is.EqualTo(13), $"PNG IHDR length is invalid: {assetPath}");
+            Assert.That(Encoding.ASCII.GetString(bytes, 12, 4), Is.EqualTo("IHDR"), $"PNG lacks an IHDR chunk: {assetPath}");
+            Assert.That(ReadBigEndianInt32(bytes, 16, assetPath), Is.EqualTo(expectedWidth));
+            Assert.That(ReadBigEndianInt32(bytes, 20, assetPath), Is.EqualTo(expectedHeight));
+            Assert.That(bytes[24], Is.EqualTo(8), $"PNG bit depth must be 8: {assetPath}");
+            Assert.That(bytes[25], Is.EqualTo(6), $"PNG color type must be RGBA: {assetPath}");
+            Assert.That(bytes[26], Is.Zero, $"PNG compression method is invalid: {assetPath}");
+            Assert.That(bytes[27], Is.Zero, $"PNG filter method is invalid: {assetPath}");
+            Assert.That(bytes[28], Is.Zero, $"PNG interlace method is invalid: {assetPath}");
         }
 
         private static void AssertRuntimeVisualImporter(RuntimeVisualSpec visual)
@@ -544,6 +1386,24 @@ namespace Overbless.Tests.EditMode
             Assert.That(property.StringValue, Is.Not.Empty, $"'{propertyName}' must not be empty.");
             return property.StringValue;
         }
+        private static float GetRequiredFloat(CanonicalJsonValue objectValue, string propertyName)
+        {
+            var property = GetRequiredProperty(objectValue, propertyName);
+            Assert.That(property.Kind, Is.EqualTo(CanonicalJsonKind.Number), $"'{propertyName}' must be a number.");
+            Assert.That(double.IsNaN(property.NumberValue), Is.False, $"'{propertyName}' must be finite.");
+            Assert.That(double.IsInfinity(property.NumberValue), Is.False, $"'{propertyName}' must be finite.");
+            Assert.That(property.NumberValue, Is.GreaterThanOrEqualTo(float.MinValue));
+            Assert.That(property.NumberValue, Is.LessThanOrEqualTo(float.MaxValue));
+            return (float)property.NumberValue;
+        }
+
+        private static bool GetRequiredBoolean(CanonicalJsonValue objectValue, string propertyName)
+        {
+            var property = GetRequiredProperty(objectValue, propertyName);
+            Assert.That(property.Kind, Is.EqualTo(CanonicalJsonKind.Boolean), $"'{propertyName}' must be a boolean.");
+            return property.BooleanValue;
+        }
+
 
         private static int GetRequiredInteger(CanonicalJsonValue objectValue, string propertyName)
         {
@@ -688,6 +1548,42 @@ namespace Overbless.Tests.EditMode
             public string AssetPath { get; }
             public string Sha256 { get; }
             public int SpriteCount { get; }
+        }
+        private readonly struct MonsterAnimationRoleSpec
+        {
+            public MonsterAnimationRoleSpec(string role, string atlasPath, string animationSetPath)
+            {
+                Role = role;
+                AtlasPath = atlasPath;
+                AnimationSetPath = animationSetPath;
+            }
+
+            public string Role { get; }
+            public string AtlasPath { get; }
+            public string AnimationSetPath { get; }
+        }
+
+        private readonly struct MonsterAnimationStateSpec
+        {
+            public MonsterAnimationStateSpec(
+                string name,
+                CharacterAnimationState state,
+                int frameCount,
+                float framesPerSecond,
+                bool loop)
+            {
+                Name = name;
+                State = state;
+                FrameCount = frameCount;
+                FramesPerSecond = framesPerSecond;
+                Loop = loop;
+            }
+
+            public string Name { get; }
+            public CharacterAnimationState State { get; }
+            public int FrameCount { get; }
+            public float FramesPerSecond { get; }
+            public bool Loop { get; }
         }
     }
 }

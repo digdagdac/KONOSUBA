@@ -16,18 +16,19 @@ namespace Overbless.Runtime
             switch (CurrentAttackPhase)
             {
                 case AttackPhase.Idle:
+                    SetLocomotionMode(LocomotionMode.Idle);
                     TryStartChargeWarning();
                     break;
-
                 case AttackPhase.Warning:
+                    SetLocomotionMode(LocomotionMode.Idle);
                     AdvanceChargeWarning(deltaTime);
                     break;
-
                 case AttackPhase.Executing:
+                    SetLocomotionMode(LocomotionMode.Run);
                     SweepCharge(deltaTime);
                     break;
-
                 case AttackPhase.Recovery:
+                    SetLocomotionMode(LocomotionMode.Idle);
                     CompleteChargeRecoveryWhenReady();
                     break;
             }
@@ -58,6 +59,11 @@ namespace Overbless.Runtime
                 return;
             }
 
+            if (offset.sqrMagnitude >= MinimumDirectionSqrMagnitude)
+            {
+                SetIntendedFacing(offset);
+            }
+
             BeginAttackWarning(RuntimeStats.WarningDuration);
         }
 
@@ -66,7 +72,14 @@ namespace Overbless.Runtime
             if (!TryGetPlayerTargetPosition(out var targetPosition))
             {
                 CancelAttack();
+                SetLocomotionMode(LocomotionMode.Idle);
                 return;
+            }
+
+            var direction = targetPosition - (Vector2)transform.position;
+            if (direction.sqrMagnitude >= MinimumDirectionSqrMagnitude)
+            {
+                SetIntendedFacing(direction);
             }
 
             if (!AdvanceAttackWarning(deltaTime))
@@ -74,10 +87,10 @@ namespace Overbless.Runtime
                 return;
             }
 
-            var direction = targetPosition - (Vector2)transform.position;
             if (direction.sqrMagnitude < MinimumDirectionSqrMagnitude)
             {
                 CancelAttack();
+                SetLocomotionMode(LocomotionMode.Idle);
                 return;
             }
 
@@ -140,6 +153,7 @@ namespace Overbless.Runtime
             }
 
             CompleteAttackRecovery();
+            SetLocomotionMode(LocomotionMode.Idle);
             nextAttackAt = Time.time + RuntimeStats.AttackCooldown;
         }
 
