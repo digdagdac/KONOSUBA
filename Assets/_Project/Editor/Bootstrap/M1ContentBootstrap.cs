@@ -799,7 +799,6 @@ namespace Overbless.Editor.Bootstrap
             SetEnum(serialized, "roomVariant", roomVariant);
 
             var spawns = RequireProperty(serialized, "spawns");
-            spawns.arraySize = 6;
             ConfigureRoomSpawns(spawns, roomVariant);
             Apply(serialized, room);
             room.Validate();
@@ -808,37 +807,17 @@ namespace Overbless.Editor.Bootstrap
 
         private static void ConfigureRoomSpawns(SerializedProperty spawns, M1RoomVariant roomVariant)
         {
-            switch (roomVariant)
+            var template = M1RoomPackCatalog.GetSpawnTemplate(roomVariant);
+            spawns.arraySize = template.Length;
+            for (var index = 0; index < template.Length; index++)
             {
-                case M1RoomVariant.M1GuidedValidation:
-                    ConfigureSpawn(spawns.GetArrayElementAtIndex(0), M1RoomActor.Player, new Vector2(0f, -2.5f), Vector2.up, true);
-                    ConfigureSpawn(spawns.GetArrayElementAtIndex(1), M1RoomActor.Dasher, new Vector2(0f, 3f), Vector2.down, true);
-                    ConfigureSpawn(spawns.GetArrayElementAtIndex(2), M1RoomActor.ArcherA, new Vector2(0f, -0.5f), Vector2.down, true);
-                    ConfigureSpawn(spawns.GetArrayElementAtIndex(3), M1RoomActor.ArcherB, new Vector2(-4f, 1.5f), Vector2.right, true);
-                    ConfigureSpawn(spawns.GetArrayElementAtIndex(4), M1RoomActor.MinionA, new Vector2(4f, 1.5f), Vector2.zero, false);
-                    ConfigureSpawn(spawns.GetArrayElementAtIndex(5), M1RoomActor.MinionB, new Vector2(4f, -1.5f), Vector2.zero, false);
-                    return;
-
-                case M1RoomVariant.Room02:
-                    ConfigureSpawn(spawns.GetArrayElementAtIndex(0), M1RoomActor.Player, new Vector2(-6.4f, -2f), Vector2.right, true);
-                    ConfigureSpawn(spawns.GetArrayElementAtIndex(1), M1RoomActor.ArcherA, new Vector2(-1.2f, -2f), Vector2.left, true);
-                    ConfigureSpawn(spawns.GetArrayElementAtIndex(2), M1RoomActor.MinionA, new Vector2(-3.4f, -2f), Vector2.zero, false);
-                    ConfigureSpawn(spawns.GetArrayElementAtIndex(3), M1RoomActor.Dasher, new Vector2(4.2f, -1.4f), Vector2.left, true);
-                    ConfigureSpawn(spawns.GetArrayElementAtIndex(4), M1RoomActor.ArcherB, new Vector2(5.8f, 2.5f), Vector2.left, true);
-                    ConfigureSpawn(spawns.GetArrayElementAtIndex(5), M1RoomActor.MinionB, new Vector2(3.5f, 1.2f), Vector2.zero, false);
-                    return;
-
-                case M1RoomVariant.Room03:
-                    ConfigureSpawn(spawns.GetArrayElementAtIndex(0), M1RoomActor.Player, new Vector2(-6.4f, -1.8f), Vector2.right, true);
-                    ConfigureSpawn(spawns.GetArrayElementAtIndex(1), M1RoomActor.ArcherA, new Vector2(-1.2f, -1.8f), Vector2.left, true);
-                    ConfigureSpawn(spawns.GetArrayElementAtIndex(2), M1RoomActor.Dasher, new Vector2(4.2f, -1.5f), Vector2.left, true);
-                    ConfigureSpawn(spawns.GetArrayElementAtIndex(3), M1RoomActor.ArcherB, new Vector2(5.8f, 2.4f), Vector2.left, true);
-                    ConfigureSpawn(spawns.GetArrayElementAtIndex(4), M1RoomActor.MinionA, new Vector2(3.4f, 1.1f), Vector2.zero, false);
-                    ConfigureSpawn(spawns.GetArrayElementAtIndex(5), M1RoomActor.MinionB, new Vector2(5.4f, -0.1f), Vector2.zero, false);
-                    return;
-
-                default:
-                    throw new InvalidOperationException($"Unsupported room variant {roomVariant}.");
+                var spawn = template[index];
+                ConfigureSpawn(
+                    spawns.GetArrayElementAtIndex(index),
+                    spawn.Actor,
+                    spawn.Position,
+                    spawn.Facing,
+                    spawn.HasFacing);
             }
         }
 
@@ -1442,6 +1421,7 @@ namespace Overbless.Editor.Bootstrap
             // The guided room is the first room of the submitted run, so its exit continues
             // into Room_02 instead of ending in place.
             ConfigureRoomSequence(systems, exit, SecondRoomSceneName);
+            var guidedPack = M1RoomPackCatalog.GetPack(M1RoomVariant.M1GuidedValidation);
             CreateHud(
                 root.transform,
                 playerHealth,
@@ -1450,9 +1430,9 @@ namespace Overbless.Editor.Bootstrap
                 room,
                 camera,
                 sprites,
-                "ROOM  01",
-                "MAKE THEIR ATTACKS HIT EACH OTHER",
-                "HASTE OR GIANT  ·  COLLECT 3 SOULS  ·  REACH THE EXIT",
+                guidedPack.RoomLabel,
+                guidedPack.ObjectiveTitle,
+                guidedPack.ObjectiveDetail,
                 false,
                 null,
                 systems.GetComponent<WebStartGate>(),
@@ -1558,22 +1538,11 @@ namespace Overbless.Editor.Bootstrap
             ConfigureRuntimeBinder(systems, playerHealth, blessingTargeting, enemies, room, true);
             ConfigureFunctionalAudioBridge(systems, audioEmitter, playerHealth, enemies, room, restartController, blessingTargeting);
             ConfigurePauseController(systems, playerInput, blessingTargeting, restartController);
-            string objectiveTitle;
-            string objectiveDetail;
-            if (string.Equals(roomLabel, "ROOM  02", StringComparison.Ordinal))
+            var pack = M1RoomPackCatalog.GetPack(roomDefinition.RoomVariant);
+            if (!string.Equals(roomLabel, pack.RoomLabel, StringComparison.Ordinal))
             {
-                objectiveTitle = "ECHO REPLAYS THE LOCKED ATTACK";
-                objectiveDetail = "BLESS WITH ECHO  ·  USE THE REPLAY  ·  3 SOULS THEN EXIT";
-            }
-            else if (string.Equals(roomLabel, "ROOM  03", StringComparison.Ordinal))
-            {
-                objectiveTitle = "THE PILLAR SPLITS THE PATH";
-                objectiveDetail = "ROUTE AROUND THE PILLAR  ·  ECHO + HASTE/GIANT  ·  3 SOULS";
-            }
-            else
-            {
-                objectiveTitle = "MAKE THEIR ATTACKS HIT EACH OTHER";
-                objectiveDetail = "COLLECT 3 SOULS  |  REACH THE EXIT";
+                throw new InvalidOperationException(
+                    $"Room label '{roomLabel}' does not match pack label '{pack.RoomLabel}' for {roomDefinition.RoomVariant}.");
             }
 
             var hud = CreateHud(
@@ -1584,9 +1553,9 @@ namespace Overbless.Editor.Bootstrap
                 room,
                 camera,
                 sprites.M1,
-                roomLabel,
-                objectiveTitle,
-                objectiveDetail,
+                pack.RoomLabel,
+                pack.ObjectiveTitle,
+                pack.ObjectiveDetail,
                 true,
                 sprites.Echo,
                 systems.GetComponent<WebStartGate>(),
