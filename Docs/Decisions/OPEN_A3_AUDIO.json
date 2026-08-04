@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "decision": "approved",
+  "status": "confirmed",
+  "decidedBy": "user",
+  "decidedAtUtc": "2026-07-12T11:49:14Z",
+  "mode": "procedural",
+  "allowedAudioSource": "repository-local procedural synthesis only",
+  "prohibitions": {
+    "externalRecordings": "prohibited",
+    "externalGeneratedAudio": "prohibited",
+    "aiAudioAssets": "prohibited"
+  },
+  "requiredProvenance": {
+    "generatorName": "required",
+    "toolName": "required",
+    "toolVersion": "required",
+    "generatorSourceSha256": "required",
+    "generationUtc": "required",
+    "seed": "required",
+    "parametersOrInstruction": "required",
+    "originalWavPath": "required",
+    "originalWavSha256": "required",
+    "modifications": "required ordered list",
+    "finalWavPath": "required",
+    "finalWavSha256": "required",
+    "reviewer": "required"
+  },
+  "functionalEvents": [
+    {
+      "event": "DasherReady",
+      "provenanceRequired": true
+    },
+    {
+      "event": "ArcherReady",
+      "provenanceRequired": true
+    },
+    {
+      "event": "AttackLocked",
+      "provenanceRequired": true
+    },
+    {
+      "event": "PlayerHit",
+      "provenanceRequired": true
+    },
+    {
+      "event": "SoulCollected",
+      "provenanceRequired": true
+    },
+    {
+      "event": "ExitOpened",
+      "provenanceRequired": true
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "asset_id": "env_dungeon_m1_reference_v001",
+  "category": "environment-reference",
+  "status": "review-required",
+  "tool": "god-tibo-imagen",
+  "tool_version": "0.3.1",
+  "provider": "private-codex",
+  "model": "gpt-5.4",
+  "created_at": "2026-07-12",
+  "prompt_file": "Docs/AI_Usage/prompts/m1_combat_visual_prompts_v001.json",
+  "prompt_key": "environment_rules_reference_m1",
+  "input_images": ["Docs/Style/References/style_reference_master_v001.png"],
+  "source_file": "Docs/Style/References/env_dungeon_m1_reference_v001.png",
+  "final_file": "Docs/Style/References/env_dungeon_m1_reference_v001.png",
+  "requested_size": "1536x1024",
+  "actual_size": "1536x1024",
+  "manual_edits": [],
+  "license": "project-generated original; final licensing review pending",
+  "approved_by": "pending-user-review",
+  "response_id": "resp_044b5481cccc571f016a53c3cfc94c8191be9c63e304a819bd",
+  "sha256": "c875ab0e1095f680792884c288f461d8fc9132002ee8b3cb0684643fed08f9ef",
+  "review": {"camera_consistency":"pass-draft","lighting_consistency":"pass-draft","low_contrast":"pass-draft","exit_states":"pass-draft","seamless_tile_test":"pending","excluded_hazards":"pass","text_or_watermark":"pass","final_tileset_readiness":"not-approved"}
+}

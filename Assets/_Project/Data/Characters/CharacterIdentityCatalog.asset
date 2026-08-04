@@ -1,0 +1,70 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f6fdd89895c1874b82f2e83c039c075, type: 3}
+  m_Name: CharacterIdentityCatalog
+  m_EditorClassIdentifier: 
+  identities:
+  - role: 0
+    displayName: RIVELLA
+    ageLine: AGE 22
+    roleLine: CYNICAL FORMER SAINT
+    habitLine: SHE NEVER STRIKES. SHE OVERBLESSES THEM UNTIL THEY RUIN EACH OTHER.
+    motifColor: {r: 0.2509804, g: 0.8392157, b: 0.9254902, a: 1}
+    definition: {fileID: 0}
+    portraitSource: 0
+    representativePortrait: {fileID: 21300000, guid: 0c7375c7665ec9b4887014f9d05fa4f2, type: 3}
+    neutralPortrait: {fileID: 0}
+    confidentPortrait: {fileID: 0}
+    hurtPortrait: {fileID: 0}
+    recoveryPortrait: {fileID: 0}
+  - role: 1
+    displayName: VERA
+    ageLine: AGE 24
+    roleLine: RED-LIGHTNING CHARGE KNIGHT
+    habitLine: SHE ONLY ACCELERATES IN STRAIGHT LINES AND REFUSES TO STEER AFTER
+      THE LOCK.
+    motifColor: {r: 1, g: 0.3764706, b: 0.32941177, a: 1}
+    definition: {fileID: 11400000, guid: a573d165d97afcf4195bcd35dc28f5c1, type: 2}
+    portraitSource: 0
+    representativePortrait: {fileID: 21300000, guid: 3f035103f0506054bab431742e07e238, type: 3}
+    neutralPortrait: {fileID: 0}
+    confidentPortrait: {fileID: 0}
+    hurtPortrait: {fileID: 0}
+    recoveryPortrait: {fileID: 0}
+  - role: 2
+    displayName: LUME
+    ageLine: AGE 23
+    roleLine: ECLIPSE ARCHER
+    habitLine: SHE STAYS CALM AT RANGE AND KEEPS FIRING DOWN THE LANE SHE ALREADY
+      COMMITTED TO.
+    motifColor: {r: 0.7019608, g: 0.4745098, b: 1, a: 1}
+    definition: {fileID: 11400000, guid: 6beef3f224273d043ab2f649cb75a0f7, type: 2}
+    portraitSource: 0
+    representativePortrait: {fileID: 21300000, guid: e5a9fd6a98584ff49af1968e41a22f27, type: 3}
+    neutralPortrait: {fileID: 0}
+    confidentPortrait: {fileID: 0}
+    hurtPortrait: {fileID: 0}
+    recoveryPortrait: {fileID: 0}
+  - role: 3
+    displayName: MOKO
+    ageLine: 
+    roleLine: CURSED-DOLL SWARM
+    habitLine: IT COPIES WHOEVER IS CLOSEST AND SWINGS THE MOMENT ITS SHORT WARNING
+      ENDS.
+    motifColor: {r: 0.6392157, g: 0.9019608, b: 0.20784314, a: 1}
+    definition: {fileID: 11400000, guid: aad80f903af9a314bb55ca29c5e9eef5, type: 2}
+    portraitSource: 0
+    representativePortrait: {fileID: 21300000, guid: 7f008f3bcd6e36646a9ca4530fe62670, type: 3}
+    neutralPortrait: {fileID: 0}
+    confidentPortrait: {fileID: 0}
+    hurtPortrait: {fileID: 0}
+    recoveryPortrait: {fileID: 0}

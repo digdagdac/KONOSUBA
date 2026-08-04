@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "decision": "approved",
+  "status": "confirmed",
+  "decidedBy": "user",
+  "decidedAtUtc": "2026-07-14T04:48:59Z",
+  "authorizationSource": "Explicit interactive user directive: do not request approval again; record the M2 implementation proposal as approved.",
+  "approvalMode": "standing-no-reprompt",
+  "scope": {
+    "firstSkill": {
+      "name": "Echo",
+      "contract": "Repeat the original immutable locked attack exactly once after the configured delay; never retarget; cancel queued work on source death, restart, teardown, or invalidation; allocate an independent damage-ledger identity."
+    },
+    "firstObstacle": {
+      "name": "Static non-damaging line-of-fire pillar",
+      "contract": "Reuse authoritative World collision, create at least two readable routes, stop Archer sweeps and presentation at the same endpoint, and add no contact damage, movement, destruction, or trap behavior."
+    },
+    "characterDirection": {
+      "benchmark": "Original modern anime ensemble appeal using memorable silhouettes, contrasting personalities, relationship hooks, and decision-timed portraits without copying proprietary characters.",
+      "player": "Rivella, age 22, a cynical former saint who overblesses enemies instead of attacking directly.",
+      "rivals": [
+        "Vera, age 24, a red-lightning charge knight mapped to Dasher behavior.",
+        "Lume, age 23, an eclipse archer mapped to locked projectile and Echo behavior.",
+        "Moko, a non-human cursed-doll swarm mapped to Minion behavior.",
+        "Atra, a non-human ancient guardian whose core and posture express emotion."
+      ],
+      "presentation": "Pixel-art combat sprites retain authoritative readability; high-resolution cel-anime portraits and expression sets appear only at first encounter, blessing choice, victory, and defeat."
+    },
+    "roomScope": [
+      {
+        "room": "Room_02",
+        "purpose": "Teach Echo timing and the second-lane decision without a new obstacle."
+      },
+      {
+        "room": "Room_03",
+        "purpose": "Teach the static pillar route choice before one bounded Echo-plus-pillar composition."
+      }
+    ],
+    "assets": [
+      "Rivella, Vera, Lume, Moko, and Atra original key visuals, four-expression portrait sets, and signature-prop sheets",
+      "Echo status icon and repeat telegraph/VFX from the provenance-recorded M2 resource set",
+      "Static pillar and matching floor/environment sprites from the provenance-recorded M2 resource set",
+      "Existing observer-only Archer projectile presentation"
+    ],
+    "tuningHypotheses": {
+      "echoDelaySeconds": "0.65 [PLACEHOLDER pending playtest]",
+      "minimumWarningSeconds": 0.55,
+      "enemyCountRange": "4-7",
+      "ordinaryRoomDurationMinutes": "2-3 [PLACEHOLDER pending fresh playtest]"
+    },
+    "acceptanceEvidence": [
+      "Focused EditMode contract and lifecycle tests",
+      "Focused PlayMode Echo, obstacle, cancellation, restart, wall-stop, and composition tests",
+      "WebGL captures at 1920x1080 and 1280x720",
+      "Supported-browser runtime QA with every measured one-second bucket at or above 45 FPS",
+      "Fresh no-coaching playtest observations separated from interpretation",
+      "Unaided testers can distinguish the protagonist and two major rivals by name or visual motif and connect each rival's personality to its attack habit"
+    ]
+  },
+  "excluded": [
+    "Direct player attacks or damaging player skills",
+    "Golem runtime activation",
+    "Cliffs, traps, destructibles, residue, or final encounter",
+    "Room_Final",
+    "Warning durations below 0.55 seconds",
+    "Generic future-skill or future-obstacle frameworks",
+    "Unrelated ProjectSettings changes"
+  ],
+  "gateBoundary": "Direct user approval authorizes unsealed local implementation and technical QA for the approved M2 scope. It never creates, replaces, signs, or implies M2EntryGate PASS; release-candidate authorization remains controlled by an independently validated externally RSA-SHA256-signed user M2EntryGate PASS.",
+  "noFurtherApprovalPrompt": true
+}

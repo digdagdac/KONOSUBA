@@ -1,0 +1,281 @@
+{
+  "schema": "overbless.m2-runtime-visual-index/v2",
+  "version": "v002",
+  "created_utc": "2026-07-30T09:36:59Z",
+  "approval": "Docs/Decisions/M2_IMPLEMENTATION_APPROVAL.json",
+  "runtime_authorization": "local-unsealed-only",
+  "m2_entry_gate_status": "not-evaluated",
+  "canvas_size": [
+    128,
+    128
+  ],
+  "declared_output_paths": [
+    "Assets/_Project/Art/M2Production/Environment/env_static_world_pillar_south_a_v002.png",
+    "Assets/_Project/Art/M2Production/UI/ui_icon_bless_echo_a_v002.png",
+    "Assets/_Project/Art/M2Production/UI/ui_icon_echo_status_a_v002.png",
+    "Assets/_Project/Art/M2Production/VFX/vfx_echo_double_silhouette_a_v002.png",
+    "Assets/_Project/Art/M2Production/VFX/vfx_echo_line_telegraph_a_v002.png"
+  ],
+  "source_files": [
+    {
+      "path": "Docs/AI_Usage/sources/m2_assets_v001/echo_vfx_sheet_source.png",
+      "sha256": "4017f9badd6d291028599a290e22f2a7cf860654db679e52c5b082b5ca3d5044"
+    },
+    {
+      "path": "Docs/AI_Usage/sources/m2_runtime_visual_v002/static_world_pillar_source.png",
+      "sha256": "c71b33df74ee2ac1f089827feb3d0d11d20873503465dce94f542f08fd57d933"
+    }
+  ],
+  "sprites": [
+    {
+      "name": "static_world_pillar",
+      "output_path": "Assets/_Project/Art/M2Production/Environment/env_static_world_pillar_south_a_v002.png",
+      "source_path": "Docs/AI_Usage/sources/m2_runtime_visual_v002/static_world_pillar_source.png",
+      "source_size": [
+        1024,
+        1024
+      ],
+      "source_opaque_bounds": [
+        232,
+        136,
+        796,
+        996
+      ],
+      "placement": [
+        25,
+        12,
+        77,
+        116
+      ],
+      "opaque_bounds": [
+        25,
+        12,
+        102,
+        128
+      ],
+      "opaque_foot_y": 128,
+      "size": [
+        128,
+        128
+      ],
+      "alpha": "binary",
+      "classification": "m2-runtime-static-non-damaging-world-cover",
+      "intended_binding": "M2 WorldPillar SpriteRenderer only",
+      "runtime_authorization": "local-unsealed-only",
+      "source_sha256": "c71b33df74ee2ac1f089827feb3d0d11d20873503465dce94f542f08fd57d933",
+      "output_sha256": "ca6263efcbc444d1a050205d9deaa61fd48be7492756ea6ad31269820ae4da13"
+    },
+    {
+      "name": "echo_bless_icon",
+      "output_path": "Assets/_Project/Art/M2Production/UI/ui_icon_bless_echo_a_v002.png",
+      "source_path": "Docs/AI_Usage/sources/m2_assets_v001/echo_vfx_sheet_source.png",
+      "source_size": [
+        1536,
+        1024
+      ],
+      "source_opaque_bounds": [
+        93,
+        75,
+        292,
+        445
+      ],
+      "placement": [
+        38,
+        16,
+        52,
+        96
+      ],
+      "opaque_bounds": [
+        38,
+        16,
+        90,
+        112
+      ],
+      "opaque_foot_y": 112,
+      "size": [
+        128,
+        128
+      ],
+      "alpha": "binary",
+      "classification": "m2-runtime-echo-blessing-ui",
+      "intended_binding": "M2 EchoCard icon only",
+      "runtime_authorization": "local-unsealed-only",
+      "source_grid": [
+        4,
+        2
+      ],
+      "source_cell": [
+        0,
+        0
+      ],
+      "source_rect": [
+        32,
+        42,
+        352,
+        470
+      ],
+      "source_cell_inset_divisor": 12,
+      "source_sha256": "4017f9badd6d291028599a290e22f2a7cf860654db679e52c5b082b5ca3d5044",
+      "output_sha256": "f4623e7e9333055cb194d1f410d3e0c13705f5afd2d263f8ba27f68915328501"
+    },
+    {
+      "name": "echo_status_icon",
+      "output_path": "Assets/_Project/Art/M2Production/UI/ui_icon_echo_status_a_v002.png",
+      "source_path": "Docs/AI_Usage/sources/m2_assets_v001/echo_vfx_sheet_source.png",
+      "source_size": [
+        1536,
+        1024
+      ],
+      "source_opaque_bounds": [
+        520,
+        174,
+        610,
+        337
+      ],
+      "placement": [
+        50,
+        40,
+        27,
+        48
+      ],
+      "opaque_bounds": [
+        50,
+        40,
+        77,
+        88
+      ],
+      "opaque_foot_y": 88,
+      "size": [
+        128,
+        128
+      ],
+      "alpha": "binary",
+      "classification": "m2-runtime-echo-status-ui",
+      "intended_binding": "M2 enemy Echo status indicator only",
+      "runtime_authorization": "local-unsealed-only",
+      "source_grid": [
+        4,
+        2
+      ],
+      "source_cell": [
+        1,
+        0
+      ],
+      "source_rect": [
+        416,
+        42,
+        736,
+        470
+      ],
+      "source_cell_inset_divisor": 12,
+      "source_sha256": "4017f9badd6d291028599a290e22f2a7cf860654db679e52c5b082b5ca3d5044",
+      "output_sha256": "b89721f3c5c84e813669a9050a6743dcc96175b162485db39f4122abbccc0a17"
+    },
+    {
+      "name": "echo_double_silhouette",
+      "output_path": "Assets/_Project/Art/M2Production/VFX/vfx_echo_double_silhouette_a_v002.png",
+      "source_path": "Docs/AI_Usage/sources/m2_assets_v001/echo_vfx_sheet_source.png",
+      "source_size": [
+        1536,
+        1024
+      ],
+      "source_opaque_bounds": [
+        830,
+        114,
+        1047,
+        404
+      ],
+      "placement": [
+        22,
+        8,
+        84,
+        112
+      ],
+      "opaque_bounds": [
+        22,
+        8,
+        106,
+        120
+      ],
+      "opaque_foot_y": 120,
+      "size": [
+        128,
+        128
+      ],
+      "alpha": "binary",
+      "classification": "m2-runtime-echo-double-silhouette-vfx",
+      "intended_binding": "M2 EchoProjectileVisual projectile renderer only",
+      "runtime_authorization": "local-unsealed-only",
+      "source_grid": [
+        4,
+        2
+      ],
+      "source_cell": [
+        2,
+        0
+      ],
+      "source_rect": [
+        800,
+        42,
+        1120,
+        470
+      ],
+      "source_cell_inset_divisor": 12,
+      "source_sha256": "4017f9badd6d291028599a290e22f2a7cf860654db679e52c5b082b5ca3d5044",
+      "output_sha256": "21d4a09117d1d31923604a163bc5d76e1c5981e02812d2a3e52183bc260e4390"
+    },
+    {
+      "name": "echo_line_telegraph",
+      "output_path": "Assets/_Project/Art/M2Production/VFX/vfx_echo_line_telegraph_a_v002.png",
+      "source_path": "Docs/AI_Usage/sources/m2_assets_v001/echo_vfx_sheet_source.png",
+      "source_size": [
+        1536,
+        1024
+      ],
+      "source_opaque_bounds": [
+        1184,
+        201,
+        1485,
+        313
+      ],
+      "placement": [
+        4,
+        41,
+        120,
+        45
+      ],
+      "opaque_bounds": [
+        4,
+        41,
+        124,
+        86
+      ],
+      "opaque_foot_y": 86,
+      "size": [
+        128,
+        128
+      ],
+      "alpha": "binary",
+      "classification": "m2-runtime-echo-line-telegraph-vfx",
+      "intended_binding": "M2 EchoProjectileVisual PendingLine renderer only",
+      "runtime_authorization": "local-unsealed-only",
+      "source_grid": [
+        4,
+        2
+      ],
+      "source_cell": [
+        3,
+        0
+      ],
+      "source_rect": [
+        1184,
+        42,
+        1504,
+        470
+      ],
+      "source_cell_inset_divisor": 12,
+      "source_sha256": "4017f9badd6d291028599a290e22f2a7cf860654db679e52c5b082b5ca3d5044",
+      "output_sha256": "5d95f7cc1498201175f9dc053d246d628fda6861d96622a94a800497a2cbed2d"
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82b8e52050040ea44b7782b0b9e61927, type: 3}
+  m_Name: Room_03
+  m_EditorClassIdentifier: 
+  seed: 104729
+  fixedTimeStep: 0.02
+  bounds:
+    serializedVersion: 2
+    x: -8
+    y: -4.5
+    width: 16
+    height: 9
+  soulsRequiredForExit: 3
+  dasherWarningTriggerRange: 8
+  dasherInitialPhase: 0
+  archerAInitialPhase: 0
+  archerBInitialPhase: 0
+  firstDasherTarget: 0
+  spawns:
+  - actor: 0
+    position: {x: -6.4, y: -1.8}
+    facing: {x: 1, y: 0}
+    hasFacing: 1
+  - actor: 2
+    position: {x: -1.2, y: -1.8}
+    facing: {x: -1, y: 0}
+    hasFacing: 1
+  - actor: 1
+    position: {x: 4.2, y: -1.5}
+    facing: {x: -1, y: 0}
+    hasFacing: 1
+  - actor: 3
+    position: {x: 5.8, y: 2.4}
+    facing: {x: -1, y: 0}
+    hasFacing: 1
+  - actor: 4
+    position: {x: 3.4, y: 1.1}
+    facing: {x: 0, y: 0}
+    hasFacing: 0
+  - actor: 5
+    position: {x: 5.4, y: -0.1}
+    facing: {x: 0, y: 0}
+    hasFacing: 0
+  roomVariant: 2

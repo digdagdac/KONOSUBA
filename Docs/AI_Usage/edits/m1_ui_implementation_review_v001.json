@@ -1,0 +1,76 @@
+{
+  "review_id": "m1_ui_implementation_review_v001",
+  "reviewed_at": "2026-07-13",
+  "status": "machine-pass-human-review-required",
+  "scope": "M1 runtime HUD and world-space enemy health presentation",
+  "design_contract": {
+    "reference_resolution": "1920x1080",
+    "minimum_verified_resolution": "1280x720",
+    "scale_mode": "ScaleWithScreenSize/MatchWidthOrHeight",
+    "information_hierarchy": [
+      "top-left: player portrait, life value/bar, dash readiness/bar",
+      "top-center: enemy-friendly-fire objective and soul/exit instruction",
+      "top-right: room number, soul count, exit lock/open state",
+      "bottom-center: Haste and Giant cards, keys, effects, availability and selection state",
+      "enemy overhead: current health ratio",
+      "bottom hint: selection, dash, restart and cancel controls"
+    ],
+    "color_and_shape": {
+      "haste": "cyan frame plus lightning icon",
+      "giant": "orange frame plus hexagonal mass icon",
+      "selected": "pale-yellow frame plus SELECTED text",
+      "unavailable": "desaturated frame plus BOUND text",
+      "health": "mint line/bar, red at or below 34 percent",
+      "panels": "opaque navy panels with blue-gray outlines"
+    }
+  },
+  "runtime_contract": {
+    "player_health": "live numeric value and proportional fill",
+    "dash": "READY state or cooldown seconds with proportional refill",
+    "blessing_slots": "READY, SELECTED, or BOUND from actual slot ownership",
+    "souls_and_exit": "live room lifecycle state against the required 3 souls",
+    "selection_guidance": "selected blessing and click/cancel instructions",
+    "enemy_health": "five left-to-right world-space health bars",
+    "line_material": "Assets/_Project/Art/M1Production/UI/mat_m1_ui_line_unlit_v001.mat",
+    "line_material_sha256": "38a0bff32525c13954730e396f6e95ab38b643466b54d808a28734efb235b25f"
+  },
+  "verification": {
+    "editmode": {
+      "result": "Passed",
+      "total": 13,
+      "passed": 13,
+      "failed": 0,
+      "file": "Evidence/Verification/editmode-ui-results.xml",
+      "sha256": "b500bf0d17de734a3eff34fe75b383f558b49d706deb12705f344fce1af6119c"
+    },
+    "playmode": {
+      "result": "Passed",
+      "total": 4,
+      "passed": 4,
+      "failed": 0,
+      "file": "Evidence/Verification/playmode-ui-results.xml",
+      "sha256": "60553229db7602c8bc70d438b0a8c5a62c46df5fa303f68113e1b27f1620f2b7"
+    },
+    "webgl": {
+      "result": "Passed",
+      "canvas": "1280x720 backing and client size",
+      "fullscreen_button_present": false,
+      "file_set_sha256": "d1c434c5b00eb9f9f18d5d645fa680afc6a62d353b2d08f601c0667fa0d52ffe",
+      "manifest": "Builds/M1_GuidedValidation_WebGL.sealed/build-manifest.json"
+    },
+    "screenshots": [
+      {
+        "state": "initial",
+        "file": "Evidence/Verification/m1-ui-final-1280x720.png",
+        "sha256": "468bf667d550489f1cfd0c3c38ca4395bfe8ac1b62085159c5a484714dd05432"
+      },
+      {
+        "state": "haste-selected",
+        "file": "Evidence/Verification/m1-ui-haste-selected-1280x720.png",
+        "sha256": "b26cf5b6cb91887cadece54c23a68ff1eb6e3d0a2fbe317d03067014c7d3bd22"
+      }
+    ]
+  },
+  "provenance_note": "The HUD panels, bars, layout, text and line material are deterministic Unity UI construction, not new AI-generated images. Existing recorded M1 production icons are reused.",
+  "scope_note": "No Echo slot, M2 room UI, inventory, minimap, meta progression, marketing UI or mobile controls were added."
+}

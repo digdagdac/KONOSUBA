@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "decision": "approved",
+  "status": "confirmed",
+  "decidedBy": "user",
+  "decidedAtUtc": "2026-07-12T11:49:14Z",
+  "styleFamily": "pixel",
+  "headProportion": 4,
+  "sourceFrameWidth": 128,
+  "sourceFrameHeight": 128,
+  "playerHeightAt1280x720Px": 72,
+  "heightTolerancePx": 2,
+  "visualGate": {
+    "targetHeightPx": 72,
+    "allowedRangePx": {
+      "min": 70,
+      "max": 74
+    },
+    "outsideToleranceResult": "FAIL"
+  }
+}

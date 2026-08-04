@@ -1,0 +1,23 @@
+{
+  "asset_id": "chr_dasher_reference_v001",
+  "category": "character-reference",
+  "status": "review-required",
+  "tool": "god-tibo-imagen",
+  "tool_version": "0.3.1",
+  "provider": "private-codex",
+  "model": "gpt-5.4",
+  "created_at": "2026-07-12",
+  "prompt_file": "Docs/AI_Usage/prompts/visual_reference_prompts_v001.json",
+  "prompt_key": "dasher_reference",
+  "input_images": ["Docs/Style/References/style_reference_master_v001.png"],
+  "source_file": "Docs/Style/References/chr_dasher_reference_v001.png",
+  "final_file": "Docs/Style/References/chr_dasher_reference_v001.png",
+  "requested_size": "1536x1024",
+  "actual_size": "1536x1024",
+  "manual_edits": [],
+  "license": "project-generated original; final licensing review pending",
+  "approved_by": "pending-user-review",
+  "response_id": "resp_0d7351de2f3d5c15016a53c11081448191b531f2d91af8d4c5",
+  "sha256": "c81946eaf51bfe90e1c02213964b6aa1b64a17be36817b3b6881b41b30f419d1",
+  "review": {"style_consistency":"pass-draft","pose_coverage":"pass-draft","charge_axis_silhouette":"pass","giant_margin":"review-required","text_or_watermark":"pass","final_sprite_readiness":"not-approved"}
+}

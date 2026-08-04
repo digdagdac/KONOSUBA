@@ -1,0 +1,53 @@
+{
+  "url": "https://chatgpt.com/backend-api/codex/responses",
+  "headers": {
+    "Authorization": "Bearer [REDACTED]",
+    "ChatGPT-Account-ID": "[REDACTED_ACCOUNT_ID]",
+    "Content-Type": "application/json",
+    "Accept": "text/event-stream",
+    "originator": "codex_cli_rs",
+    "session_id": "[REDACTED_SESSION_ID]"
+  },
+  "body": {
+    "model": "gpt-5.4",
+    "instructions": "",
+    "input": [
+      {
+        "type": "message",
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Production-ready 2D pixel art for a fixed-camera three-quarter top-down dark fantasy dungeon game. Match the supplied Overbless pixel-art references: crisp hard pixel clusters, readable silhouette at 128 pixels, dark navy outlines, restrained cyan/purple/orange accents, no antialiasing, no blur, no text, no letters, no numbers, no watermark. Use a perfectly flat pure magenta #ff00ff background around every isolated object. Create a strict 4-column by 2-row sprite sheet with eight separate isolated Echo blessing assets, one asset centered in each equal cell with wide magenta gutters. Top row left to right: 1) Echo HUD seal icon, angular double-chevron rune; 2) tiny enemy overhead Echo status icon; 3) translucent-looking doubled humanoid silhouette mask rendered as solid purple pixel clusters; 4) delayed straight attack telegraph with two parallel edges and a small repeat notch. Bottom row left to right: 5) delayed circular shockwave telegraph with double ring; 6) Echo application burst, mirrored rune fragments around an empty center; 7) overblessed resonance aura ring with three outward spikes; 8) resonance arrival floor sigil. Purple and pale violet only with dark navy outlines. Every cell must contain exactly one asset, no text, no borders, no labels."
+          },
+          {
+            "type": "input_image",
+            "image_url": "[REDACTED_IMAGE_DATA]"
+          },
+          {
+            "type": "input_image",
+            "image_url": "[REDACTED_IMAGE_DATA]"
+          }
+        ]
+      }
+    ],
+    "tools": [
+      {
+        "type": "image_generation",
+        "output_format": "png",
+        "size": "2048x2048"
+      }
+    ],
+    "tool_choice": "auto",
+    "parallel_tool_calls": false,
+    "reasoning": null,
+    "store": false,
+    "stream": true,
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "client_metadata": {
+      "x-codex-installation-id": "[REDACTED_INSTALLATION_ID]"
+    }
+  }
+}

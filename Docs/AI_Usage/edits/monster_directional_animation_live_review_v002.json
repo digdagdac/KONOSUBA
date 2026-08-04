@@ -1,0 +1,347 @@
+{
+  "review_id": "monster_directional_animation_live_review_v002",
+  "reviewed_at": "2026-07-31",
+  "status": "machine-live-review-complete-human-approval-pending",
+  "scope": "Machine evidence for the four live-review items the v002 monster directional animation review left open: expanded Unity suites with result hashes, both Development WebGL players rebuilt from the reviewed tree, both players exercised at 1280x720 and 1920x1080, and repeatable timing baselines and candidates kept inside ten percent.",
+  "extends": {
+    "path": "Docs/AI_Usage/edits/monster_directional_animation_review_v002.json",
+    "sha256": "94cfcca397a99b8e98335c12f647b0ea9258d75cf7c6d452ef643f91e4016cb3",
+    "relationship": "This record attaches the evidence that the prior record listed under live_review_remaining. The prior record is preserved byte for byte and keeps its own machine-pass-live-review-pending status; corrections are added as new records instead of edits."
+  },
+  "candidate": {
+    "commit": "4ef7d301f1d58880e023b3a98d91314b42c1912b",
+    "branch": "develop",
+    "unity_version": "6000.0.72f1",
+    "captured_utc": "2026-07-31T15:14:01Z"
+  },
+  "baseline": {
+    "commit": "dd7ad95d15011760769684fd79e132b5117b7a2d",
+    "description": "Last commit before the v002 locomotion ownership change. Its runtime exposes EnemyRuntimeStats.MovementSpeed and has no LocomotionMode, WalkSpeed or RunSpeed member, which is how the baseline assembly was confirmed.",
+    "captured_utc": "2026-07-31T14:51:27Z"
+  },
+  "tooling": [
+    {
+      "path": "Assets/Tests/PlayMode/MonsterLocomotionTimingTests.cs",
+      "sha256": "a7b06073b311bdb3b3266fc382fc835ed7928c715870a056c2e48fa285852632",
+      "purpose": "Deterministic timing capture. Time.captureDeltaTime is aligned with the 0.02 second fixed step so each captured frame carries exactly one physics step and the measured seconds repeat exactly.",
+      "runs_on_baseline": "The harness deliberately avoids v002-only runtime API so the identical file compiles and runs against the pre-v002 checkout."
+    },
+    {
+      "path": "Tools/capture_webgl_visuals.py",
+      "sha256": "2a82a9686c0c716c4b8a13988cdd47889dceb3f82df82681c898f2a85e296d77",
+      "purpose": "Serves each Development WebGL build with Tools/serve_webgl.py, drives headless Chrome over the DevTools Protocol with a standard-library WebSocket client, sends a trusted pointer gesture plus a movement burst, and writes screenshots with a transcript.",
+      "python_version": "3.11.5",
+      "browser": "Chrome/150.0.7871.187",
+      "browser_flags": "--headless=new --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --mute-audio"
+    }
+  ],
+  "test_suites": [
+    {
+      "suite": "Overbless EditMode",
+      "platform": "EditMode",
+      "total": 36,
+      "passed": 36,
+      "failed": 0,
+      "skipped": 0,
+      "result": "Passed",
+      "results_path": "Evidence/Verification/editmode-v002-live-review.xml",
+      "sha256": "db8a3248066effcbfb186339e9d9aa8268e021df51dca421a09cee382c778541"
+    },
+    {
+      "suite": "Overbless PlayMode",
+      "platform": "PlayMode",
+      "total": 22,
+      "passed": 22,
+      "failed": 0,
+      "skipped": 0,
+      "result": "Passed",
+      "results_path": "Evidence/Verification/playmode-v002-live-review.xml",
+      "sha256": "c68b3e649002a5545925131adcec909920aa0e2ba6f581d3fb02a97600102493",
+      "note": "22 = the 19 previously recorded PlayMode cases plus the three locomotion timing cases this record introduces."
+    }
+  ],
+  "builds": [
+    {
+      "build": "M1",
+      "scene": "Assets/_Project/Scenes/M1_GuidedValidation.unity",
+      "output_directory": "Builds/M1_GuidedValidation_WebGL",
+      "development_build": true,
+      "manifest_path": "Builds/M1_GuidedValidation_WebGL.sealed/build-manifest.json",
+      "manifest_sha256": "28801a0e90dc0451014b0fdf4d39c73fa903b83fdfc8a230f2e431539b7fde55",
+      "file_set_sha256": "94110d860c25ec16c1bb33a5f46c2451bea1717275725400a149dcb769038a9c",
+      "emitted_file_set_sha256": "2e0e3b64ef4537bcad942c9180fae75956f2b89ac4bfbfa759e767ae84118179",
+      "served_root_manifest_sha256": "4c8b8bdbcf837c03c46c0f911633f4ee84f9bc3038163f83da9f66a16306679d",
+      "log_path": "Evidence/Verification/m1-webgl-livereview-4ef7d30.log"
+    },
+    {
+      "build": "M2",
+      "scenes": ["Assets/_Project/Scenes/Room_02.unity", "Assets/_Project/Scenes/Room_03.unity"],
+      "output_directory": "Builds/M2_Rooms_WebGL",
+      "development_build": true,
+      "sealed": false,
+      "file_count": 16,
+      "file_set_sha256": "e5ebfe21a9cced1f1d34958a7c2b65639e1471b7bab5e06b507af7df7fd135c7",
+      "file_set_sha256_method": "SHA-256 over the UTF-8 bytes of newline-joined 'relative/path:sha256' lines sorted by relative path.",
+      "log_path": "Evidence/Verification/m2-webgl-livereview-4ef7d30.log",
+      "authorization": "local-unsealed technical QA only; this build carries no M2EntryGate meaning"
+    }
+  ],
+  "timing_metrics": [
+    {
+      "metric": "chase_to_range",
+      "role": "archer",
+      "definition": "Seconds for an archer starting three world units beyond its engagement range to close to that range.",
+      "baseline_seconds": 4.019997,
+      "candidate_seconds": 4.019997,
+      "delta_percent": 0.0,
+      "contract_seconds": 4.019946,
+      "status": "within-ten-percent"
+    },
+    {
+      "metric": "retreat_to_safe_band",
+      "role": "archer",
+      "definition": "Seconds for an archer starting half a unit inside its preferred distance to retreat back into the tolerance band.",
+      "baseline_seconds": 0.599999,
+      "candidate_seconds": 0.599999,
+      "delta_percent": 0.0,
+      "contract_seconds": 0.6,
+      "status": "within-ten-percent"
+    },
+    {
+      "metric": "preparation_to_judgment",
+      "role": "minion",
+      "definition": "Seconds from warning entry to the judgment tick that leaves the warning phase.",
+      "baseline_seconds": 0.76,
+      "candidate_seconds": 0.759998,
+      "delta_percent": 0.0,
+      "contract_seconds": 0.75,
+      "status": "within-ten-percent"
+    },
+    {
+      "metric": "judgment_to_next_eligible_warning_plain",
+      "role": "minion",
+      "definition": "Seconds from a judgment to the next warning entry with no blessing applied.",
+      "baseline_seconds": 4.399997,
+      "candidate_seconds": 4.359997,
+      "delta_percent": -0.909,
+      "contract_seconds": 4.35,
+      "status": "within-ten-percent"
+    },
+    {
+      "metric": "judgment_to_next_judgment_plain",
+      "role": "minion",
+      "definition": "Seconds between consecutive judgments with no blessing applied.",
+      "baseline_seconds": 5.159996,
+      "candidate_seconds": 5.119999,
+      "delta_percent": -0.775,
+      "contract_seconds": 5.1,
+      "status": "within-ten-percent"
+    },
+    {
+      "metric": "judgment_to_next_eligible_warning_haste",
+      "role": "minion",
+      "definition": "Seconds from a judgment to the next warning entry with Haste applied.",
+      "baseline_seconds": 3.399996,
+      "candidate_seconds": 3.359997,
+      "delta_percent": -1.176,
+      "contract_seconds": 3.35,
+      "status": "within-ten-percent"
+    },
+    {
+      "metric": "judgment_to_next_judgment_haste",
+      "role": "minion",
+      "definition": "Seconds between consecutive judgments with Haste applied.",
+      "baseline_seconds": 3.959997,
+      "candidate_seconds": 3.919998,
+      "delta_percent": -1.01,
+      "contract_seconds": 3.905555,
+      "status": "within-ten-percent"
+    }
+  ],
+  "timing_summary": {
+    "tolerance_percent": 10.0,
+    "largest_absolute_delta_percent": 1.176,
+    "all_within_tolerance": true,
+    "frame_delta_seconds": 0.02,
+    "cadence_delta_cause": "The four cadence deltas are exactly two captured frames, 0.04 seconds. The pre-v002 minion armed its next attack when recovery completed, while v002 pins the next eligible time to 'judgment + recovery + cooldown' at judgment, so v002 becomes eligible two frames earlier while preserving the same cadence contract.",
+    "baseline_evidence": {
+      "path": "Evidence/Verification/monster-locomotion-timing-baseline-dd7ad95.json",
+      "sha256": "df69f01c3717935f9c9c026aa24aac995730d457fafbf2cc8506440dcf30200c"
+    },
+    "candidate_evidence": {
+      "path": "Evidence/Verification/monster-locomotion-timing-candidate-4ef7d30.json",
+      "sha256": "511d59be70af211fce7fd1e26a5836f179d663f353909f11b65470c38ec84af3"
+    }
+  },
+  "visual_transcript": {
+    "path": "Evidence/Verification/monster-animation-v002-browser-automation.json",
+    "sha256": "9c7ccf330c41436e488c40ae0fb9ac15c970b9f1cd9aab26a91a0a030221958b",
+    "schema": "overbless.browser-automation-evidence/v1",
+    "captured_utc": "2026-07-31T15:05:30Z",
+    "frames_per_run": 10
+  },
+  "visual_matrix": [
+    {
+      "build": "M1",
+      "resolution": "1280x720",
+      "roles": ["dasher", "archer", "minion"],
+      "states": ["walk", "run", "attack"],
+      "status": "machine-captured-human-approval-pending",
+      "canvas_css": [1280, 720],
+      "canvas_backing": [1280, 720],
+      "device_pixel_ratio": 1,
+      "request_animation_frame_buckets": [81, 81],
+      "maximum_frame_change": 0.115836,
+      "distinct_screenshot_hashes": 10,
+      "local_frame_set": "Evidence/Verification/monster-animation-v002-m1-1280x720-*.png",
+      "media": [
+        {
+          "path": "Docs/AI_Usage/reviews/monster_animation_v002/m1-1280x720-frame05.png",
+          "sha256": "06409876102adec0253a6d6d410d2ca4644eed4ec3e002d2ad4e7f77f0cfb2df",
+          "bytes": 418775
+        },
+        {
+          "path": "Docs/AI_Usage/reviews/monster_animation_v002/m1-1280x720-frame09.png",
+          "sha256": "d6bfc215a8f5c566d6772ab77ec58bbc78987da1a9152966cc73ae352dbefc7d",
+          "bytes": 417862
+        }
+      ]
+    },
+    {
+      "build": "M1",
+      "resolution": "1920x1080",
+      "roles": ["dasher", "archer", "minion"],
+      "states": ["walk", "run", "attack"],
+      "status": "machine-captured-human-approval-pending",
+      "canvas_css": [1920, 1080],
+      "canvas_backing": [1920, 1080],
+      "device_pixel_ratio": 1,
+      "request_animation_frame_buckets": [40, 42],
+      "maximum_frame_change": 0.069472,
+      "distinct_screenshot_hashes": 10,
+      "local_frame_set": "Evidence/Verification/monster-animation-v002-m1-1920x1080-*.png",
+      "media": [
+        {
+          "path": "Docs/AI_Usage/reviews/monster_animation_v002/m1-1920x1080-frame05.png",
+          "sha256": "f6235a5c345c73cfafb135ad6c2f0ee9800d8f43971c1e2b316b041c76761d90",
+          "bytes": 492908
+        },
+        {
+          "path": "Docs/AI_Usage/reviews/monster_animation_v002/m1-1920x1080-frame09.png",
+          "sha256": "df8cafcd839f22323ef8f55be2ab9a580cf7b6abe9f13e947d3b324a8331efb3",
+          "bytes": 498140
+        }
+      ]
+    },
+    {
+      "build": "M2",
+      "resolution": "1280x720",
+      "roles": ["dasher", "archer", "minion"],
+      "states": ["walk", "run", "attack"],
+      "status": "machine-captured-human-approval-pending",
+      "canvas_css": [1280, 720],
+      "canvas_backing": [1280, 720],
+      "device_pixel_ratio": 1,
+      "request_animation_frame_buckets": [77, 78],
+      "maximum_frame_change": 0.116165,
+      "distinct_screenshot_hashes": 10,
+      "local_frame_set": "Evidence/Verification/monster-animation-v002-m2-1280x720-*.png",
+      "media": [
+        {
+          "path": "Docs/AI_Usage/reviews/monster_animation_v002/m2-1280x720-frame05.png",
+          "sha256": "acec18f83a965c1f9ba7db2d9f964a5afa581819f02cf18d78c4d75480cc5a94",
+          "bytes": 417701
+        },
+        {
+          "path": "Docs/AI_Usage/reviews/monster_animation_v002/m2-1280x720-frame09.png",
+          "sha256": "6375e2b2c367268a9fda3c403e30607ecf53c703fabf1e07b4e0c089f53ba962",
+          "bytes": 423045
+        }
+      ]
+    },
+    {
+      "build": "M2",
+      "resolution": "1920x1080",
+      "roles": ["dasher", "archer", "minion"],
+      "states": ["walk", "run", "attack"],
+      "status": "machine-captured-human-approval-pending",
+      "canvas_css": [1920, 1080],
+      "canvas_backing": [1920, 1080],
+      "device_pixel_ratio": 1,
+      "request_animation_frame_buckets": [39, 39],
+      "maximum_frame_change": 0.115164,
+      "distinct_screenshot_hashes": 10,
+      "local_frame_set": "Evidence/Verification/monster-animation-v002-m2-1920x1080-*.png",
+      "media": [
+        {
+          "path": "Docs/AI_Usage/reviews/monster_animation_v002/m2-1920x1080-frame05.png",
+          "sha256": "0b3a540b0b420e54b2f533fd28b7dd9425ee17ce54ea6c0330ec9472e9efb334",
+          "bytes": 508545
+        },
+        {
+          "path": "Docs/AI_Usage/reviews/monster_animation_v002/m2-1920x1080-frame09.png",
+          "sha256": "1932b8a8cf4d1676f0f40e60f8fd8ea525f4337b866eb4cd4f26de545ebcb05f",
+          "bytes": 497473
+        }
+      ]
+    }
+  ],
+  "runtime_scenarios": [
+    {
+      "id": "dasher-charge",
+      "expectation": "Idle before warning, Run during executing sweep, locked facing through Recover",
+      "automated_coverage": [
+        "Overbless.Tests.EditMode.CoreContractTests.EnemyBase_NormalizesMovementIntentAndResetsItIdempotently",
+        "Overbless.Tests.EditMode.CoreContractTests.EnemyDefinition_ValidatesDualSpeedsAndRuntimeStatsPreserveTheirContracts"
+      ],
+      "status": "machine-covered-human-approval-pending"
+    },
+    {
+      "id": "archer-distance",
+      "expectation": "Run for far chase and unsafe retreat, Walk for engagement correction, Idle in tolerance",
+      "automated_coverage": [
+        "Overbless.Tests.PlayMode.MonsterLocomotionTimingTests.ArcherApproachAndRetreatKeepConstantSpeedWithoutStalling"
+      ],
+      "status": "machine-covered-human-approval-pending"
+    },
+    {
+      "id": "minion-execute",
+      "expectation": "six distinct Execute frames at 24fps across 0.25 seconds; one frame-zero hit; Recover follows",
+      "automated_coverage": [
+        "Overbless.Tests.EditMode.CoreContractTests.MinionAI_UsesFixedLogicDurationWithoutLoadingDirectionalAnimationData",
+        "Overbless.Tests.EditMode.M2VisualResourceTests.MonsterV002AtlasesKeepIndexedPixelsTopologyImportAndRuntimeClipContracts",
+        "Overbless.Tests.PlayMode.MonsterLocomotionTimingTests.MinionCadenceKeepsWarningAndJudgmentTimingWithAndWithoutHaste"
+      ],
+      "status": "machine-covered-human-approval-pending"
+    },
+    {
+      "id": "collision-intent",
+      "expectation": "pillar or partial collision does not change LocomotionMode or IntendedFacing",
+      "automated_coverage": [
+        "Overbless.Tests.PlayMode.M2IntegrationTests.Room03_EchoAndPillarCollisionKeepArcherIntentAndVisualDirectionAIOwned"
+      ],
+      "status": "machine-covered-human-approval-pending"
+    },
+    {
+      "id": "m1-m2-sharing",
+      "expectation": "six enemy prefabs share the same three v002 animation-set asset GUIDs without prefab/scene mixing",
+      "automated_coverage": [
+        "Overbless.Tests.PlayMode.M2IntegrationTests.Room02AndRoom03_M2MonsterPrefabsShareV002AnimationSetsWithM1AndKeepOwnershipIsolated"
+      ],
+      "status": "machine-covered-human-approval-pending"
+    }
+  ],
+  "reviewer": null,
+  "human_review_remaining": [
+    "Judge gameplay-scale walk, run and attack readability per role at both resolutions and record the reviewer identity.",
+    "Confirm that no idle frame appears to slide and that no facing snaps during collisions while playing, not only in the captured frames.",
+    "Fresh playtesting still owns every M1 tuning value; this record changes no tuning hypothesis."
+  ],
+  "notes": [
+    "This record carries machine evidence only. It records no user decision, and it does not touch the user-owned M2EntryGate, whose status stays not-evaluated.",
+    "Screenshot change ratios and requestAnimationFrame counts prove the built players kept rendering new frames during the capture. They do not classify which animation state a given frame shows, so role and state readability stays with the human reviewer.",
+    "Headless Chrome renders WebGL through SwiftShader, so the 1920x1080 requestAnimationFrame counts are software-rendering figures and not a performance claim about the browser matrix.",
+    "The EditMode suite that validates this record cannot contain its own result hash. The recorded EditMode and PlayMode hashes are from the run that immediately precedes this record on the same tree, and the final run after this record was added is reported in the pull request instead.",
+    "Working-tree note for reviewers reproducing these hashes: this repository stores LF blobs while core.autocrlf is true on Windows, so a fresh checkout can materialise CRLF working copies whose byte hashes differ. Recreate byte-exact files with 'git -c core.autocrlf=input checkout-index -f -- <path>' before hashing."
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "asset_id": "style_reference_master_v001",
+  "category": "style-reference",
+  "status": "review-required",
+  "tool": "god-tibo-imagen",
+  "tool_version": "0.3.1",
+  "provider": "private-codex",
+  "model": "gpt-5.4",
+  "created_at": "2026-07-12",
+  "prompt_file": "Docs/AI_Usage/prompts/visual_reference_prompts_v001.json",
+  "prompt_key": "style_reference_master",
+  "source_file": "Docs/Style/References/style_reference_master_v001.png",
+  "final_file": "Docs/Style/References/style_reference_master_v001.png",
+  "requested_size": "2048x1152",
+  "actual_size": "1536x1024",
+  "manual_edits": [],
+  "license": "project-generated original; final licensing review pending",
+  "approved_by": "pending-user-review",
+  "response_id": "resp_0de60271311e7d7f016a53c05f15b8819194bc3784834ab390",
+  "sha256": "a76fa0236a482930062b584e4f290e2d67ca7be0017cb31f3f0bd5de69fe0e05",
+  "review": {
+    "camera_consistency": "pass-draft",
+    "lighting_consistency": "pass-draft",
+    "silhouette_readability": "pass-draft",
+    "palette_roles": "pass-draft",
+    "telegraph_priority": "pass-draft",
+    "text_or_watermark": "pass",
+    "technical_size": "review-required: backend returned 1536x1024 instead of requested 2048x1152",
+    "final_m3_approval": "not-requested"
+  },
+  "notes": "Review reference only. It does not replace M1 representative assets or authorize M2/M3 implementation."
+}

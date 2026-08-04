@@ -1,0 +1,29 @@
+{
+  "schema": "overbless.m2-character-appeal-prompts/v1",
+  "created_at": "2026-07-14",
+  "approval": "Docs/Decisions/M2_IMPLEMENTATION_APPROVAL.json",
+  "style_bible": "Docs/Style/STYLE_BIBLE.md",
+  "originality_rule": "Use only high-level modern anime ensemble appeal principles. Do not reproduce or closely imitate any proprietary character, costume, weapon, emblem, pose, or composition. Reject any result whose hair, costume, weapon, and color blocking jointly resemble an existing commercial character.",
+  "shared_portrait_style": "Original adult character design, polished 2D cel-anime illustration, strong readable silhouette, clean line art, controlled dark-navy shadows, restrained dungeon-fantasy palette, expressive face and hands, no text, no logo, no watermark. Present one full-body key visual plus four bust expressions: neutral, confident, hurt, recovery. Keep every panel separated by wide flat pure magenta #ff00ff gutters for deterministic extraction.",
+  "shared_sprite_style": "Production-ready 2D pixel art for a fixed-camera three-quarter top-down dungeon game. Four-head-tall adult proportions, one 128x128 source frame, crisp hard pixel clusters, dark navy outline, no antialiasing, no blur, full body centered on flat pure magenta #ff00ff with generous border. Preserve the portrait's three signature silhouette elements at 72px gameplay height.",
+  "prompts": {
+    "rivella_portrait_sheet": "Create Rivella, age 22, an original cynical former saint who wins by overblessing enemies rather than attacking. Asymmetric cyan-black hair, visible face, broken-halo talisman floating behind one shoulder, long black-and-cyan coat with split tails, empty hands using seal gestures, amber eyes, dry half-smile. Her pose must communicate clever spatial control rather than weapon power. Produce a strict 5-column character sheet: full-body key visual, neutral portrait, confident portrait, hurt portrait, recovery portrait.",
+    "rivella_pixel_south": "Create Rivella's exact combat design facing south in three-quarter top-down view. Preserve asymmetric cyan-black hair, broken-halo talisman, split-tail coat, amber face pixels, and empty seal-casting hands. Neutral ready pose with both feet visible; no weapon and no attack effect.",
+    "vera_portrait_sheet": "Create Vera, age 24, an original red-lightning charge knight and competitive rival. Short ember-red hair, two horn-shaped metal hair clips that are clearly accessories, oversized asymmetric impact gauntlet, black armor coat with red diagonal panels, athletic forward stance, challenging grin. Her silhouette must read as straight-line acceleration. Produce a strict 5-column character sheet: full-body key visual, neutral portrait, confident portrait, hurt portrait, recovery portrait.",
+    "vera_pixel_south": "Create Vera's exact combat design facing south in three-quarter top-down view. Preserve short red hair, horn-shaped clips, one oversized impact gauntlet, and red diagonal armor blocks. Leaning ready stance that implies a locked straight dash without showing a telegraph.",
+    "lume_portrait_sheet": "Create Lume, age 23, an original eclipse archer who acts calm at range and visibly loses composure up close. Long violet side ponytail, crescent-shaped greatbow with an off-center grip, silver-violet layered coat, one moon-disc earring, cool distant gaze with a subtle nervous tell in the hurt expression. Her silhouette must read as horizontal aim and delayed repeat. Produce a strict 5-column character sheet: full-body key visual, neutral portrait, confident portrait, hurt portrait, recovery portrait.",
+    "lume_pixel_south": "Create Lume's exact combat design facing south in three-quarter top-down view. Preserve violet side ponytail, crescent greatbow, silver-violet horizontal coat accents, and moon-disc earring pixels. Bow lowered in neutral ready pose; no projectile or telegraph in the sprite.",
+    "moko_character_sheet": "Create Moko, an original non-human cursed-doll swarm mascot. One large luminous lime eye, triangular cloth ears, tiny navy hooded cape, stitched round body, expressive elastic hands, equal parts cute and unsettling. Show one full-body doll plus four facial/body-language expressions: curious, smug imitation, startled damage, determined recovery. No human age cues and no resemblance to an existing mascot.",
+    "atra_character_sheet": "Create Atra, an original non-human ancient guardian golem whose amber heart core and posture express emotion. Massive shoulders, deliberately small head, broad stone-and-iron limbs, asymmetric rust-red armor plates, warm diamond-shaped amber core. Keep the current shockwave-golem gameplay mass but give it gentle curious body language. Show one full-body key visual plus four posture panels: neutral, proud, hurt dim-core, recovery bright-core."
+  },
+  "outputs": {
+    "rivella_portrait_sheet": "Docs/AI_Usage/sources/m2_character_appeal_v002/rivella_portrait_sheet_source.png",
+    "rivella_pixel_south": "Docs/AI_Usage/sources/m2_character_appeal_v002/rivella_pixel_south_source.png",
+    "vera_portrait_sheet": "Docs/AI_Usage/sources/m2_character_appeal_v002/vera_portrait_sheet_source.png",
+    "vera_pixel_south": "Docs/AI_Usage/sources/m2_character_appeal_v002/vera_pixel_south_source.png",
+    "lume_portrait_sheet": "Docs/AI_Usage/sources/m2_character_appeal_v002/lume_portrait_sheet_source.png",
+    "lume_pixel_south": "Docs/AI_Usage/sources/m2_character_appeal_v002/lume_pixel_south_source.png",
+    "moko_character_sheet": "Docs/AI_Usage/sources/m2_character_appeal_v002/moko_character_sheet_source.png",
+    "atra_character_sheet": "Docs/AI_Usage/sources/m2_character_appeal_v002/atra_character_sheet_source.png"
+  }
+}

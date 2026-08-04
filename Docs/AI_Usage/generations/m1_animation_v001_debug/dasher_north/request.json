@@ -1,0 +1,53 @@
+{
+  "url": "https://chatgpt.com/backend-api/codex/responses",
+  "headers": {
+    "Authorization": "Bearer [REDACTED]",
+    "ChatGPT-Account-ID": "[REDACTED_ACCOUNT_ID]",
+    "Content-Type": "application/json",
+    "Accept": "text/event-stream",
+    "originator": "codex_cli_rs",
+    "session_id": "[REDACTED_SESSION_ID]"
+  },
+  "body": {
+    "model": "gpt-5.4",
+    "instructions": "",
+    "input": [
+      {
+        "type": "message",
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Create exactly one isolated neutral character key pose, centered and fully visible, using the supplied approved south-facing production sprite and character reference as binding design references. Crisp hand-placed pixel art with deliberately low internal pixel resolution, hard pixel edges, no antialiasing, no smooth vector lines, no painterly rendering and no photorealism. Preserve the exact costume, body proportions, palette, silhouette weight, upper-left lighting and fixed 3/4 top-down camera. The approved coral-red charging knight faces north/away from camera. Preserve helmet crest, broad shoulders, compact shield and lance-like charge weapon with a readable rear silhouette. Flat uniform pure magenta #FF00FF background with no gradient, floor, cast shadow, glow spill, particles, border, text, letters, numbers, labels, logo, signature or watermark. Do not use magenta in the character. One pose only."
+          },
+          {
+            "type": "input_image",
+            "image_url": "[REDACTED_IMAGE_DATA]"
+          },
+          {
+            "type": "input_image",
+            "image_url": "[REDACTED_IMAGE_DATA]"
+          }
+        ]
+      }
+    ],
+    "tools": [
+      {
+        "type": "image_generation",
+        "output_format": "png",
+        "size": "1024x1024"
+      }
+    ],
+    "tool_choice": "auto",
+    "parallel_tool_calls": false,
+    "reasoning": null,
+    "store": false,
+    "stream": true,
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "client_metadata": {
+      "x-codex-installation-id": "[REDACTED_INSTALLATION_ID]"
+    }
+  }
+}

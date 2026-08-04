@@ -1,0 +1,23 @@
+{
+  "asset_id": "ui_m1_reference_v001",
+  "category": "ui-reference",
+  "status": "review-required",
+  "tool": "god-tibo-imagen",
+  "tool_version": "0.3.1",
+  "provider": "private-codex",
+  "model": "gpt-5.4",
+  "created_at": "2026-07-12",
+  "prompt_file": "Docs/AI_Usage/prompts/m1_combat_visual_prompts_v001.json",
+  "prompt_key": "ui_rules_reference_m1",
+  "input_images": ["Docs/Style/References/style_reference_master_v001.png"],
+  "source_file": "Docs/Style/References/ui_m1_reference_v001.png",
+  "final_file": "Docs/Style/References/ui_m1_reference_v001.png",
+  "requested_size": "1536x1024",
+  "actual_size": "1536x1024",
+  "manual_edits": [],
+  "license": "project-generated original; final licensing review pending",
+  "approved_by": "pending-user-review",
+  "response_id": "resp_04486d2f6f42ecb0016a53c42fbd108191a5f357d1d690fb6f",
+  "sha256": "eb3fd9e803a6230d9d0cc413ef95faba12fe04f6a412e30650fad5c75cde79d6",
+  "review": {"nine_slice_examples":"pass-draft","health_and_cooldown":"pass-draft","two_blessings_only":"pass","text_free":"pass","small_size_readability":"pending","final_ui_readiness":"not-approved"}
+}

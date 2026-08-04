@@ -1,0 +1,23 @@
+{
+  "asset_id": "chr_minion_reference_v001",
+  "category": "character-reference",
+  "status": "review-required",
+  "tool": "god-tibo-imagen",
+  "tool_version": "0.3.1",
+  "provider": "private-codex",
+  "model": "gpt-5.4",
+  "created_at": "2026-07-12",
+  "prompt_file": "Docs/AI_Usage/prompts/visual_reference_prompts_v001.json",
+  "prompt_key": "minion_reference",
+  "input_images": ["Docs/Style/References/style_reference_master_v001.png"],
+  "source_file": "Docs/Style/References/chr_minion_reference_v001.png",
+  "final_file": "Docs/Style/References/chr_minion_reference_v001.png",
+  "requested_size": "1536x1024",
+  "actual_size": "1536x1024",
+  "manual_edits": [],
+  "license": "project-generated original; final licensing review pending",
+  "approved_by": "pending-user-review",
+  "response_id": "resp_038c23ecc6a45973016a53c19d63e0819195f9545e11381743",
+  "sha256": "6e9b05431381a9bcf461d960d3bd8f444149145f3b23cf75a562f7aad3267e93",
+  "review": {"style_consistency":"pass-draft","pose_coverage":"pass-draft","small_scale_silhouette":"pass","text_or_watermark":"pass","transparent_background":"not-applicable-reference-sheet","final_sprite_readiness":"not-approved"}
+}
