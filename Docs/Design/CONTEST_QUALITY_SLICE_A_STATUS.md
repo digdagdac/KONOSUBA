@@ -1,16 +1,27 @@
-# Contest Quality Slice A — local status
+﻿# Contest Quality Slice A — Status
 
-Updated this session:
-- EditorBuildSettings: Title → M1 → Room_02 → Room_03 → Result
-- Per-room objective HUD copy (R01 induction / R02 Echo / R03 pillar)
-- ContestSubmissionTests: objectives + EditorBuildSettings order
-- Docs/Design/PLAYTEST_PACK_CONTEST_KO.md
-- Docs/Design/LONGEVITY_BACKLOG_B_KO.md (B gated until playtests)
+Date: 2026-08-04
 
-Still open for A:
-- Commit/push on contest branch (main .git write blocked in sandbox; gh auth invalid earlier)
-- ContestWebGLBuilder one-shot Release build
-- browser smoke via Tools/verify_submission_run.py
-- title key visual + 3 no-coaching playtests + 30–60s video
+## Delivered on feature/contest-run-shell (local commit b76bb2d)
 
-B not started in code: waiting for playtest gate in LONGEVITY_BACKLOG_B_KO.md
+- Full-run build list: Title → R01 → R02 → R03 → Result
+- Room objective HUD text per room (rule, not coaching dump)
+- Start-gate prompt + defeat recovery overlay in each room
+- Contest WebGL builder + submission docs + playtest pack
+- EditMode ContestSubmissionTests source added
+
+## Verification
+
+See Docs/Design/CONTEST_A_STATIC_VERIFY.md
+
+- Unity batchmode blocked by license in sandbox
+- Push/PR blocked by GitHub network/token + main .git ACL at verification time
+
+## Human remainder
+
+- Three sessions of PLAYTEST_PACK_CONTEST_KO.md
+- Title key visual ownership remains TITLE_ART_SPEC_KO.md
+
+## B
+
+- Room pack data extraction starts after this status is committed
