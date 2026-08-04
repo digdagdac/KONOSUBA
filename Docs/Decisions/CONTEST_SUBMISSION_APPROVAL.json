@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "id": "contest-submission-approval-v001",
+  "decision": "approved",
+  "status": "confirmed",
+  "decidedBy": "user",
+  "decidedAtUtc": "2026-07-31T17:29:22Z",
+  "authorizationSource": "Explicit interactive user directive selecting option B for the NAN 2026 submission: \"B안으로하고 다 진행해줘\", answering a presented choice between submitting the M1 guided slice alone (option A) and publicly distributing the full M1 plus M2 three-room build (option B).",
+  "approvalMode": "standing-no-reprompt",
+  "extends": [
+    "Docs/Decisions/M2_IMPLEMENTATION_APPROVAL.json",
+    "Docs/Production/PROJECT_RULES.md"
+  ],
+  "supersedes": [],
+  "reason": "PROJECT_RULES section 6 permits offline M2 asset production and, through M2_IMPLEMENTATION_APPROVAL, local unsealed implementation with technical QA. A public contest build is neither local nor QA, so the wider distribution needed its own recorded decision instead of being read into the earlier one.",
+  "scope": {
+    "contest": {
+      "name": "NAN 2026",
+      "site": "https://nan2026.nhn.com/",
+      "reviewerAccount": "dl_gameai_reviewer@nhn.com"
+    },
+    "distribution": [
+      "Public browser build served over HTTPS from GitHub Pages, playable from a single link with no paid licence and no PC executable.",
+      "Public repository containing the full game source and its commit history, or a private repository with the reviewer account invited.",
+      "One continuous play flow: title screen, the guided room, Room_02, Room_03, result screen."
+    ],
+    "included": [
+      "Echo blessing and its telegraph, status icon and repeat visuals",
+      "Static non-damaging line-of-fire pillar",
+      "Room_02 and Room_03",
+      "Character identity cards for Rivella, Vera, Lume and Moko",
+      "Release-mode WebGL player with compression enabled for public hosting"
+    ],
+    "excluded": [
+      "Golem runtime activation",
+      "Room_Final and the final encounter",
+      "Cliffs, traps, destructibles and residue",
+      "Direct player attacks",
+      "Warning durations below 0.55 seconds",
+      "Any claim that this decision evaluates or replaces M2EntryGate"
+    ]
+  },
+  "gateBoundary": "This decision authorizes public distribution of the already approved M2 implementation scope for one contest submission. It does not create, replace, sign or imply an M2EntryGate PASS. The gate stays user-owned and externally signed, and its recorded state remains not-evaluated. Release-candidate sealing continues to require the independently validated signed decision described in PROJECT_RULES section 1.",
+  "buildContract": {
+    "reason": "The development WebGL contract stays untouched because it is bound to provenance tests. The submission player is a separate build path.",
+    "developmentPath": "Overbless.Editor.Build.DevelopmentWebGLBuilder, uncompressed local Development player, unchanged by this decision.",
+    "submissionPath": "Overbless.Editor.Build.ContestWebGLBuilder, Release player with Brotli compression and decompression fallback so static hosting without custom headers still runs.",
+    "publishedBranch": "gh-pages",
+    "publishedFrom": "Builds/Overbless_Web",
+    "publishNote": "The published tree cannot live in a directory named 'docs' because the repository already tracks 'Docs' and Windows treats the two as one directory. Publishing therefore targets an orphan gh-pages branch."
+  },
+  "userOwnedRemainder": [
+    "Making the repository public or inviting the reviewer account.",
+    "Recording the 30 to 60 second gameplay video from real play.",
+    "Producing the title key visual and the character cel portrait sheets.",
+    "Every playtest-dependent tuning number, which stays a PLACEHOLDER hypothesis until a fresh no-coaching playtest happens."
+  ],
+  "noFurtherApprovalPrompt": true
+}

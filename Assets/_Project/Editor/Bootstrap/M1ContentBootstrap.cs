@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using Overbless.Runtime;
@@ -59,6 +60,24 @@ namespace Overbless.Editor.Bootstrap
         private const string Room03DataPath = RoomDataRoot + "/Room_03.asset";
         private const string Room02ScenePath = ProjectRoot + "/Scenes/Room_02.unity";
         private const string Room03ScenePath = ProjectRoot + "/Scenes/Room_03.unity";
+
+        /// <summary>Flow screens that turn the three rooms into one continuous run.</summary>
+        public const string TitleScenePath = ProjectRoot + "/Scenes/Title.unity";
+
+        public const string ResultScenePath = ProjectRoot + "/Scenes/Result.unity";
+        public const string TitleSceneName = "Title";
+        public const string ResultSceneName = "Result";
+        public const string FirstRoomSceneName = "M1_GuidedValidation";
+        public const string SecondRoomSceneName = "Room_02";
+        public const string ThirdRoomSceneName = "Room_03";
+        public const string TitleKeyVisualPath = ProductionUiRoot + "/ui_title_key_visual_a_v001.png";
+
+        /// <summary>
+        /// Set to true once the delivered title key visual already contains the Korean
+        /// logotype, so the engine headline does not print a second title over the art.
+        /// The engine font has no Hangul glyphs, which is why the logotype belongs to the art.
+        /// </summary>
+        public const bool HideEngineTitleWhenLogotypeBaked = false;
         private const string AudioRoot = ProjectRoot + "/Audio/M1Functional";
         private const string SettingsRoot = "Assets/Settings";
         private const string RenderingSettingsRoot = SettingsRoot + "/Rendering";
@@ -180,6 +199,7 @@ namespace Overbless.Editor.Bootstrap
             var room02 = CreateRoomDefinition(Room02DataPath, M1RoomVariant.Room02);
             var room03 = CreateRoomDefinition(Room03DataPath, M1RoomVariant.Room03);
             var audioCatalog = CreateAudioCatalog();
+            var identityCatalog = M2CharacterIdentityBootstrap.CreateOrUpdateCatalog();
             var prefabs = CreateM2Prefabs(sprites, animations, playerConfig, enemyDefinitions);
             var pillar = SavePrefab(
                 M2PrefabRoot + "/WorldPillar.prefab",
@@ -190,6 +210,7 @@ namespace Overbless.Editor.Bootstrap
 
             room02 = RequireAsset<M1RoomDefinition>(Room02DataPath);
             audioCatalog = RequireAsset<FunctionalAudioCatalog>(AudioDataRoot + "/FunctionalAudioCatalog.asset");
+            identityCatalog = RequireAsset<CharacterIdentityCatalog>(M2CharacterIdentityBootstrap.CatalogPath);
             prefabs = LoadPrefabSet(M2PrefabRoot);
             room02.Validate();
             CreateM2Scene(
@@ -198,6 +219,7 @@ namespace Overbless.Editor.Bootstrap
                 "ROOM  02",
                 room02,
                 audioCatalog,
+                identityCatalog,
                 prefabs,
                 sprites,
                 "Room_03",
@@ -205,6 +227,7 @@ namespace Overbless.Editor.Bootstrap
 
             room03 = RequireAsset<M1RoomDefinition>(Room03DataPath);
             audioCatalog = RequireAsset<FunctionalAudioCatalog>(AudioDataRoot + "/FunctionalAudioCatalog.asset");
+            identityCatalog = RequireAsset<CharacterIdentityCatalog>(M2CharacterIdentityBootstrap.CatalogPath);
             prefabs = LoadPrefabSet(M2PrefabRoot);
             pillar = RequireAsset<GameObject>(M2PrefabRoot + "/WorldPillar.prefab");
             room03.Validate();
@@ -214,9 +237,10 @@ namespace Overbless.Editor.Bootstrap
                 "ROOM  03",
                 room03,
                 audioCatalog,
+                identityCatalog,
                 prefabs,
                 sprites,
-                string.Empty,
+                ResultSceneName,
                 pillar);
 
             AssetDatabase.SaveAssets();
@@ -227,6 +251,214 @@ namespace Overbless.Editor.Bootstrap
         public static void CreateM2ForBatchMode()
         {
             CreateOrUpdateM2();
+        }
+
+        /// <summary>
+        /// Builds the two flow screens that turn the rooms into one run: a title screen that
+        /// starts the first room and a result screen that closes the run and returns to the
+        /// title. Both are generated content, like every other scene in this project.
+        /// </summary>
+        [MenuItem("Overbless/Contest/Create Title And Result Screens")]
+        public static void CreateOrUpdateFlowScreens()
+        {
+            GuardOpenScenes();
+            EnsureDirectories();
+            var sprites = CreateM1Sprites();
+            var keyVisual = AssetDatabase.LoadAssetAtPath<Sprite>(TitleKeyVisualPath);
+
+            CreateFlowScreen(
+                TitleScenePath,
+                TitleSceneName,
+                keyVisual,
+                sprites.Player,
+                "OVERBLESS",
+                "THE SAINT WHO CANNOT ATTACK",
+                new[]
+                {
+                    "YOU CANNOT DAMAGE ANYTHING. YOU CAN ONLY MAKE ENEMIES STRONGER.",
+                    "BLESS AN ENEMY, STAND WHERE ITS ATTACK WILL CROSS ANOTHER ENEMY, THEN LEAVE.",
+                    "COLLECT 3 SOULS FROM THEIR MISTAKES AND REACH THE EXIT. THREE ROOMS.",
+                    "WASD MOVE    SPACE DASH    1 / 2 / 3 BLESS    LMB APPLY    RMB CANCEL    R RESTART    ESC PAUSE"
+                },
+                "CLICK OR PRESS ANY KEY TO START",
+                FirstRoomSceneName);
+
+            CreateFlowScreen(
+                ResultScenePath,
+                ResultSceneName,
+                keyVisual,
+                sprites.Player,
+                "RUN COMPLETE",
+                "THREE ROOMS SURVIVED BY OVERBLESSING THEM",
+                new[]
+                {
+                    "EVERY SOUL YOU CARRIED OUT WAS PAID FOR BY AN ENEMY YOU MADE STRONGER.",
+                    "VERA CHARGED IN A STRAIGHT LINE. LUME KEPT HER LANE. MOKO COPIED WHOEVER STOOD CLOSEST.",
+                    "NONE OF THEM WERE WEAKENED. THEY WERE AIMED."
+                },
+                "CLICK OR PRESS ANY KEY TO RETURN TO THE TITLE",
+                TitleSceneName);
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+        }
+
+        // Intended for -executeMethod in Unity batch mode.
+        public static void CreateFlowScreensForBatchMode()
+        {
+            CreateOrUpdateFlowScreens();
+        }
+
+        /// <summary>
+        /// Creates one flow screen. The key visual is optional: until it is produced the
+        /// screen stands in with a dark plate and the player's authoritative combat sprite,
+        /// the same representative approach the character cards use.
+        /// </summary>
+        private static void CreateFlowScreen(
+            string scenePath,
+            string sceneName,
+            Sprite keyVisual,
+            Sprite representativeSprite,
+            string headline,
+            string subtitle,
+            string[] bodyLines,
+            string prompt,
+            string nextScene)
+        {
+            if (representativeSprite == null)
+            {
+                throw new InvalidOperationException("A flow screen requires the player sprite as its representative art.");
+            }
+
+            if (bodyLines == null || bodyLines.Length == 0)
+            {
+                throw new InvalidOperationException("A flow screen requires body copy.");
+            }
+
+            var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            var root = new GameObject(sceneName);
+            var camera = CreateCamera(root.transform);
+
+            var screen = new GameObject(
+                "Screen",
+                typeof(RectTransform),
+                typeof(Canvas),
+                typeof(CanvasScaler),
+                typeof(GraphicRaycaster),
+                typeof(TrustedInputScreen));
+            screen.transform.SetParent(root.transform, false);
+
+            var canvas = screen.GetComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceCamera;
+            canvas.worldCamera = camera;
+            canvas.planeDistance = 1f;
+            canvas.pixelPerfect = true;
+            canvas.sortingLayerName = "UI";
+            canvas.sortingOrder = 100;
+
+            var scaler = screen.GetComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920f, 1080f);
+            scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+            scaler.matchWidthOrHeight = 0.5f;
+
+            var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            if (font == null)
+            {
+                throw new InvalidOperationException("A flow screen requires Unity's LegacyRuntime font.");
+            }
+
+            var plate = CreateStretchedImage(screen.transform, "KeyVisual", new Color32(7, 11, 20, 255));
+            if (keyVisual != null)
+            {
+                plate.sprite = keyVisual;
+                plate.color = Color.white;
+                plate.preserveAspect = true;
+            }
+            else
+            {
+                CreateHudIcon(
+                    screen.transform,
+                    "RepresentativePortrait",
+                    representativeSprite,
+                    new Vector2(1180f, -300f),
+                    new Vector2(420f, 470f),
+                    new Color32(255, 255, 255, 235));
+            }
+
+            var paleText = new Color32(236, 246, 251, 255);
+            var mutedText = new Color32(158, 182, 197, 255);
+            var cyan = new Color32(64, 214, 236, 255);
+
+            var hideHeadline = keyVisual != null &&
+                HideEngineTitleWhenLogotypeBaked &&
+                string.Equals(sceneName, TitleSceneName, StringComparison.Ordinal);
+            if (!hideHeadline)
+            {
+                CreateHudText(screen.transform, "Headline", headline, font, 108, TextAnchor.UpperLeft, paleText, new Vector2(96f, -140f), new Vector2(1100f, 140f));
+            }
+
+            CreateHudText(screen.transform, "Subtitle", subtitle, font, 34, TextAnchor.UpperLeft, cyan, new Vector2(100f, -280f), new Vector2(1100f, 60f));
+
+            var bodyPanel = CreateHudPanel(
+                screen.transform,
+                "Body",
+                new Vector2(0f, 0f),
+                new Vector2(0f, 0f),
+                new Vector2(96f, 168f),
+                new Vector2(1728f, 210f),
+                new Color32(6, 11, 20, 226));
+            for (var index = 0; index < bodyLines.Length; index++)
+            {
+                CreateHudText(
+                    bodyPanel,
+                    "Line" + (index + 1).ToString(CultureInfo.InvariantCulture),
+                    bodyLines[index],
+                    font,
+                    index == bodyLines.Length - 1 ? 20 : 24,
+                    TextAnchor.MiddleLeft,
+                    index == bodyLines.Length - 1 ? mutedText : paleText,
+                    new Vector2(28f, -22f - index * 46f),
+                    new Vector2(1672f, 40f));
+            }
+
+            var promptText = CreateHudText(
+                screen.transform,
+                "Prompt",
+                prompt,
+                font,
+                30,
+                TextAnchor.MiddleCenter,
+                cyan,
+                new Vector2(96f, -930f),
+                new Vector2(1728f, 48f));
+
+            var trustedScreen = screen.GetComponent<TrustedInputScreen>();
+            var serialized = new SerializedObject(trustedScreen);
+            serialized.FindProperty("nextScene").stringValue = nextScene;
+            SetObject(serialized, "promptText", promptText);
+            Apply(serialized, trustedScreen);
+
+            ValidateSceneAudioListener(scene, camera);
+            if (!EditorSceneManager.SaveScene(scene, scenePath))
+            {
+                throw new InvalidOperationException($"Unity failed to save the flow screen to '{scenePath}'.");
+            }
+        }
+
+        private static Image CreateStretchedImage(Transform parent, string name, Color color)
+        {
+            var imageObject = new GameObject(name, typeof(RectTransform), typeof(Image));
+            imageObject.transform.SetParent(parent, false);
+            var rect = imageObject.GetComponent<RectTransform>();
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+            var image = imageObject.GetComponent<Image>();
+            image.color = color;
+            image.raycastTarget = false;
+            return image;
         }
 
 
@@ -1206,6 +1438,10 @@ namespace Overbless.Editor.Bootstrap
             ConfigureRuntimeBinder(systems, playerHealth, blessingTargeting, enemies, room, false);
             ConfigureFunctionalAudioBridge(systems, audioEmitter, playerHealth, enemies, room, restartController, blessingTargeting);
             ConfigurePauseController(systems, playerInput, blessingTargeting, restartController);
+
+            // The guided room is the first room of the submitted run, so its exit continues
+            // into Room_02 instead of ending in place.
+            ConfigureRoomSequence(systems, exit, SecondRoomSceneName);
             CreateHud(
                 root.transform,
                 playerHealth,
@@ -1215,8 +1451,12 @@ namespace Overbless.Editor.Bootstrap
                 camera,
                 sprites,
                 "ROOM  01",
+                "MAKE THEIR ATTACKS HIT EACH OTHER",
+                "HASTE OR GIANT  ·  COLLECT 3 SOULS  ·  REACH THE EXIT",
                 false,
-                null);
+                null,
+                systems.GetComponent<WebStartGate>(),
+                playerLifeCycle);
 
             ValidateSceneAudioListener(scene, camera);
             if (!EditorSceneManager.SaveScene(scene, ScenePath))
@@ -1238,6 +1478,7 @@ namespace Overbless.Editor.Bootstrap
             string roomLabel,
             M1RoomDefinition roomDefinition,
             FunctionalAudioCatalog audioCatalog,
+            CharacterIdentityCatalog identityCatalog,
             PrefabSet prefabs,
             M2SpriteSet sprites,
             string nextScene,
@@ -1245,6 +1486,12 @@ namespace Overbless.Editor.Bootstrap
         {
             var roomDefinitionPath = AssetDatabase.GetAssetPath(roomDefinition);
             var audioCatalogPath = AssetDatabase.GetAssetPath(audioCatalog);
+            var identityCatalogPath = AssetDatabase.GetAssetPath(identityCatalog);
+            if (string.IsNullOrEmpty(identityCatalogPath))
+            {
+                throw new InvalidOperationException("The M2 character identity catalog must be a persisted asset.");
+            }
+
             roomDefinition.Validate();
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
@@ -1311,7 +1558,25 @@ namespace Overbless.Editor.Bootstrap
             ConfigureRuntimeBinder(systems, playerHealth, blessingTargeting, enemies, room, true);
             ConfigureFunctionalAudioBridge(systems, audioEmitter, playerHealth, enemies, room, restartController, blessingTargeting);
             ConfigurePauseController(systems, playerInput, blessingTargeting, restartController);
-            CreateHud(
+            string objectiveTitle;
+            string objectiveDetail;
+            if (string.Equals(roomLabel, "ROOM  02", StringComparison.Ordinal))
+            {
+                objectiveTitle = "ECHO REPLAYS THE LOCKED ATTACK";
+                objectiveDetail = "BLESS WITH ECHO  ·  USE THE REPLAY  ·  3 SOULS THEN EXIT";
+            }
+            else if (string.Equals(roomLabel, "ROOM  03", StringComparison.Ordinal))
+            {
+                objectiveTitle = "THE PILLAR SPLITS THE PATH";
+                objectiveDetail = "ROUTE AROUND THE PILLAR  ·  ECHO + HASTE/GIANT  ·  3 SOULS";
+            }
+            else
+            {
+                objectiveTitle = "MAKE THEIR ATTACKS HIT EACH OTHER";
+                objectiveDetail = "COLLECT 3 SOULS  |  REACH THE EXIT";
+            }
+
+            var hud = CreateHud(
                 root.transform,
                 playerHealth,
                 player.GetComponent<DashAbility>(),
@@ -1320,8 +1585,20 @@ namespace Overbless.Editor.Bootstrap
                 camera,
                 sprites.M1,
                 roomLabel,
+                objectiveTitle,
+                objectiveDetail,
                 true,
-                sprites.Echo);
+                sprites.Echo,
+                systems.GetComponent<WebStartGate>(),
+                playerLifeCycle);
+            var appealPresenter = ConfigureCharacterAppeal(
+                hud,
+                identityCatalogPath,
+                systems.GetComponent<WebStartGate>(),
+                playerLifeCycle,
+                blessingTargeting,
+                exit,
+                enemies);
 
             ValidateSceneAudioListener(scene, camera);
             if (!EditorSceneManager.SaveScene(scene, scenePath))
@@ -1336,6 +1613,32 @@ namespace Overbless.Editor.Bootstrap
                 roomDefinitionPath,
                 audioEmitter,
                 audioCatalogPath);
+            BindPersistentIdentityCatalog(scene, scenePath, appealPresenter, identityCatalogPath);
+        }
+
+        /// <summary>
+        /// Re-points the character card at the catalog asset on disk after the scene is
+        /// saved, the same reason the room definition and audio catalog are rebound: an
+        /// asset created in this session must not linger as an in-memory reference.
+        /// </summary>
+        private static void BindPersistentIdentityCatalog(
+            Scene scene,
+            string scenePath,
+            CharacterAppealPresenter presenter,
+            string identityCatalogPath)
+        {
+            var persistedIdentities = RequireAsset<CharacterIdentityCatalog>(identityCatalogPath);
+            persistedIdentities.Validate();
+
+            var serialized = new SerializedObject(presenter);
+            SetObject(serialized, "catalog", persistedIdentities);
+            Apply(serialized, presenter);
+
+            if (!EditorSceneManager.SaveScene(scene, scenePath))
+            {
+                throw new InvalidOperationException(
+                    $"Unity failed to persist the character identity catalog reference in scene '{scenePath}'.");
+            }
         }
 
         private static void BindPersistentSceneAssets(
@@ -1667,7 +1970,8 @@ namespace Overbless.Editor.Bootstrap
             Apply(serialized, pauseController);
         }
 
-        private static void CreateHud(
+        /// <summary>Builds the HUD and returns its canvas transform for M2-only additions.</summary>
+        private static Transform CreateHud(
             Transform parent,
             Health playerHealth,
             DashAbility dashAbility,
@@ -1676,8 +1980,12 @@ namespace Overbless.Editor.Bootstrap
             Camera worldCamera,
             M1SpriteSet sprites,
             string roomLabel,
+            string objectiveTitle,
+            string objectiveDetail,
             bool echoEnabled,
-            Sprite echoSprite)
+            Sprite echoSprite,
+            WebStartGate startGate,
+            PlayerLifeCycle playerLifeCycle)
         {
             var hud = new GameObject(
                 "HUD",
@@ -1742,8 +2050,8 @@ namespace Overbless.Editor.Bootstrap
                 new Vector2(0f, -24f),
                 new Vector2(720f, 78f),
                 panelColor);
-            CreateHudText(objectivePanel, "Title", "MAKE THEIR ATTACKS HIT EACH OTHER", font, 27, TextAnchor.MiddleCenter, paleText, new Vector2(20f, -10f), new Vector2(680f, 34f));
-            CreateHudText(objectivePanel, "Detail", "COLLECT 3 SOULS  |  REACH THE EXIT", font, 18, TextAnchor.MiddleCenter, mutedText, new Vector2(20f, -44f), new Vector2(680f, 24f));
+            CreateHudText(objectivePanel, "Title", objectiveTitle, font, 27, TextAnchor.MiddleCenter, paleText, new Vector2(20f, -10f), new Vector2(680f, 34f));
+            CreateHudText(objectivePanel, "Detail", objectiveDetail, font, 18, TextAnchor.MiddleCenter, mutedText, new Vector2(20f, -44f), new Vector2(680f, 24f));
 
             var roomPanel = CreateHudPanel(
                 hud.transform,
@@ -1860,6 +2168,180 @@ namespace Overbless.Editor.Bootstrap
                 SetObject(serialized, "echoFrame", echoFrame);
             }
             Apply(serialized, controller);
+            ConfigureStartAndOutcomeOverlays(hud.transform, font, startGate, playerLifeCycle);
+            return hud.transform;
+        }
+
+        /// <summary>
+        /// Adds the two panels a first-time player needs: what the room is waiting for before
+        /// the first trusted input, and what to press after a defeat. Both are presentation
+        /// only and are created for every room.
+        /// </summary>
+        private static void ConfigureStartAndOutcomeOverlays(
+            Transform hud,
+            Font font,
+            WebStartGate startGate,
+            PlayerLifeCycle playerLifeCycle)
+        {
+            if (startGate == null || playerLifeCycle == null)
+            {
+                throw new InvalidOperationException("A room HUD requires its web start gate and player life cycle.");
+            }
+
+            var paleText = new Color32(233, 244, 250, 255);
+            var mutedText = new Color32(160, 184, 198, 255);
+            var warmText = new Color32(255, 150, 96, 255);
+
+            var startHolder = new GameObject("StartPrompt", typeof(RectTransform), typeof(StartGatePrompt));
+            startHolder.transform.SetParent(hud, false);
+            ConfigureHudRect(
+                startHolder.GetComponent<RectTransform>(),
+                new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f),
+                Vector2.zero,
+                new Vector2(880f, 150f));
+            var startPanel = CreateHudPanel(
+                startHolder.transform,
+                "Panel",
+                new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f),
+                Vector2.zero,
+                new Vector2(880f, 150f),
+                new Color32(8, 14, 24, 242));
+            CreateHudText(startPanel, "Line1", "CLICK TO BEGIN", font, 42, TextAnchor.MiddleCenter, paleText, new Vector2(20f, -18f), new Vector2(840f, 52f));
+            CreateHudText(startPanel, "Line2", "THE ROOM STAYS STILL UNTIL YOU DO", font, 20, TextAnchor.MiddleCenter, mutedText, new Vector2(20f, -78f), new Vector2(840f, 30f));
+            CreateHudText(startPanel, "Line3", "WASD MOVE   SPACE DASH   1 / 2 BLESS   LMB APPLY   R RESTART", font, 18, TextAnchor.MiddleCenter, mutedText, new Vector2(20f, -112f), new Vector2(840f, 26f));
+
+            var startSerialized = new SerializedObject(startHolder.GetComponent<StartGatePrompt>());
+            SetObject(startSerialized, "startGate", startGate);
+            SetObject(startSerialized, "promptRoot", startPanel.gameObject);
+            Apply(startSerialized, startHolder.GetComponent<StartGatePrompt>());
+
+            var outcomeHolder = new GameObject("RunOutcome", typeof(RectTransform), typeof(RunOutcomePresenter));
+            outcomeHolder.transform.SetParent(hud, false);
+            ConfigureHudRect(
+                outcomeHolder.GetComponent<RectTransform>(),
+                new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f),
+                Vector2.zero,
+                new Vector2(820f, 190f));
+            var defeatPanel = CreateHudPanel(
+                outcomeHolder.transform,
+                "DefeatPanel",
+                new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f),
+                Vector2.zero,
+                new Vector2(820f, 190f),
+                new Color32(26, 8, 12, 244));
+            CreateHudText(defeatPanel, "Headline", "YOU WERE HIT ONE TIME TOO MANY", font, 34, TextAnchor.MiddleCenter, warmText, new Vector2(20f, -20f), new Vector2(780f, 48f));
+            CreateHudText(defeatPanel, "Detail", "AN OVERBLESSED ENEMY DOES NOT FORGET WHO BLESSED IT", font, 19, TextAnchor.MiddleCenter, mutedText, new Vector2(20f, -78f), new Vector2(780f, 30f));
+            CreateHudText(defeatPanel, "Action", "PRESS  R  TO RESTART THIS ROOM", font, 26, TextAnchor.MiddleCenter, paleText, new Vector2(20f, -124f), new Vector2(780f, 42f));
+
+            var outcomeSerialized = new SerializedObject(outcomeHolder.GetComponent<RunOutcomePresenter>());
+            SetObject(outcomeSerialized, "playerLifeCycle", playerLifeCycle);
+            SetObject(outcomeSerialized, "defeatRoot", defeatPanel.gameObject);
+            Apply(outcomeSerialized, outcomeHolder.GetComponent<RunOutcomePresenter>());
+
+            defeatPanel.gameObject.SetActive(false);
+        }
+
+        /// <summary>
+        /// Adds the M2-only character card to an existing HUD. M1 never calls this, so the
+        /// guided scene contains no identity card object at all, the same physical
+        /// exclusion the Echo card uses.
+        /// </summary>
+        /// <remarks>
+        /// The catalog is resolved by path rather than by reference because creating the
+        /// scene can release a freshly authored asset instance from memory.
+        /// </remarks>
+        private static CharacterAppealPresenter ConfigureCharacterAppeal(
+            Transform hud,
+            string identityCatalogPath,
+            WebStartGate webStartGate,
+            PlayerLifeCycle playerLifeCycle,
+            BlessingTargeting blessingTargeting,
+            ExitGate exitGate,
+            EnemyBase[] enemies)
+        {
+            if (string.IsNullOrEmpty(identityCatalogPath))
+            {
+                throw new InvalidOperationException("M2 HUD requires a character identity catalog path.");
+            }
+
+            if (webStartGate == null)
+            {
+                throw new InvalidOperationException("M2 character card requires the web start gate.");
+            }
+
+            var identityCatalog = RequireAsset<CharacterIdentityCatalog>(identityCatalogPath);
+            identityCatalog.Validate();
+            var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            if (font == null)
+            {
+                throw new InvalidOperationException("M2 character card requires Unity's LegacyRuntime font.");
+            }
+
+            var holder = new GameObject("CharacterAppeal", typeof(RectTransform), typeof(CharacterAppealPresenter));
+            holder.transform.SetParent(hud, false);
+            ConfigureHudRect(
+                holder.GetComponent<RectTransform>(),
+                new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f),
+                Vector2.zero,
+                new Vector2(760f, 224f));
+
+            var card = CreateHudPanel(
+                holder.transform,
+                "IdentityPanel",
+                new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f),
+                new Vector2(0f, 96f),
+                new Vector2(760f, 224f),
+                new Color32(64, 214, 236, 255));
+            var frameImage = card.GetComponent<Image>();
+
+            var insetObject = new GameObject("Inset", typeof(RectTransform), typeof(Image));
+            insetObject.transform.SetParent(card, false);
+            var insetRect = insetObject.GetComponent<RectTransform>();
+            insetRect.anchorMin = Vector2.zero;
+            insetRect.anchorMax = Vector2.one;
+            insetRect.offsetMin = new Vector2(6f, 6f);
+            insetRect.offsetMax = new Vector2(-6f, -6f);
+            var inset = insetObject.GetComponent<Image>();
+            inset.color = new Color32(10, 17, 30, 246);
+            inset.raycastTarget = false;
+
+            var cardPaleText = new Color32(225, 239, 244, 255);
+            var cardMutedText = new Color32(148, 173, 186, 255);
+            var portrait = CreateHudIcon(
+                card,
+                "Portrait",
+                identityCatalog.GetRequired(CharacterRole.Player).GetPortrait(CharacterExpression.Neutral),
+                new Vector2(22f, -22f),
+                new Vector2(160f, 180f),
+                Color.white);
+            var nameText = CreateHudText(card, "Name", "RIVELLA", font, 44, TextAnchor.MiddleLeft, cardPaleText, new Vector2(200f, -20f), new Vector2(540f, 54f));
+            var roleText = CreateHudText(card, "Role", "AGE 22  ·  CYNICAL FORMER SAINT", font, 20, TextAnchor.MiddleLeft, cardMutedText, new Vector2(200f, -78f), new Vector2(540f, 28f));
+            var habitText = CreateHudText(card, "Habit", string.Empty, font, 22, TextAnchor.UpperLeft, cardPaleText, new Vector2(200f, -112f), new Vector2(540f, 90f));
+
+            var presenter = holder.GetComponent<CharacterAppealPresenter>();
+            var presenterSerialized = new SerializedObject(presenter);
+            SetObject(presenterSerialized, "catalog", identityCatalog);
+            SetObject(presenterSerialized, "webStartGate", webStartGate);
+            SetObject(presenterSerialized, "playerLifeCycle", playerLifeCycle);
+            SetObject(presenterSerialized, "blessingTargeting", blessingTargeting);
+            SetObject(presenterSerialized, "exitGate", exitGate);
+            SetObjectArray(presenterSerialized, "enemies", enemies);
+            SetObject(presenterSerialized, "cardRoot", card.gameObject);
+            SetObject(presenterSerialized, "portraitImage", portrait);
+            SetObject(presenterSerialized, "frameImage", frameImage);
+            SetObject(presenterSerialized, "nameText", nameText);
+            SetObject(presenterSerialized, "roleText", roleText);
+            SetObject(presenterSerialized, "habitText", habitText);
+            Apply(presenterSerialized, presenter);
+
+            card.gameObject.SetActive(false);
+            return presenter;
         }
 
         private static Transform CreateHudPanel(
