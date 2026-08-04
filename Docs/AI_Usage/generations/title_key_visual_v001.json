@@ -19,6 +19,7 @@
   ],
   "finalPath": "Assets/_Project/Art/M1Production/UI/ui_title_key_visual_a_v001.png",
   "finalSha256": "b1a8fad175ba0d37d9548d65b1d1b1b238fd9ee16b3240458329b4c5e98e763d",
-  "reviewer": null,
-  "reviewState": "review-required"
+  "reviewer": "user",
+  "reviewedUtc": "2026-08-04T16:46:20Z",
+  "reviewState": "approved"
 }
