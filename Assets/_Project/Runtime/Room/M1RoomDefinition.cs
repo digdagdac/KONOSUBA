@@ -51,39 +51,10 @@ namespace Overbless.Runtime
         public const int RequiredSoulCount = 3;
 
         private static readonly Rect RequiredBounds = new Rect(-8f, -4.5f, 16f, 9f);
-        private static readonly M1RoomSpawn[] RequiredM1Spawns =
-        {
-            new M1RoomSpawn(M1RoomActor.Player, new Vector2(0f, -2.5f), Vector2.up, true),
-            new M1RoomSpawn(M1RoomActor.Dasher, new Vector2(0f, 3f), Vector2.down, true),
-            new M1RoomSpawn(M1RoomActor.ArcherA, new Vector2(0f, -0.5f), Vector2.down, true),
-            new M1RoomSpawn(M1RoomActor.ArcherB, new Vector2(-4f, 1.5f), Vector2.right, true),
-            new M1RoomSpawn(M1RoomActor.MinionA, new Vector2(4f, 1.5f), Vector2.zero, false),
-            new M1RoomSpawn(M1RoomActor.MinionB, new Vector2(4f, -1.5f), Vector2.zero, false)
-        };
-
-        private static readonly M1RoomSpawn[] RequiredRoom02Spawns =
-        {
-            new M1RoomSpawn(M1RoomActor.Player, new Vector2(-6.4f, -2f), Vector2.right, true),
-            new M1RoomSpawn(M1RoomActor.ArcherA, new Vector2(-1.2f, -2f), Vector2.left, true),
-            new M1RoomSpawn(M1RoomActor.MinionA, new Vector2(-3.4f, -2f), Vector2.zero, false),
-            new M1RoomSpawn(M1RoomActor.Dasher, new Vector2(4.2f, -1.4f), Vector2.left, true),
-            new M1RoomSpawn(M1RoomActor.ArcherB, new Vector2(5.8f, 2.5f), Vector2.left, true),
-            new M1RoomSpawn(M1RoomActor.MinionB, new Vector2(3.5f, 1.2f), Vector2.zero, false)
-        };
-
-        private static readonly M1RoomSpawn[] RequiredRoom03Spawns =
-        {
-            new M1RoomSpawn(M1RoomActor.Player, new Vector2(-6.4f, -1.8f), Vector2.right, true),
-            new M1RoomSpawn(M1RoomActor.ArcherA, new Vector2(-1.2f, -1.8f), Vector2.left, true),
-            new M1RoomSpawn(M1RoomActor.Dasher, new Vector2(4.2f, -1.5f), Vector2.left, true),
-            new M1RoomSpawn(M1RoomActor.ArcherB, new Vector2(5.8f, 2.4f), Vector2.left, true),
-            new M1RoomSpawn(M1RoomActor.MinionA, new Vector2(3.4f, 1.1f), Vector2.zero, false),
-            new M1RoomSpawn(M1RoomActor.MinionB, new Vector2(5.4f, -0.1f), Vector2.zero, false)
-        };
 
         private static M1RoomSpawn[] CreateDefaultSpawns()
         {
-            return (M1RoomSpawn[])RequiredM1Spawns.Clone();
+            return M1RoomPackCatalog.GetSpawnTemplate(M1RoomVariant.M1GuidedValidation);
         }
 
         [SerializeField] private int seed = RequiredSeed;
@@ -111,6 +82,9 @@ namespace Overbless.Runtime
         public AttackPhase ArcherBInitialPhase => archerBInitialPhase;
         public M1RoomActor FirstDasherTarget => firstDasherTarget;
         public M1RoomVariant RoomVariant => roomVariant;
+        public string RoomLabel => M1RoomPackCatalog.GetPack(roomVariant).RoomLabel;
+        public string ObjectiveTitle => M1RoomPackCatalog.GetPack(roomVariant).ObjectiveTitle;
+        public string ObjectiveDetail => M1RoomPackCatalog.GetPack(roomVariant).ObjectiveDetail;
         public IReadOnlyList<M1RoomSpawn> Spawns
         {
             get
@@ -204,20 +178,7 @@ namespace Overbless.Runtime
 
         private M1RoomSpawn[] GetRequiredSpawns()
         {
-            switch (roomVariant)
-            {
-                case M1RoomVariant.M1GuidedValidation:
-                    return RequiredM1Spawns;
-
-                case M1RoomVariant.Room02:
-                    return RequiredRoom02Spawns;
-
-                case M1RoomVariant.Room03:
-                    return RequiredRoom03Spawns;
-
-                default:
-                    throw new InvalidOperationException($"Unsupported room variant {roomVariant}.");
-            }
+            return M1RoomPackCatalog.GetPack(roomVariant).Spawns;
         }
 
         private void ValidateExpectedSpawn(M1RoomSpawn spawn, M1RoomSpawn[] requiredSpawns)
