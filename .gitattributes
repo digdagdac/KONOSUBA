@@ -1,0 +1,6 @@
+# Keep provenance and contracts byte-stable for SHA checks on Windows.
+.gitattributes text eol=lf
+Docs/AI_Usage/**/*.json text eol=lf
+Docs/**/*.md text eol=lf
+*.cs text eol=lf
+*.py text eol=lf
