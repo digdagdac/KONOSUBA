@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "kind": "sprite-gen-request",
+  "engine": "component-row",
+  "character": {
+    "id": "archer_motion_v003",
+    "description": "Lume, the hooded lunar archer: deep-violet hood, void-like face, silver-violet armor, ragged short cape, crescent longbow"
+  },
+  "cell": {
+    "shape": "square",
+    "size": 128,
+    "safe_margin": 6,
+    "anchor": {
+      "x": 64,
+      "y": 116
+    },
+    "body_height_px": {
+      "target": 72,
+      "tolerance": 2
+    }
+  },
+  "chroma_key": {
+    "name": "green",
+    "hex": "#00FF00",
+    "rgb": [0, 255, 0]
+  },
+  "states": {
+    "idle": {
+      "frames": 4,
+      "fps": 4,
+      "loop": true,
+      "action": "subtle breathing with the bow held stable; feet remain on the common baseline"
+    },
+    "walk": {
+      "frames": 4,
+      "fps": 6,
+      "loop": true,
+      "action": "clear four-step walk cycle with planted foot contacts and no vertical scale change"
+    },
+    "run": {
+      "frames": 4,
+      "fps": 9,
+      "loop": true,
+      "action": "compact running or retreat cycle with readable foot contacts and stable bow silhouette"
+    },
+    "attack_charge": {
+      "frames": 6,
+      "fps": 8,
+      "loop": false,
+      "action": "raise crescent bow, nock, and draw toward the locked lane; feet stay planted"
+    },
+    "attack_execute": {
+      "frames": 6,
+      "fps": 14,
+      "loop": false,
+      "action": "clean bow release and follow-through; no detached projectile or visual effect"
+    },
+    "recover": {
+      "frames": 4,
+      "fps": 7,
+      "loop": false,
+      "action": "lower bow and return from follow-through to ready stance"
+    },
+    "hit": {
+      "frames": 3,
+      "fps": 12,
+      "loop": false,
+      "action": "brief readable recoil while the bow remains held and full body remains visible"
+    },
+    "death": {
+      "frames": 6,
+      "fps": 8,
+      "loop": false,
+      "action": "controlled collapse to the ground with no detached bow or body parts"
+    }
+  }
+}

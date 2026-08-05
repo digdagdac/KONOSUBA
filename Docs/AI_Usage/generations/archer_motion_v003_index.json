@@ -1,0 +1,134 @@
+{
+  "schema": "overbless.archer-motion-v003-index/v1",
+  "role": "archer",
+  "version": "v003",
+  "cell": {
+    "width": 128,
+    "height": 128,
+    "pivot": [
+      0.5,
+      0.0
+    ]
+  },
+  "direct_directions": [
+    "south",
+    "north",
+    "east",
+    "southeast",
+    "northeast"
+  ],
+  "derived_mirrors": {
+    "west": "east",
+    "southwest": "southeast",
+    "northwest": "northeast"
+  },
+  "source_runs": [
+    {
+      "direction": "south",
+      "atlas": "Docs/AI_Usage/sprite_runs/archer_motion_v003/south/sprite-sheet-alpha.png",
+      "manifest": "Docs/AI_Usage/sprite_runs/archer_motion_v003/south/manifest.json"
+    },
+    {
+      "direction": "north",
+      "atlas": "Docs/AI_Usage/sprite_runs/archer_motion_v003/north/sprite-sheet-alpha.png",
+      "manifest": "Docs/AI_Usage/sprite_runs/archer_motion_v003/north/manifest.json"
+    },
+    {
+      "direction": "east",
+      "atlas": "Docs/AI_Usage/sprite_runs/archer_motion_v003/east/sprite-sheet-alpha.png",
+      "manifest": "Docs/AI_Usage/sprite_runs/archer_motion_v003/east/manifest.json"
+    },
+    {
+      "direction": "southeast",
+      "atlas": "Docs/AI_Usage/sprite_runs/archer_motion_v003/southeast/sprite-sheet-alpha.png",
+      "manifest": "Docs/AI_Usage/sprite_runs/archer_motion_v003/southeast/manifest.json"
+    },
+    {
+      "direction": "northeast",
+      "atlas": "Docs/AI_Usage/sprite_runs/archer_motion_v003/northeast/sprite-sheet-alpha.png",
+      "manifest": "Docs/AI_Usage/sprite_runs/archer_motion_v003/northeast/manifest.json"
+    }
+  ],
+  "outputs": [
+    {
+      "state": "idle",
+      "frames": 4,
+      "fps": 4.0,
+      "loop": true,
+      "path": "Assets/_Project/Art/M1Production/Characters/Animation/MotionsV003/chr_archer_idle_motion_v003.png",
+      "width": 4096,
+      "height": 128,
+      "sha256": "31cd3d6b128a3dfc268179a745f261c7b27de1b5d2ac72c9840f16a8200ae7f5"
+    },
+    {
+      "state": "walk",
+      "frames": 4,
+      "fps": 6.0,
+      "loop": true,
+      "path": "Assets/_Project/Art/M1Production/Characters/Animation/MotionsV003/chr_archer_walk_motion_v003.png",
+      "width": 4096,
+      "height": 128,
+      "sha256": "4285e5b2ce5c12bacdedf72a5f39c3224db5b89498e5bb6a4d79d1484f864968"
+    },
+    {
+      "state": "run",
+      "frames": 4,
+      "fps": 9.0,
+      "loop": true,
+      "path": "Assets/_Project/Art/M1Production/Characters/Animation/MotionsV003/chr_archer_run_motion_v003.png",
+      "width": 4096,
+      "height": 128,
+      "sha256": "4da656dd269b040f8ad248fe1b527f2e4955b60a2e01a151c491b27062674fc9"
+    },
+    {
+      "state": "attack_charge",
+      "frames": 6,
+      "fps": 8.0,
+      "loop": false,
+      "path": "Assets/_Project/Art/M1Production/Characters/Animation/MotionsV003/chr_archer_attack_charge_motion_v003.png",
+      "width": 6144,
+      "height": 128,
+      "sha256": "4560eb0b214291a48915f235a0231893582d2f0ec8aad31ebcca2258851d4dc6"
+    },
+    {
+      "state": "attack_execute",
+      "frames": 6,
+      "fps": 14.0,
+      "loop": false,
+      "path": "Assets/_Project/Art/M1Production/Characters/Animation/MotionsV003/chr_archer_attack_execute_motion_v003.png",
+      "width": 6144,
+      "height": 128,
+      "sha256": "33a16f1c93ada1abbe9000dc627dea2d3d5b764af01262966f7caac937f3564c"
+    },
+    {
+      "state": "recover",
+      "frames": 4,
+      "fps": 7.0,
+      "loop": false,
+      "path": "Assets/_Project/Art/M1Production/Characters/Animation/MotionsV003/chr_archer_recover_motion_v003.png",
+      "width": 4096,
+      "height": 128,
+      "sha256": "1a6f4f172dd1c7b6c2a33c11c4260341a34a637dc8bf915539767cf3f1fee223"
+    },
+    {
+      "state": "hit",
+      "frames": 3,
+      "fps": 12.0,
+      "loop": false,
+      "path": "Assets/_Project/Art/M1Production/Characters/Animation/MotionsV003/chr_archer_hit_motion_v003.png",
+      "width": 3072,
+      "height": 128,
+      "sha256": "a0857cad550aa801f6800caaf775a379f2be97e86dde04e9396068c4e8aff246"
+    },
+    {
+      "state": "death",
+      "frames": 6,
+      "fps": 8.0,
+      "loop": false,
+      "path": "Assets/_Project/Art/M1Production/Characters/Animation/MotionsV003/chr_archer_death_motion_v003.png",
+      "width": 6144,
+      "height": 128,
+      "sha256": "ffd587ac3c2cb2086779bbdb14b49bf0da737f2a52c420aa30d9994160bab11e"
+    }
+  ]
+}
