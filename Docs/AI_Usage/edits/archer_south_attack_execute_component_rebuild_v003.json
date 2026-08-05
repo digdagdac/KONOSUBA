@@ -1,0 +1,37 @@
+{
+  "schema": "overbless.monster-component-row-rebuild/v1",
+  "revision": "v003",
+  "created_utc": "2026-08-05T00:00:00Z",
+  "scope": "Archer south AttackExecute only",
+  "diagnosis": {
+    "symptom": "The bow visibly reached the fixed 128px cell boundary during attack playback.",
+    "decision": "Replace only the failing south AttackExecute row; retain Dasher, Minion, and the other Archer directions after visual audit."
+  },
+  "identity_anchor": {
+    "path": "Assets/_Project/Art/M1Production/Characters/chr_archer_idle_south_a_v001.png",
+    "role": "accepted south idle direction anchor"
+  },
+  "component_row": {
+    "raw_path": "Docs/AI_Usage/sources/monster_animation_v003/archer_south_attack_execute/raw_component_row_green.png",
+    "raw_sha256": "ad90bc7d9a3dbc36131f538b184bef2ea8b373f86fd6972d306881d784716265",
+    "request_path": "Docs/AI_Usage/sources/monster_animation_v003/archer_south_attack_execute/sprite-request.json",
+    "request_sha256": "0e0461e592c09ddc8ea42f10facd8bd86e7a0ae4902364d3f959e2f4ad60e504",
+    "frames_manifest_path": "Docs/AI_Usage/sources/monster_animation_v003/archer_south_attack_execute/frames-manifest.json",
+    "frames_manifest_sha256": "8cb7a2c6c1df3fa905fd83841a9295b53dfc0bd6a18c408324eda2b9baeac526",
+    "frame_count": 6,
+    "source_cell": [192, 192],
+    "runtime_cell": [128, 128],
+    "alpha_operation": "threshold-128-to-binary",
+    "invariants": [
+      "the full bow remains visible in all six frames",
+      "the full body remains inside its frame",
+      "no detached arrow, projectile, glow, trail, particles, or stray pixels",
+      "south/front archer identity and violet palette remain stable"
+    ]
+  },
+  "qa": {
+    "contact_sheet": "Docs/AI_Usage/sources/monster_animation_v003/archer_south_attack_execute/qa/attack-execute-south-contact.png",
+    "gif": "Docs/AI_Usage/sources/monster_animation_v003/archer_south_attack_execute/qa/attack-execute-south.gif",
+    "result": "six component frames extracted with no edge pixels and no cropped bow or body"
+  }
+}

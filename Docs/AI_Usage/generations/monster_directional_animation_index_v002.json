@@ -139,11 +139,13 @@
     "permitted_operations": [
       "equal_grid_cell_partition",
       "pure_or_near_chroma_magenta_to_binary_alpha",
+      "component_row_soft_alpha_to_binary_alpha_at_128_threshold",
       "tight_alpha_bounds_crop",
       "proportional_nearest_neighbor_normalization",
       "bottom_center_placement_on_128px_canvas",
       "exact_horizontal_pixel_mirror_for_west_southwest_and_northwest_only",
       "exact_active_frame_pixel_copy_from_declared_v001_idle_hit_and_death_rows_only",
+      "approved_component_row_frame_override_for_archer_south_attack_execute_only",
       "transparent_canvas_atlas_packing",
       "deterministic_png_encoding"
     ],
@@ -386,6 +388,75 @@
       "grid": [
         8,
         5
+      ]
+    }
+  ],
+  "component_frame_overrides": [
+    {
+      "role": "archer",
+      "direction": "south",
+      "state": "attack_execute",
+      "frames": [
+        {
+          "path": "Docs/AI_Usage/sources/monster_animation_v003/archer_south_attack_execute/frames/frame-0.png",
+          "sha256": "6d0ce696c96e434a0c6dfdc6cd95cacfaaa11c7f627c80149d63c6befc51d298",
+          "mode": "RGBA",
+          "size": [
+            192,
+            192
+          ],
+          "frame": 0
+        },
+        {
+          "path": "Docs/AI_Usage/sources/monster_animation_v003/archer_south_attack_execute/frames/frame-1.png",
+          "sha256": "6b6a8230cb69b790bafe2fefb5a76727e6fd47e8b695966a2cd71fc4bd8e95d0",
+          "mode": "RGBA",
+          "size": [
+            192,
+            192
+          ],
+          "frame": 1
+        },
+        {
+          "path": "Docs/AI_Usage/sources/monster_animation_v003/archer_south_attack_execute/frames/frame-2.png",
+          "sha256": "8bdf622aa74815d7248edfe0b7c5ff51e63b154d0a01009eafd0e19f6f8c9c77",
+          "mode": "RGBA",
+          "size": [
+            192,
+            192
+          ],
+          "frame": 2
+        },
+        {
+          "path": "Docs/AI_Usage/sources/monster_animation_v003/archer_south_attack_execute/frames/frame-3.png",
+          "sha256": "b75d43bb2f651eba41471cdf1b20a78f09ed3a4ccb8018e3a22e41933428390a",
+          "mode": "RGBA",
+          "size": [
+            192,
+            192
+          ],
+          "frame": 3
+        },
+        {
+          "path": "Docs/AI_Usage/sources/monster_animation_v003/archer_south_attack_execute/frames/frame-4.png",
+          "sha256": "83fe3585939467da19392a1c4e246c54e407c5b8e00b800d22d7973319322528",
+          "mode": "RGBA",
+          "size": [
+            192,
+            192
+          ],
+          "frame": 4
+        },
+        {
+          "path": "Docs/AI_Usage/sources/monster_animation_v003/archer_south_attack_execute/frames/frame-5.png",
+          "sha256": "1c0d6c32a79019533dc19d7aa8fe00f04c1d9b0ec658c3cfc3404172a9b38b7a",
+          "mode": "RGBA",
+          "size": [
+            192,
+            192
+          ],
+          "frame": 5
+        }
       ]
     }
   ],
@@ -641,7 +712,7 @@
         8192,
         1024
       ],
-      "atlas_sha256": "3bb27889ce6fa512b1080c6506a4c9dded72689ac9200df391c58aebba27e65a",
+      "atlas_sha256": "d7597bb8d294d937eca37f18736724e2b8585af447ba783f4aea5e1bffdb8296",
       "inherited_v001_source": {
         "path": "Assets/_Project/Art/M1Production/Characters/Animation/chr_archer_animation_atlas_v001.png",
         "sha256": "8703f121b5794a2290c2fe22e32fbaa6b3e6a5b3f37a8da6b1a32a67343e5bda",
@@ -26469,45 +26540,37 @@
         128
       ],
       "opaque_bounds": [
-        38,
+        11,
         2,
-        90,
+        116,
         128
       ],
       "opaque_foot_y": 128,
       "alpha": "binary",
-      "pixel_sha256": "f2f54797b844d5695c46d070efe766c3de488c5c0f5515c624c44838fd255a47",
+      "pixel_sha256": "cdd6ab62271e23c9d2a2be2038c22787ff24d92df22721456971ef7e720eabd7",
       "classification": "authored",
       "mirror_source": null,
       "lineage": {
         "authored_source": {
-          "source_path": "Docs/AI_Usage/sources/monster_animation_v002/archer_south_motion_sheet_source.png",
-          "source_sha256": "75b37039ec76e82488eb3b846cec387a3314ec685c8a6adf7a1dd2507b82730d",
-          "source_mode": "RGB",
-          "source_grid": [
-            8,
-            5
-          ],
-          "source_cell": [
-            0,
-            3
-          ],
-          "source_rect": [
-            0,
-            614,
+          "component_override_path": "Docs/AI_Usage/sources/monster_animation_v003/archer_south_attack_execute/frames/frame-0.png",
+          "component_override_sha256": "6d0ce696c96e434a0c6dfdc6cd95cacfaaa11c7f627c80149d63c6befc51d298",
+          "component_override_mode": "RGBA",
+          "component_override_size": [
             192,
-            819
+            192
           ],
-          "source_opaque_bounds": [
-            55,
-            624,
-            135,
-            819
+          "component_override_alpha_operation": "threshold-128-to-binary",
+          "component_override_frame": 0,
+          "component_override_opaque_bounds": [
+            31,
+            18,
+            161,
+            174
           ],
           "opaque_bounds": [
-            38,
+            11,
             2,
-            90,
+            116,
             128
           ]
         }
@@ -26530,45 +26593,37 @@
         128
       ],
       "opaque_bounds": [
-        37,
+        16,
         2,
-        91,
+        111,
         128
       ],
       "opaque_foot_y": 128,
       "alpha": "binary",
-      "pixel_sha256": "ae45b4e1b452dbe6c448a670cffb4473263e2cb9a964ae50a8685151fe03c2ce",
+      "pixel_sha256": "ead2515259d848d3649427779b155e25520d90e9fa9d0e24cfc7db082df23636",
       "classification": "authored",
       "mirror_source": null,
       "lineage": {
         "authored_source": {
-          "source_path": "Docs/AI_Usage/sources/monster_animation_v002/archer_south_motion_sheet_source.png",
-          "source_sha256": "75b37039ec76e82488eb3b846cec387a3314ec685c8a6adf7a1dd2507b82730d",
-          "source_mode": "RGB",
-          "source_grid": [
-            8,
-            5
-          ],
-          "source_cell": [
-            1,
-            3
-          ],
-          "source_rect": [
+          "component_override_path": "Docs/AI_Usage/sources/monster_animation_v003/archer_south_attack_execute/frames/frame-1.png",
+          "component_override_sha256": "6b6a8230cb69b790bafe2fefb5a76727e6fd47e8b695966a2cd71fc4bd8e95d0",
+          "component_override_mode": "RGBA",
+          "component_override_size": [
             192,
-            614,
-            384,
-            819
+            192
           ],
-          "source_opaque_bounds": [
-            242,
-            620,
-            327,
-            819
+          "component_override_alpha_operation": "threshold-128-to-binary",
+          "component_override_frame": 1,
+          "component_override_opaque_bounds": [
+            37,
+            18,
+            155,
+            174
           ],
           "opaque_bounds": [
-            37,
+            16,
             2,
-            91,
+            111,
             128
           ]
         }
@@ -26591,45 +26646,37 @@
         128
       ],
       "opaque_bounds": [
-        35,
+        16,
         2,
-        93,
+        112,
         128
       ],
       "opaque_foot_y": 128,
       "alpha": "binary",
-      "pixel_sha256": "f1813314e37edd6f3360edc4556609f87fa132d23a23e7f184a5e6515a4e5d49",
+      "pixel_sha256": "8f2b6c1f3447b9b0c9c6a1f772c805c90c14d47b30bc9658db052a1868cdc804",
       "classification": "authored",
       "mirror_source": null,
       "lineage": {
         "authored_source": {
-          "source_path": "Docs/AI_Usage/sources/monster_animation_v002/archer_south_motion_sheet_source.png",
-          "source_sha256": "75b37039ec76e82488eb3b846cec387a3314ec685c8a6adf7a1dd2507b82730d",
-          "source_mode": "RGB",
-          "source_grid": [
-            8,
-            5
+          "component_override_path": "Docs/AI_Usage/sources/monster_animation_v003/archer_south_attack_execute/frames/frame-2.png",
+          "component_override_sha256": "8bdf622aa74815d7248edfe0b7c5ff51e63b154d0a01009eafd0e19f6f8c9c77",
+          "component_override_mode": "RGBA",
+          "component_override_size": [
+            192,
+            192
           ],
-          "source_cell": [
-            2,
-            3
-          ],
-          "source_rect": [
-            384,
-            614,
-            576,
-            819
-          ],
-          "source_opaque_bounds": [
-            430,
-            622,
-            520,
-            819
+          "component_override_alpha_operation": "threshold-128-to-binary",
+          "component_override_frame": 2,
+          "component_override_opaque_bounds": [
+            36,
+            18,
+            155,
+            174
           ],
           "opaque_bounds": [
-            35,
+            16,
             2,
-            93,
+            112,
             128
           ]
         }
@@ -26652,45 +26699,37 @@
         128
       ],
       "opaque_bounds": [
-        35,
+        10,
         2,
-        93,
+        117,
         128
       ],
       "opaque_foot_y": 128,
       "alpha": "binary",
-      "pixel_sha256": "a312f9ede417e3f23c3de7b06f8d6c7d2bf744df3d3414e7f08b20751e7e63f8",
+      "pixel_sha256": "4eca190e17131e4685e48dedce949ef9a443d5ecf8b3f16e48d5b5e9618d0d6f",
       "classification": "authored",
       "mirror_source": null,
       "lineage": {
         "authored_source": {
-          "source_path": "Docs/AI_Usage/sources/monster_animation_v002/archer_south_motion_sheet_source.png",
-          "source_sha256": "75b37039ec76e82488eb3b846cec387a3314ec685c8a6adf7a1dd2507b82730d",
-          "source_mode": "RGB",
-          "source_grid": [
-            8,
-            5
+          "component_override_path": "Docs/AI_Usage/sources/monster_animation_v003/archer_south_attack_execute/frames/frame-3.png",
+          "component_override_sha256": "b75d43bb2f651eba41471cdf1b20a78f09ed3a4ccb8018e3a22e41933428390a",
+          "component_override_mode": "RGBA",
+          "component_override_size": [
+            192,
+            192
           ],
-          "source_cell": [
-            3,
-            3
-          ],
-          "source_rect": [
-            576,
-            614,
-            768,
-            819
-          ],
-          "source_opaque_bounds": [
-            622,
-            624,
-            711,
-            819
+          "component_override_alpha_operation": "threshold-128-to-binary",
+          "component_override_frame": 3,
+          "component_override_opaque_bounds": [
+            30,
+            18,
+            162,
+            174
           ],
           "opaque_bounds": [
-            35,
+            10,
             2,
-            93,
+            117,
             128
           ]
         }
@@ -26713,45 +26752,37 @@
         128
       ],
       "opaque_bounds": [
-        32,
+        10,
         2,
-        95,
+        118,
         128
       ],
       "opaque_foot_y": 128,
       "alpha": "binary",
-      "pixel_sha256": "fdd9c128887f620bd9b9a208cbd54f99e7c4a241ae506a3e87828ffae2f991d5",
+      "pixel_sha256": "f9c981faa24018131076781757e77e5d8c583321306b7b134b35b9c17e516fea",
       "classification": "authored",
       "mirror_source": null,
       "lineage": {
         "authored_source": {
-          "source_path": "Docs/AI_Usage/sources/monster_animation_v002/archer_south_motion_sheet_source.png",
-          "source_sha256": "75b37039ec76e82488eb3b846cec387a3314ec685c8a6adf7a1dd2507b82730d",
-          "source_mode": "RGB",
-          "source_grid": [
-            8,
-            5
+          "component_override_path": "Docs/AI_Usage/sources/monster_animation_v003/archer_south_attack_execute/frames/frame-4.png",
+          "component_override_sha256": "83fe3585939467da19392a1c4e246c54e407c5b8e00b800d22d7973319322528",
+          "component_override_mode": "RGBA",
+          "component_override_size": [
+            192,
+            192
           ],
-          "source_cell": [
-            4,
-            3
-          ],
-          "source_rect": [
-            768,
-            614,
-            960,
-            819
-          ],
-          "source_opaque_bounds": [
-            810,
-            622,
-            908,
-            819
+          "component_override_alpha_operation": "threshold-128-to-binary",
+          "component_override_frame": 4,
+          "component_override_opaque_bounds": [
+            29,
+            18,
+            163,
+            174
           ],
           "opaque_bounds": [
-            32,
+            10,
             2,
-            95,
+            118,
             128
           ]
         }
@@ -26774,45 +26805,37 @@
         128
       ],
       "opaque_bounds": [
-        37,
+        12,
         2,
-        91,
+        116,
         128
       ],
       "opaque_foot_y": 128,
       "alpha": "binary",
-      "pixel_sha256": "1e233e14a2ad2089892de61faf77aff76057fd494906eec5f411752230280914",
+      "pixel_sha256": "939b8641c3c19b5f4c0d29a5a1482cea189ca83d15c4a6dc79806801b86041b4",
       "classification": "authored",
       "mirror_source": null,
       "lineage": {
         "authored_source": {
-          "source_path": "Docs/AI_Usage/sources/monster_animation_v002/archer_south_motion_sheet_source.png",
-          "source_sha256": "75b37039ec76e82488eb3b846cec387a3314ec685c8a6adf7a1dd2507b82730d",
-          "source_mode": "RGB",
-          "source_grid": [
-            8,
-            5
+          "component_override_path": "Docs/AI_Usage/sources/monster_animation_v003/archer_south_attack_execute/frames/frame-5.png",
+          "component_override_sha256": "1c0d6c32a79019533dc19d7aa8fe00f04c1d9b0ec658c3cfc3404172a9b38b7a",
+          "component_override_mode": "RGBA",
+          "component_override_size": [
+            192,
+            192
           ],
-          "source_cell": [
-            5,
-            3
-          ],
-          "source_rect": [
-            960,
-            614,
-            1152,
-            819
-          ],
-          "source_opaque_bounds": [
-            1001,
-            621,
-            1086,
-            819
+          "component_override_alpha_operation": "threshold-128-to-binary",
+          "component_override_frame": 5,
+          "component_override_opaque_bounds": [
+            31,
+            18,
+            160,
+            174
           ],
           "opaque_bounds": [
-            37,
+            12,
             2,
-            91,
+            116,
             128
           ]
         }

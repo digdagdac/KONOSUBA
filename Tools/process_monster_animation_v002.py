@@ -26,6 +26,9 @@ V001_MAX_FRAMES = 6
 FRAME_LETTERS = "abcdefgh"
 CREATED_UTC = "2026-07-30T00:00:00Z"
 SOURCE_ROOT = Path("Docs/AI_Usage/sources/monster_animation_v002")
+COMPONENT_OVERRIDE_ROOT = Path(
+    "Docs/AI_Usage/sources/monster_animation_v003/archer_south_attack_execute"
+)
 OUTPUT_ROOT = Path("Assets/_Project/Art/M1Production/Characters/Animation")
 INDEX_PATH = Path("Docs/AI_Usage/generations/monster_directional_animation_index_v002.json")
 
@@ -44,6 +47,12 @@ MIRROR_SOURCES = {
     "west": "east",
     "southwest": "southeast",
     "northwest": "northeast",
+}
+COMPONENT_FRAME_OVERRIDES = {
+    ("archer", "south", "attack_execute"): tuple(
+        COMPONENT_OVERRIDE_ROOT / "frames" / f"frame-{frame_index}.png"
+        for frame_index in range(6)
+    )
 }
 
 EXPECTED_AUTHORED_FRAME_COUNT = 360
@@ -120,11 +129,13 @@ MODIFICATION_ALLOWLIST = {
     "permitted_operations": [
         "equal_grid_cell_partition",
         "pure_or_near_chroma_magenta_to_binary_alpha",
+        "component_row_soft_alpha_to_binary_alpha_at_128_threshold",
         "tight_alpha_bounds_crop",
         "proportional_nearest_neighbor_normalization",
         "bottom_center_placement_on_128px_canvas",
         "exact_horizontal_pixel_mirror_for_west_southwest_and_northwest_only",
         "exact_active_frame_pixel_copy_from_declared_v001_idle_hit_and_death_rows_only",
+        "approved_component_row_frame_override_for_archer_south_attack_execute_only",
         "transparent_canvas_atlas_packing",
         "deterministic_png_encoding",
     ],
@@ -307,6 +318,16 @@ def remove_chroma_magenta(
     return result
 
 
+def normalize_component_alpha_to_binary(image: Image.Image) -> Image.Image:
+    source = image.tobytes()
+    normalized = bytearray(len(source))
+    for offset in range(0, len(source), 4):
+        red, green, blue, alpha = source[offset : offset + 4]
+        if alpha >= 128:
+            normalized[offset : offset + 4] = bytes((red, green, blue, 255))
+    return Image.frombytes("RGBA", image.size, bytes(normalized))
+
+
 def normalize_bottom_center(
     foreground: Image.Image, content_height: int, label: str
 ) -> Image.Image:
@@ -440,6 +461,87 @@ def extract_authored_frame(
     }
 
 
+def component_override_relative_paths(role: str, direction: str, state: str) -> tuple[Path, ...] | None:
+    return COMPONENT_FRAME_OVERRIDES.get((role, direction, state))
+
+
+def load_component_override_frames(
+    repository_root: Path,
+    role_spec: RoleSpec,
+    state: StateSpec,
+    direction: str,
+) -> list[tuple[Image.Image, dict]] | None:
+    relative_paths = component_override_relative_paths(role_spec.role, direction, state.name)
+    if relative_paths is None:
+        return None
+    if len(relative_paths) != state.frames:
+        raise ProcessingError(
+            f"component override {role_spec.role}/{direction}/{state.name} must provide "
+            f"{state.frames} frames, got {len(relative_paths)}"
+        )
+
+    frames: list[tuple[Image.Image, dict]] = []
+    for frame_index, relative_path in enumerate(relative_paths):
+        label = f"{role_spec.role}/{direction}/{state.name}/{FRAME_LETTERS[frame_index]} component override"
+        path = repository_root / relative_path
+        image, source_mode = load_png(path, label, require_rgba=True)
+        if image.size != (192, 192):
+            raise ProcessingError(f"{label} must be 192x192, got {image.width}x{image.height}: {path}")
+        image = normalize_component_alpha_to_binary(image)
+        source_bounds = image.getchannel("A").getbbox()
+        if source_bounds is None:
+            raise ProcessingError(f"{label} is empty")
+        frame = normalize_bottom_center(image, role_spec.content_height, label)
+        opaque_bounds = validate_frame(frame, label)
+        frames.append(
+            (
+                frame,
+                {
+                    "component_override_path": relative_path.as_posix(),
+                    "component_override_sha256": sha256_file(path),
+                    "component_override_mode": source_mode,
+                    "component_override_size": list(image.size),
+                    "component_override_alpha_operation": "threshold-128-to-binary",
+                    "component_override_frame": frame_index,
+                    "component_override_opaque_bounds": list(source_bounds),
+                    "opaque_bounds": opaque_bounds,
+                },
+            )
+        )
+    return frames
+
+
+def component_override_records(repository_root: Path) -> list[dict]:
+    records = []
+    for (role, direction, state), relative_paths in COMPONENT_FRAME_OVERRIDES.items():
+        frames = []
+        for frame_index, relative_path in enumerate(relative_paths):
+            path = repository_root / relative_path
+            image, source_mode = load_png(path, f"{role}/{direction}/{state} override source", require_rgba=True)
+            if image.size != (192, 192):
+                raise ProcessingError(
+                    f"{role}/{direction}/{state} override source must be 192x192: {path}"
+                )
+            frames.append(
+                {
+                    "path": relative_path.as_posix(),
+                    "sha256": sha256_file(path),
+                    "mode": source_mode,
+                    "size": list(image.size),
+                    "frame": frame_index,
+                }
+            )
+        records.append(
+            {
+                "role": role,
+                "direction": direction,
+                "state": state,
+                "frames": frames,
+            }
+        )
+    return records
+
+
 def load_inherited_frames(repository_root: Path, role_spec: RoleSpec) -> tuple[dict, dict]:
     relative_path = v001_atlas_relative_path(role_spec.role)
     path = repository_root / relative_path
@@ -523,7 +625,7 @@ def load_inherited_frames(repository_root: Path, role_spec: RoleSpec) -> tuple[d
 
 
 def build_authored_frames(
-    role_spec: RoleSpec, sheets: dict[str, LoadedSheet]
+    repository_root: Path, role_spec: RoleSpec, sheets: dict[str, LoadedSheet]
 ) -> dict[str, dict[str, list[tuple[Image.Image, dict]]]]:
     authored: dict[str, dict[str, list[tuple[Image.Image, dict]]]] = {}
     for direction in DIRECT_DIRECTIONS:
@@ -532,10 +634,12 @@ def build_authored_frames(
         for state in ANIMATION_STATES:
             if state.source_row is None:
                 continue
-            frames = [
-                extract_authored_frame(sheet, role_spec, state, frame_index, direction)
-                for frame_index in range(state.frames)
-            ]
+            frames = load_component_override_frames(repository_root, role_spec, state, direction)
+            if frames is None:
+                frames = [
+                    extract_authored_frame(sheet, role_spec, state, frame_index, direction)
+                    for frame_index in range(state.frames)
+                ]
             images = [frame for frame, _ in frames]
             validate_frame_variation(images, f"{role_spec.role} authored {state.name}/{direction}")
             if state.loop:
@@ -561,7 +665,7 @@ def atlas_rect(state_index: int, direction_index: int, frame_index: int) -> list
 def build_character(
     repository_root: Path, role_spec: RoleSpec, sheets: dict[str, LoadedSheet]
 ) -> tuple[Path, bytes, dict, list[dict], dict]:
-    authored_frames = build_authored_frames(role_spec, sheets)
+    authored_frames = build_authored_frames(repository_root, role_spec, sheets)
     inherited_frames, inherited_source = load_inherited_frames(repository_root, role_spec)
     atlas = Image.new(
         "RGBA",
@@ -762,6 +866,7 @@ def build_expected(repository_root: Path) -> tuple[list[tuple[Path, bytes]], dic
         },
         "modification_allowlist": MODIFICATION_ALLOWLIST,
         "source_sheets": source_records,
+        "component_frame_overrides": component_override_records(repository_root),
         "inherited_v001_sources": inherited_sources,
         "characters": characters,
         "frame_classification_counts": classification_counts,
