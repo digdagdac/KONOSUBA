@@ -30,8 +30,8 @@ namespace Overbless.Tests.EditMode
             "Docs/AI_Usage/edits/monster_directional_animation_live_review_v002.json";
         private const string MonsterMotionCurationPath =
             "Docs/AI_Usage/edits/monster_motion_cycle_curation_v003.json";
-        private const string ArcherSouthAttackExecuteRebuildPath =
-            "Docs/AI_Usage/edits/archer_south_attack_execute_component_rebuild_v003.json";
+        private const string ArcherAttackExecuteSourceWindowCurationPath =
+            "Docs/AI_Usage/edits/archer_attack_execute_source_window_curation_v004.json";
         private const string MonsterAnimationReviewMediaRoot =
             "Docs/AI_Usage/reviews/monster_animation_v002/";
         private const float MonsterAnimationTimingTolerancePercent = 10f;
@@ -336,7 +336,7 @@ namespace Overbless.Tests.EditMode
                 MonsterAnimationReviewPath,
                 MonsterAnimationPromptPath,
                 MonsterMotionCurationPath,
-                ArcherSouthAttackExecuteRebuildPath
+                ArcherAttackExecuteSourceWindowCurationPath
             };
             for (var pathIndex = 0; pathIndex < requiredPaths.Length; pathIndex++)
             {
@@ -442,45 +442,33 @@ namespace Overbless.Tests.EditMode
             Assert.That(
                 GetRequiredString(GetRequiredProperty(curation, "source"), "selectionMethod"),
                 Is.EqualTo("deterministic pixel-duplicate audit of the normalized source cells"));
-            AssertArcherSouthAttackExecuteComponentOverride(index, generation);
+            AssertArcherAttackExecuteSourceWindowCuration(index, generation);
         }
 
-        private static void AssertArcherSouthAttackExecuteComponentOverride(
+        private static void AssertArcherAttackExecuteSourceWindowCuration(
             CanonicalJsonValue index,
             CanonicalJsonValue generation)
         {
-            Assert.That(File.Exists(ResolveProjectPath(ArcherSouthAttackExecuteRebuildPath)), Is.True);
-            var record = ReadJsonDocument(ArcherSouthAttackExecuteRebuildPath);
-            Assert.That(GetRequiredString(record, "schema"), Is.EqualTo("overbless.monster-component-row-rebuild/v1"));
-            Assert.That(GetRequiredString(record, "scope"), Is.EqualTo("Archer south AttackExecute only"));
+            Assert.That(File.Exists(ResolveProjectPath(ArcherAttackExecuteSourceWindowCurationPath)), Is.True);
+            var record = ReadJsonDocument(ArcherAttackExecuteSourceWindowCurationPath);
+            Assert.That(GetRequiredString(record, "schema"), Is.EqualTo("overbless.monster-source-window-curation/v1"));
+            Assert.That(GetRequiredString(record, "scope"), Is.EqualTo("Archer east and southeast AttackExecute frames a to c only"));
+            Assert.That(
+                GetRequiredString(GetRequiredProperty(generation, "attack_execute_source_window_curation"), "record"),
+                Is.EqualTo(ArcherAttackExecuteSourceWindowCurationPath));
 
-            var generationOverride = GetRequiredProperty(generation, "component_row_override");
-            Assert.That(GetRequiredString(generationOverride, "record"), Is.EqualTo(ArcherSouthAttackExecuteRebuildPath));
-            Assert.That(GetRequiredString(generationOverride, "role"), Is.EqualTo("archer"));
-            Assert.That(GetRequiredString(generationOverride, "direction"), Is.EqualTo("south"));
-            Assert.That(GetRequiredString(generationOverride, "state"), Is.EqualTo("attack_execute"));
-
-            var overrides = GetRequiredArray(index, "component_frame_overrides");
-            Assert.That(overrides.Count, Is.EqualTo(1));
-            var componentOverride = overrides[0];
-            Assert.That(GetRequiredString(componentOverride, "role"), Is.EqualTo("archer"));
-            Assert.That(GetRequiredString(componentOverride, "direction"), Is.EqualTo("south"));
-            Assert.That(GetRequiredString(componentOverride, "state"), Is.EqualTo("attack_execute"));
-            var frames = GetRequiredArray(componentOverride, "frames");
-            Assert.That(frames.Count, Is.EqualTo(6));
-            for (var frameIndex = 0; frameIndex < frames.Count; frameIndex++)
+            var overrides = GetRequiredArray(index, "source_window_overrides");
+            Assert.That(overrides.Count, Is.EqualTo(6));
+            for (var overrideIndex = 0; overrideIndex < overrides.Count; overrideIndex++)
             {
-                var frame = frames[frameIndex];
-                var path = GetRequiredString(frame, "path");
-                Assert.That(File.Exists(ResolveProjectPath(path)), Is.True, $"Component override frame is missing: {path}");
-                Assert.That(GetRequiredInteger(frame, "frame"), Is.EqualTo(frameIndex));
-                Assert.That(GetRequiredString(frame, "mode"), Is.EqualTo("RGBA"));
-                AssertIntArray(frame, "size", new[] { 192, 192 });
-                Assert.That(
-                    GetRequiredString(frame, "sha256"),
-                    Is.EqualTo(ComputeSha256(ResolveProjectPath(path))),
-                    $"Component override frame bytes drifted: {path}");
-        }
+                var sourceWindow = overrides[overrideIndex];
+                Assert.That(GetRequiredString(sourceWindow, "role"), Is.EqualTo("archer"));
+                Assert.That(GetRequiredString(sourceWindow, "direction"), Is.AnyOf("east", "southeast"));
+                Assert.That(GetRequiredString(sourceWindow, "state"), Is.EqualTo("attack_execute"));
+                var frameIndex = GetRequiredInteger(sourceWindow, "frame");
+                Assert.That(frameIndex, Is.InRange(0, 2));
+                AssertIntArray(sourceWindow, "source_rect", new[] { 20 + frameIndex * 192, 614, 212 + frameIndex * 192, 819 });
+            }
         }
 
         [Test]

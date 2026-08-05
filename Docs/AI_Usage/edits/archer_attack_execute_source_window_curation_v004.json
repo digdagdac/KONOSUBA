@@ -1,0 +1,22 @@
+{
+  "schema": "overbless.monster-source-window-curation/v1",
+  "revision": "v004",
+  "scope": "Archer east and southeast AttackExecute frames a to c only",
+  "reason": "The original AI source placed each early horizontal bow pose across nominal 192px cell boundaries. Fixed-grid extraction cut the bow tip or retained a detached neighbour fragment.",
+  "source": {
+    "sheets": [
+      "Docs/AI_Usage/sources/monster_animation_v002/archer_east_motion_sheet_source.png",
+      "Docs/AI_Usage/sources/monster_animation_v002/archer_southeast_motion_sheet_source.png"
+    ],
+    "state": "attack_execute",
+    "frames": ["a", "b", "c"],
+    "nominal_rect_rule": "[frame * 192, 614, (frame + 1) * 192, 819]",
+    "approved_rect_rule": "[20 + frame * 192, 614, 212 + frame * 192, 819]"
+  },
+  "deterministic_change": "Shift only the affected source windows right by 20px before the existing chroma removal, proportional nearest-neighbour normalization, and bottom-center placement.",
+  "validation": [
+    "The corrected final bounds remain inside the 128px runtime cell.",
+    "The east and southeast early attack frames no longer include detached neighbour fragments.",
+    "All unaffected state, direction, and frame source rectangles remain unchanged."
+  ]
+}

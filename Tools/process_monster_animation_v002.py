@@ -26,9 +26,6 @@ V001_MAX_FRAMES = 6
 FRAME_LETTERS = "abcdefgh"
 CREATED_UTC = "2026-07-30T00:00:00Z"
 SOURCE_ROOT = Path("Docs/AI_Usage/sources/monster_animation_v002")
-COMPONENT_OVERRIDE_ROOT = Path(
-    "Docs/AI_Usage/sources/monster_animation_v003/archer_south_attack_execute"
-)
 OUTPUT_ROOT = Path("Assets/_Project/Art/M1Production/Characters/Animation")
 INDEX_PATH = Path("Docs/AI_Usage/generations/monster_directional_animation_index_v002.json")
 
@@ -48,11 +45,15 @@ MIRROR_SOURCES = {
     "southwest": "southeast",
     "northwest": "northeast",
 }
-COMPONENT_FRAME_OVERRIDES = {
-    ("archer", "south", "attack_execute"): tuple(
-        COMPONENT_OVERRIDE_ROOT / "frames" / f"frame-{frame_index}.png"
-        for frame_index in range(6)
-    )
+# The original east and southeast bow poses overlap the nominal 192px source columns:
+# their bow tips reach into the following column while the following pose starts
+# after a small magenta gap.  Shift only the affected extraction windows right
+# by 20px so each pose keeps its own bow instead of inheriting a neighbour tip.
+SOURCE_RECT_OVERRIDES = {
+    ("archer", direction, "attack_execute", frame_index):
+        (20 + frame_index * 192, 614, 212 + frame_index * 192, 819)
+    for direction in ("east", "southeast")
+    for frame_index in range(3)
 }
 
 EXPECTED_AUTHORED_FRAME_COUNT = 360
@@ -129,13 +130,12 @@ MODIFICATION_ALLOWLIST = {
     "permitted_operations": [
         "equal_grid_cell_partition",
         "pure_or_near_chroma_magenta_to_binary_alpha",
-        "component_row_soft_alpha_to_binary_alpha_at_128_threshold",
         "tight_alpha_bounds_crop",
         "proportional_nearest_neighbor_normalization",
         "bottom_center_placement_on_128px_canvas",
         "exact_horizontal_pixel_mirror_for_west_southwest_and_northwest_only",
         "exact_active_frame_pixel_copy_from_declared_v001_idle_hit_and_death_rows_only",
-        "approved_component_row_frame_override_for_archer_south_attack_execute_only",
+        "approved_source_window_override_for_archer_east_and_southeast_attack_execute_frames_a_to_c_only",
         "transparent_canvas_atlas_packing",
         "deterministic_png_encoding",
     ],
@@ -302,6 +302,26 @@ def grid_rect(column: int, row: int) -> tuple[int, int, int, int]:
     )
 
 
+def authored_source_rect(
+    role: str, direction: str, state: StateSpec, frame_index: int
+) -> tuple[int, int, int, int]:
+    override = SOURCE_RECT_OVERRIDES.get((role, direction, state.name, frame_index))
+    return override if override is not None else grid_rect(frame_index, state.source_row)
+
+
+def source_window_override_records() -> list[dict]:
+    return [
+        {
+            "role": role,
+            "direction": direction,
+            "state": state,
+            "frame": frame_index,
+            "source_rect": list(rect),
+        }
+        for (role, direction, state, frame_index), rect in sorted(SOURCE_RECT_OVERRIDES.items())
+    ]
+
+
 def remove_chroma_magenta(
     image: Image.Image, corner_colour: tuple[int, int, int], label: str
 ) -> Image.Image:
@@ -316,16 +336,6 @@ def remove_chroma_magenta(
     if result.getchannel("A").getbbox() is None:
         raise ProcessingError(f"empty active source cell after chroma removal: {label}")
     return result
-
-
-def normalize_component_alpha_to_binary(image: Image.Image) -> Image.Image:
-    source = image.tobytes()
-    normalized = bytearray(len(source))
-    for offset in range(0, len(source), 4):
-        red, green, blue, alpha = source[offset : offset + 4]
-        if alpha >= 128:
-            normalized[offset : offset + 4] = bytes((red, green, blue, 255))
-    return Image.frombytes("RGBA", image.size, bytes(normalized))
 
 
 def normalize_bottom_center(
@@ -434,7 +444,7 @@ def extract_authored_frame(
 ) -> tuple[Image.Image, dict]:
     if state.source_row is None:
         raise ProcessingError(f"{state.name} is not an authored source-sheet state")
-    rect = grid_rect(frame_index, state.source_row)
+    rect = authored_source_rect(role_spec.role, direction, state, frame_index)
     label = f"{role_spec.role}/{direction}/{state.name}/{FRAME_LETTERS[frame_index]}"
     cell = sheet.image.crop(rect)
     foreground = remove_chroma_magenta(cell, sheet.corner_colour, label)
@@ -456,90 +466,10 @@ def extract_authored_frame(
         "source_grid": [SOURCE_GRID_COLUMNS, SOURCE_GRID_ROWS],
         "source_cell": [frame_index, state.source_row],
         "source_rect": list(rect),
+        "source_window_override": (role_spec.role, direction, state.name, frame_index) in SOURCE_RECT_OVERRIDES,
         "source_opaque_bounds": source_bounds,
         "opaque_bounds": opaque_bounds,
     }
-
-
-def component_override_relative_paths(role: str, direction: str, state: str) -> tuple[Path, ...] | None:
-    return COMPONENT_FRAME_OVERRIDES.get((role, direction, state))
-
-
-def load_component_override_frames(
-    repository_root: Path,
-    role_spec: RoleSpec,
-    state: StateSpec,
-    direction: str,
-) -> list[tuple[Image.Image, dict]] | None:
-    relative_paths = component_override_relative_paths(role_spec.role, direction, state.name)
-    if relative_paths is None:
-        return None
-    if len(relative_paths) != state.frames:
-        raise ProcessingError(
-            f"component override {role_spec.role}/{direction}/{state.name} must provide "
-            f"{state.frames} frames, got {len(relative_paths)}"
-        )
-
-    frames: list[tuple[Image.Image, dict]] = []
-    for frame_index, relative_path in enumerate(relative_paths):
-        label = f"{role_spec.role}/{direction}/{state.name}/{FRAME_LETTERS[frame_index]} component override"
-        path = repository_root / relative_path
-        image, source_mode = load_png(path, label, require_rgba=True)
-        if image.size != (192, 192):
-            raise ProcessingError(f"{label} must be 192x192, got {image.width}x{image.height}: {path}")
-        image = normalize_component_alpha_to_binary(image)
-        source_bounds = image.getchannel("A").getbbox()
-        if source_bounds is None:
-            raise ProcessingError(f"{label} is empty")
-        frame = normalize_bottom_center(image, role_spec.content_height, label)
-        opaque_bounds = validate_frame(frame, label)
-        frames.append(
-            (
-                frame,
-                {
-                    "component_override_path": relative_path.as_posix(),
-                    "component_override_sha256": sha256_file(path),
-                    "component_override_mode": source_mode,
-                    "component_override_size": list(image.size),
-                    "component_override_alpha_operation": "threshold-128-to-binary",
-                    "component_override_frame": frame_index,
-                    "component_override_opaque_bounds": list(source_bounds),
-                    "opaque_bounds": opaque_bounds,
-                },
-            )
-        )
-    return frames
-
-
-def component_override_records(repository_root: Path) -> list[dict]:
-    records = []
-    for (role, direction, state), relative_paths in COMPONENT_FRAME_OVERRIDES.items():
-        frames = []
-        for frame_index, relative_path in enumerate(relative_paths):
-            path = repository_root / relative_path
-            image, source_mode = load_png(path, f"{role}/{direction}/{state} override source", require_rgba=True)
-            if image.size != (192, 192):
-                raise ProcessingError(
-                    f"{role}/{direction}/{state} override source must be 192x192: {path}"
-                )
-            frames.append(
-                {
-                    "path": relative_path.as_posix(),
-                    "sha256": sha256_file(path),
-                    "mode": source_mode,
-                    "size": list(image.size),
-                    "frame": frame_index,
-                }
-            )
-        records.append(
-            {
-                "role": role,
-                "direction": direction,
-                "state": state,
-                "frames": frames,
-            }
-        )
-    return records
 
 
 def load_inherited_frames(repository_root: Path, role_spec: RoleSpec) -> tuple[dict, dict]:
@@ -634,12 +564,10 @@ def build_authored_frames(
         for state in ANIMATION_STATES:
             if state.source_row is None:
                 continue
-            frames = load_component_override_frames(repository_root, role_spec, state, direction)
-            if frames is None:
-                frames = [
-                    extract_authored_frame(sheet, role_spec, state, frame_index, direction)
-                    for frame_index in range(state.frames)
-                ]
+            frames = [
+                extract_authored_frame(sheet, role_spec, state, frame_index, direction)
+                for frame_index in range(state.frames)
+            ]
             images = [frame for frame, _ in frames]
             validate_frame_variation(images, f"{role_spec.role} authored {state.name}/{direction}")
             if state.loop:
@@ -866,7 +794,7 @@ def build_expected(repository_root: Path) -> tuple[list[tuple[Path, bytes]], dic
         },
         "modification_allowlist": MODIFICATION_ALLOWLIST,
         "source_sheets": source_records,
-        "component_frame_overrides": component_override_records(repository_root),
+        "source_window_overrides": source_window_override_records(),
         "inherited_v001_sources": inherited_sources,
         "characters": characters,
         "frame_classification_counts": classification_counts,
