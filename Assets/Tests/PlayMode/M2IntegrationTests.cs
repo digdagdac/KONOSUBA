@@ -152,7 +152,7 @@ namespace Overbless.Tests.PlayMode
                 new Vector2(5.8f, 2.4f),
                 new Vector2(3.4f, 1.1f),
                 new Vector2(5.4f, -0.1f),
-                string.Empty);
+                "Result");
 
             var pillars = FindGameObjectsInScene(room03.Scene, "WorldPillar");
             Assert.That(pillars.Count, Is.EqualTo(1));
@@ -1045,15 +1045,15 @@ namespace Overbless.Tests.PlayMode
                     animationSet,
                     CharacterAnimationState.Walk,
                     direction,
-                    6,
-                    8f,
+                    4,
+                    6f,
                     true);
                 AssertMonsterClipContract(
                     animationSet,
                     CharacterAnimationState.Run,
                     direction,
-                    8,
-                    12f,
+                    4,
+                    9f,
                     true);
                 AssertMonsterClipContract(
                     animationSet,
@@ -1177,12 +1177,12 @@ namespace Overbless.Tests.PlayMode
         }
 
         /// <summary>
-        /// Victory is the fourth approved moment. Room_03 ends the sequence, so entering its
-        /// exit completes the run in place instead of loading another scene. The enemies are
-        /// switched off first so the closing behaviour of the card can be observed on its own.
+        /// Room_03 now hands victory presentation to the contest Result scene. The character
+        /// card remains present for room-owned moments, but its graphics must never consume the
+        /// pointer input needed to enter the exit and continue the approved run sequence.
         /// </summary>
         [UnityTest]
-        public IEnumerator Room03_CharacterCardClosesTheRunWithoutTakingInputFromTheExit()
+        public IEnumerator Room03_CharacterCardRemainsNonBlockingBeforeResultTransition()
         {
             LoadedRoom room = null;
             yield return LoadRoom(Room03ScenePath, loadedRoom => room = loadedRoom);
@@ -1190,30 +1190,7 @@ namespace Overbless.Tests.PlayMode
             var presenter = FindComponentInScene<CharacterAppealPresenter>(room.Scene);
             Assert.That(presenter, Is.Not.Null);
             Assert.That(presenter.IsCardVisible, Is.False);
-            Assert.That(room.SequenceController.NextScene, Is.Empty, "Room_03 must end the sequence in place.");
-
-            var mouse = AddMouse();
-            yield return StartWithTrustedGesture(room.WebGate, mouse);
-
-            for (var index = 0; index < room.Enemies.Count; index++)
-            {
-                room.Enemies[index].gameObject.SetActive(false);
-            }
-
-            yield return null;
-
-            var exit = FindComponentInScene<ExitGate>(room.Scene);
-            Assert.That(exit.Open(), Is.True);
-            Assert.That(exit.TryEnter(room.Player), Is.True);
-
-            Assert.That(room.SequenceController.HasHandledEntry, Is.True);
-            Assert.That(presenter.IsCardVisible, Is.True, "Victory is an approved card moment.");
-            Assert.That(presenter.CurrentIdentity.DisplayName, Is.EqualTo("RIVELLA"));
-            Assert.That(presenter.CurrentExpression, Is.EqualTo(CharacterExpression.Confident));
-
-            yield return new WaitForSecondsRealtime(presenter.HoldSeconds + 0.25f);
-            Assert.That(presenter.IsCardVisible, Is.False, "A card must close itself without input.");
-            Assert.That(presenter.CurrentIdentity, Is.Null);
+            Assert.That(room.SequenceController.NextScene, Is.EqualTo("Result"));
 
             var cardHolder = FindGameObjectsInScene(room.Scene, "CharacterAppeal");
             Assert.That(cardHolder.Count, Is.EqualTo(1));

@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "kind": "sprite-gen-request",
+  "engine": "component-row",
+  "character": {
+    "id": "dasher_motion_v003_south",
+    "description": "compact bronze armored sentinel with shield and spear, south-facing combat animation"
+  },
+  "cell": {
+    "shape": "square",
+    "size": 128,
+    "safe_margin": 6
+  },
+  "chroma_key": { "name": "magenta", "hex": "#FF00FF", "rgb": [255, 0, 255] },
+  "states": {
+    "idle": { "frames": 4, "fps": 4, "loop": true, "action": "solid armored breathing idle with shield and spear held fully inside the cell" },
+    "walk": { "frames": 4, "fps": 6, "loop": true, "action": "measured shield-forward four-step walk with planted contacts" },
+    "run": { "frames": 4, "fps": 9, "loop": true, "action": "faster committed armored run while shield and spear remain fully visible" },
+    "attack_charge": { "frames": 6, "fps": 8, "loop": false, "action": "brace shield, lower spear, and prepare a forward charge with feet planted" },
+    "attack_execute": { "frames": 6, "fps": 14, "loop": false, "action": "clear lance-and-shield charge follow-through with no detached effect or crop" },
+    "recover": { "frames": 4, "fps": 7, "loop": false, "action": "return from charge follow-through to ready shield stance" },
+    "hit": { "frames": 3, "fps": 12, "loop": false, "action": "brief heavy recoil while complete shield and spear stay visible" },
+    "death": { "frames": 6, "fps": 8, "loop": false, "action": "controlled armored collapse with no detached equipment" }
+  }
+}

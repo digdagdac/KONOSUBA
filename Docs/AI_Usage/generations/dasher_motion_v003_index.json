@@ -1,0 +1,116 @@
+{
+  "schema": "overbless.character-motion-v003-index/v1",
+  "role": "dasher",
+  "version": "v003",
+  "cell": {
+    "width": 128,
+    "height": 128,
+    "pivot": [
+      0.5,
+      0.0
+    ]
+  },
+  "authored_directions": [
+    "south"
+  ],
+  "derived_directions": {
+    "north": "south",
+    "east": "south",
+    "west": "south",
+    "southeast": "south",
+    "southwest": "south",
+    "northeast": "south",
+    "northwest": "south"
+  },
+  "mirrored_directions": [
+    "northwest",
+    "southwest",
+    "west"
+  ],
+  "source_run": {
+    "atlas": "Docs/AI_Usage/sprite_runs/character_motion_v003/dasher/south/sprite-sheet-alpha.png",
+    "manifest": "Docs/AI_Usage/sprite_runs/character_motion_v003/dasher/south/manifest.json"
+  },
+  "outputs": [
+    {
+      "state": "idle",
+      "frames": 4,
+      "fps": 4.0,
+      "loop": true,
+      "path": "Assets/_Project/Art/M1Production/Characters/Animation/MotionsV003/chr_dasher_idle_motion_v003.png",
+      "width": 4096,
+      "height": 128,
+      "sha256": "8ed6f67e7b36afd370f8543036d6e6837a8b4d0cf2220e23ada6a685256e4401"
+    },
+    {
+      "state": "walk",
+      "frames": 4,
+      "fps": 6.0,
+      "loop": true,
+      "path": "Assets/_Project/Art/M1Production/Characters/Animation/MotionsV003/chr_dasher_walk_motion_v003.png",
+      "width": 4096,
+      "height": 128,
+      "sha256": "45dd8c3dee13a12c48e302005633d890e5e663dcaebe3a769736b93a468a3540"
+    },
+    {
+      "state": "run",
+      "frames": 4,
+      "fps": 9.0,
+      "loop": true,
+      "path": "Assets/_Project/Art/M1Production/Characters/Animation/MotionsV003/chr_dasher_run_motion_v003.png",
+      "width": 4096,
+      "height": 128,
+      "sha256": "550acb1202ad140990b886ba74697370837153ecdd0c121b05f29152d0061d5d"
+    },
+    {
+      "state": "attack_charge",
+      "frames": 6,
+      "fps": 8.0,
+      "loop": false,
+      "path": "Assets/_Project/Art/M1Production/Characters/Animation/MotionsV003/chr_dasher_attack_charge_motion_v003.png",
+      "width": 6144,
+      "height": 128,
+      "sha256": "a62d2b38fe9634e03bb81cf960224d432ad10e794d05a7fec1f783d440a1cdaa"
+    },
+    {
+      "state": "attack_execute",
+      "frames": 6,
+      "fps": 14.0,
+      "loop": false,
+      "path": "Assets/_Project/Art/M1Production/Characters/Animation/MotionsV003/chr_dasher_attack_execute_motion_v003.png",
+      "width": 6144,
+      "height": 128,
+      "sha256": "029813784ebfc83218dba94085dbc6735faac41fbcfe5d144aa9c00da59617ae"
+    },
+    {
+      "state": "recover",
+      "frames": 4,
+      "fps": 7.0,
+      "loop": false,
+      "path": "Assets/_Project/Art/M1Production/Characters/Animation/MotionsV003/chr_dasher_recover_motion_v003.png",
+      "width": 4096,
+      "height": 128,
+      "sha256": "e1bc90f9f278cac7def56209f00905eff74b1cf1d0e1b9b004c4d66a838d28a6"
+    },
+    {
+      "state": "hit",
+      "frames": 3,
+      "fps": 12.0,
+      "loop": false,
+      "path": "Assets/_Project/Art/M1Production/Characters/Animation/MotionsV003/chr_dasher_hit_motion_v003.png",
+      "width": 3072,
+      "height": 128,
+      "sha256": "db04905e60bd8f5e7bb37f48d427283d81d556739aef7119bd10bf79adc9c01c"
+    },
+    {
+      "state": "death",
+      "frames": 6,
+      "fps": 8.0,
+      "loop": false,
+      "path": "Assets/_Project/Art/M1Production/Characters/Animation/MotionsV003/chr_dasher_death_motion_v003.png",
+      "width": 6144,
+      "height": 128,
+      "sha256": "04a3064539d3e99e59347924dc347e7074f4d8341b021b7886f5748791321079"
+    }
+  ]
+}
