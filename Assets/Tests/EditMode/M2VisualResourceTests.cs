@@ -28,6 +28,8 @@ namespace Overbless.Tests.EditMode
             "Docs/AI_Usage/edits/monster_directional_animation_review_v002.json";
         private const string MonsterAnimationLiveReviewPath =
             "Docs/AI_Usage/edits/monster_directional_animation_live_review_v002.json";
+        private const string MonsterMotionCurationPath =
+            "Docs/AI_Usage/edits/monster_motion_cycle_curation_v003.json";
         private const string MonsterAnimationReviewMediaRoot =
             "Docs/AI_Usage/reviews/monster_animation_v002/";
         private const float MonsterAnimationTimingTolerancePercent = 10f;
@@ -90,8 +92,8 @@ namespace Overbless.Tests.EditMode
         private static readonly MonsterAnimationStateSpec[] MonsterAnimationStates =
         {
             new MonsterAnimationStateSpec("idle", CharacterAnimationState.Idle, 4, 4f, true),
-            new MonsterAnimationStateSpec("walk", CharacterAnimationState.Walk, 6, 8f, true),
-            new MonsterAnimationStateSpec("run", CharacterAnimationState.Run, 8, 12f, true),
+            new MonsterAnimationStateSpec("walk", CharacterAnimationState.Walk, 4, 6f, true),
+            new MonsterAnimationStateSpec("run", CharacterAnimationState.Run, 4, 9f, true),
             new MonsterAnimationStateSpec("attack_charge", CharacterAnimationState.AttackCharge, 6, 8f, false),
             new MonsterAnimationStateSpec("attack_execute", CharacterAnimationState.AttackExecute, 6, 14f, false),
             new MonsterAnimationStateSpec("recover", CharacterAnimationState.Recover, 4, 7f, false),
@@ -330,7 +332,8 @@ namespace Overbless.Tests.EditMode
                 MonsterAnimationIndexPath,
                 MonsterAnimationGenerationPath,
                 MonsterAnimationReviewPath,
-                MonsterAnimationPromptPath
+                MonsterAnimationPromptPath,
+                MonsterMotionCurationPath
             };
             for (var pathIndex = 0; pathIndex < requiredPaths.Length; pathIndex++)
             {
@@ -427,6 +430,16 @@ namespace Overbless.Tests.EditMode
 
             CollectionAssert.AreEquivalent(indexedSources.Keys, sourcePaths);
             AssertMonsterGenerationSourcesMatchIndex(generation, indexedSources);
+
+            var curation = ReadJsonDocument(MonsterMotionCurationPath);
+            Assert.That(
+                GetRequiredString(GetRequiredProperty(generation, "motion_cycle_curation"), "path"),
+                Is.EqualTo(MonsterMotionCurationPath));
+            Assert.That(GetRequiredString(curation, "schema"), Is.EqualTo("overbless.monster-motion-cycle-curation/v1"));
+            Assert.That(GetRequiredString(curation, "revision"), Is.EqualTo("v003"));
+            Assert.That(
+                GetRequiredString(GetRequiredProperty(curation, "source"), "selectionMethod"),
+                Is.EqualTo("deterministic pixel-duplicate audit of the normalized source cells"));
         }
 
         [Test]
@@ -444,13 +457,13 @@ namespace Overbless.Tests.EditMode
 
             var charactersByRole = GetMonsterCharactersByRole(index);
             var framesByName = GetMonsterFramesByName(index, out var classificationCounts);
-            Assert.That(framesByName.Count, Is.EqualTo(1032));
-            Assert.That(classificationCounts["authored"], Is.EqualTo(450));
-            Assert.That(classificationCounts["derived"], Is.EqualTo(270));
+            Assert.That(framesByName.Count, Is.EqualTo(888));
+            Assert.That(classificationCounts["authored"], Is.EqualTo(360));
+            Assert.That(classificationCounts["derived"], Is.EqualTo(216));
             Assert.That(classificationCounts["inherited"], Is.EqualTo(312));
             var indexedClassificationCounts = GetRequiredProperty(index, "frame_classification_counts");
-            Assert.That(GetRequiredInteger(indexedClassificationCounts, "authored"), Is.EqualTo(450));
-            Assert.That(GetRequiredInteger(indexedClassificationCounts, "derived"), Is.EqualTo(270));
+            Assert.That(GetRequiredInteger(indexedClassificationCounts, "authored"), Is.EqualTo(360));
+            Assert.That(GetRequiredInteger(indexedClassificationCounts, "derived"), Is.EqualTo(216));
             Assert.That(GetRequiredInteger(indexedClassificationCounts, "inherited"), Is.EqualTo(312));
 
             var atlasFiles = Directory.GetFiles(
@@ -485,6 +498,44 @@ namespace Overbless.Tests.EditMode
             Assert.That((int)CharacterAnimationState.Hit, Is.EqualTo(8));
             Assert.That((int)CharacterAnimationState.Death, Is.EqualTo(9));
             Assert.That((int)CharacterAnimationState.Run, Is.EqualTo(10));
+        }
+
+        [Test]
+        public void MonsterV002LocomotionLoopsContainOnlyDistinctFrames()
+        {
+            var index = ReadJsonDocument(MonsterAnimationIndexPath);
+            var framesByName = GetMonsterFramesByName(index, out _);
+
+            for (var roleIndex = 0; roleIndex < MonsterAnimationRoles.Length; roleIndex++)
+            {
+                var role = MonsterAnimationRoles[roleIndex];
+                for (var stateIndex = 0; stateIndex < MonsterAnimationStates.Length; stateIndex++)
+                {
+                    var state = MonsterAnimationStates[stateIndex];
+                    if (!state.Loop)
+                    {
+                        continue;
+                    }
+
+                    for (var directionIndex = 0; directionIndex < MonsterAnimationDirections.Length; directionIndex++)
+                    {
+                        var direction = MonsterAnimationDirections[directionIndex];
+                        var hashes = new HashSet<string>(StringComparer.Ordinal);
+                        for (var frameIndex = 0; frameIndex < state.FrameCount; frameIndex++)
+                        {
+                            var frameName = GetMonsterFrameName(role.Role, state.Name, direction, frameIndex);
+                            Assert.That(
+                                framesByName.TryGetValue(frameName, out var frame),
+                                Is.True,
+                                $"Monster v002 index is missing looping frame '{frameName}'.");
+                            Assert.That(
+                                hashes.Add(GetRequiredString(frame, "pixel_sha256")),
+                                Is.True,
+                                $"Looping clip {role.Role}/{state.Name}/{direction} repeats frame {frameIndex}.");
+                        }
+                    }
+                }
+            }
         }
         private static void AssertMonsterGenerationSourcesMatchIndex(
             CanonicalJsonValue generation,
@@ -816,8 +867,8 @@ namespace Overbless.Tests.EditMode
             AssertIntArray(character, "atlas_size", new[] { 8192, 1024 });
             AssertMonsterCharacterStateContracts(role, GetRequiredArray(character, "states"));
             var frameCounts = GetRequiredProperty(character, "frame_counts");
-            Assert.That(GetRequiredInteger(frameCounts, "authored"), Is.EqualTo(150));
-            Assert.That(GetRequiredInteger(frameCounts, "derived"), Is.EqualTo(90));
+            Assert.That(GetRequiredInteger(frameCounts, "authored"), Is.EqualTo(120));
+            Assert.That(GetRequiredInteger(frameCounts, "derived"), Is.EqualTo(72));
             Assert.That(GetRequiredInteger(frameCounts, "inherited"), Is.EqualTo(104));
 
             var atlasPath = ResolveProjectPath(role.AtlasPath);
@@ -832,7 +883,7 @@ namespace Overbless.Tests.EditMode
             AssertStaticRgbaPngHeader(atlasBytes, role.AtlasPath, 8192, 1024);
             AssertMonsterAtlasImporter(role);
             var spritesByName = GetMonsterAtlasSprites(role);
-            Assert.That(spritesByName.Count, Is.EqualTo(344), $"Monster v002 atlas has the wrong sprite count: {role.AtlasPath}");
+            Assert.That(spritesByName.Count, Is.EqualTo(296), $"Monster v002 atlas has the wrong sprite count: {role.AtlasPath}");
             AssertMonsterRuntimeAnimationSet(role, character, spritesByName);
             AssertMonsterAtlasFramePixels(role, atlasBytes, spritesByName, framesByName);
         }
@@ -1056,7 +1107,7 @@ namespace Overbless.Tests.EditMode
                     }
                 }
 
-                Assert.That(frameCount, Is.EqualTo(344));
+                Assert.That(frameCount, Is.EqualTo(296));
             }
             finally
             {

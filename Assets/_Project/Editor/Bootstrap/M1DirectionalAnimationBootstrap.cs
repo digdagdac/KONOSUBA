@@ -58,8 +58,8 @@ namespace Overbless.Editor.Bootstrap
         private static readonly StateSpec[] MajorEnemyStates =
         {
             new StateSpec(CharacterAnimationState.Idle, "idle", 4, 4f, true),
-            new StateSpec(CharacterAnimationState.Walk, "walk", 6, 8f, true),
-            new StateSpec(CharacterAnimationState.Run, "run", 8, 12f, true),
+            new StateSpec(CharacterAnimationState.Walk, "walk", 4, 6f, true),
+            new StateSpec(CharacterAnimationState.Run, "run", 4, 9f, true),
             new StateSpec(CharacterAnimationState.AttackCharge, "attack_charge", 6, 8f, false),
             new StateSpec(CharacterAnimationState.AttackExecute, "attack_execute", 6, 14f, false),
             new StateSpec(CharacterAnimationState.Recover, "recover", 4, 7f, false),
@@ -70,8 +70,8 @@ namespace Overbless.Editor.Bootstrap
         private static readonly StateSpec[] MinionStates =
         {
             new StateSpec(CharacterAnimationState.Idle, "idle", 4, 4f, true),
-            new StateSpec(CharacterAnimationState.Walk, "walk", 6, 8f, true),
-            new StateSpec(CharacterAnimationState.Run, "run", 8, 12f, true),
+            new StateSpec(CharacterAnimationState.Walk, "walk", 4, 6f, true),
+            new StateSpec(CharacterAnimationState.Run, "run", 4, 9f, true),
             new StateSpec(CharacterAnimationState.AttackCharge, "attack_charge", 6, 8f, false),
             new StateSpec(CharacterAnimationState.AttackExecute, "attack_execute", 6, 24f, false),
             new StateSpec(CharacterAnimationState.Recover, "recover", 4, 7f, false),

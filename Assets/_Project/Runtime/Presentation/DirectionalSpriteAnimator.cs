@@ -48,6 +48,7 @@ namespace Overbless.Runtime
         public int CurrentFrameIndex => frameIndex;
         public Sprite CurrentSprite => spriteRenderer == null ? null : spriteRenderer.sprite;
         public DirectionalAnimationSet AnimationSet => animationSet;
+        public float CurrentFramesPerSecond => currentClip == null ? 0f : GetEffectiveFramesPerSecond();
 
         private void Awake()
         {
@@ -91,6 +92,11 @@ namespace Overbless.Runtime
                 UpdatePlayerPresentation();
                 return;
             }
+
+            // Enemy behaviour owns the authoritative locomotion and attack phase. Re-read it
+            // immediately before advancing the frame so presentation cannot visibly lag one
+            // frame behind a movement or attack transition.
+            SynchronizeEnemyPresentation();
             if (skipEnemyAdvanceOnce)
             {
                 skipEnemyAdvanceOnce = false;
@@ -383,7 +389,7 @@ namespace Overbless.Runtime
             }
 
             frameElapsed += deltaTime;
-            var frameDuration = 1f / currentClip.FramesPerSecond;
+            var frameDuration = 1f / GetEffectiveFramesPerSecond();
             while (frameElapsed >= frameDuration)
             {
                 frameElapsed -= frameDuration;
@@ -404,6 +410,56 @@ namespace Overbless.Runtime
 
                 ApplyFrame();
             }
+        }
+
+        private float GetEffectiveFramesPerSecond()
+        {
+            if (currentState != CharacterAnimationState.AttackExecute || !(enemy is DasherAI))
+            {
+                return currentClip.FramesPerSecond;
+            }
+
+            var context = enemy.AttackState == null ? null : enemy.AttackState.CurrentContext;
+            if (context == null)
+            {
+                return currentClip.FramesPerSecond;
+            }
+
+            return CalculateDasherChargeFramesPerSecond(
+                currentClip.FrameCount,
+                context.Range,
+                enemy.RuntimeStats.ChargeSpeed,
+                currentClip.FramesPerSecond);
+        }
+
+        /// <summary>
+        /// Converts a charge's gameplay distance and speed into the animation rate required to
+        /// play every execution frame once before the charge reaches its authored range.
+        /// </summary>
+        public static float CalculateDasherChargeFramesPerSecond(
+            int frameCount,
+            float chargeDistance,
+            float chargeSpeed,
+            float fallbackFramesPerSecond)
+        {
+            if (frameCount <= 0 || !IsPositiveFinite(chargeDistance) ||
+                !IsPositiveFinite(chargeSpeed) || !IsPositiveFinite(fallbackFramesPerSecond))
+            {
+                return fallbackFramesPerSecond;
+            }
+
+            var chargeDuration = chargeDistance / chargeSpeed;
+            if (!IsPositiveFinite(chargeDuration))
+            {
+                return fallbackFramesPerSecond;
+            }
+
+            return frameCount / chargeDuration;
+        }
+
+        private static bool IsPositiveFinite(float value)
+        {
+            return !float.IsNaN(value) && !float.IsInfinity(value) && value > 0f;
         }
 
         private void ApplyFrame()
