@@ -109,6 +109,23 @@ namespace Overbless.Tests.EditMode
         }
 
         [Test]
+        public void DirectionalSpriteAnimator_MatchesDasherExecutionFramesToChargeDuration()
+        {
+            Assert.That(
+                DirectionalSpriteAnimator.CalculateDasherChargeFramesPerSecond(6, 8f, 10f, 14f),
+                Is.EqualTo(7.5f).Within(0.0001f));
+            Assert.That(
+                DirectionalSpriteAnimator.CalculateDasherChargeFramesPerSecond(6, 8f, 13f, 14f),
+                Is.EqualTo(9.75f).Within(0.0001f));
+            Assert.That(
+                DirectionalSpriteAnimator.CalculateDasherChargeFramesPerSecond(0, 8f, 10f, 14f),
+                Is.EqualTo(14f));
+            Assert.That(
+                DirectionalSpriteAnimator.CalculateDasherChargeFramesPerSecond(6, 0f, 10f, 14f),
+                Is.EqualTo(14f));
+        }
+
+        [Test]
         public void EnemyBase_NormalizesMovementIntentAndResetsItIdempotently()
         {
             var authoredFacing = new Vector2(3f, -4f);

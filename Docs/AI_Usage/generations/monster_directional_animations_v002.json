@@ -9,7 +9,7 @@
     "provider": "session image generation tool",
     "model": "not exposed by tool receipt",
     "postprocessor": "Tools/process_monster_animation_v002.py",
-    "postprocessor_sha256": "d2e42c8f1b8f13b9ea454018817a2c61774e2b56aeb5378a84c544d366af3728"
+    "postprocessor_sha256": "2eaf6427fe0acdb5b017e605ab4dbad5dfb001ee2cd0afa6b51104153ff518ab"
   },
   "prompt_file": {
     "path": "Docs/AI_Usage/prompts/monster_directional_animation_prompts_v002.json",
@@ -48,8 +48,8 @@
     "derived_directions": {"west":"east", "southwest":"southeast", "northwest":"northeast"},
     "source_grid": "8x5",
     "source_rows": ["walk", "run", "attack_charge", "attack_execute", "recover"],
-    "authored_frames": 450,
-    "mirror_derived_frames": 270,
+    "authored_frames": 360,
+    "mirror_derived_frames": 216,
     "inherited_v001_frames": 312,
     "inherited_states": ["idle", "hit", "death"]
   },
@@ -57,8 +57,9 @@
     "Remove magenta chroma into binary alpha.",
     "Crop and resize with nearest-neighbor sampling, then bottom-center align.",
     "Derive only west, southwest and northwest by exact horizontal pixel mirroring.",
+    "Curate Walk source cells 0..3 and reuse that consistent cycle for Run at 1.5x cadence because the source Run row changes each role's visual identity.",
     "Pack 128x128 cells into eight 8-frame directional blocks and eight state rows.",
-    "Validate nonempty variation, loop seams, binary alpha, mirror equality, names, dimensions and deterministic output hashes."
+    "Validate nonempty variation, loop seams, no held duplicate frames in looping clips, binary alpha, mirror equality, names, dimensions and deterministic output hashes."
   ],
   "forbidden_modifications": [
     "idle translation, rotation, scale or tint synthesis",
@@ -67,13 +68,17 @@
   ],
   "atlas_index": {
     "path": "Docs/AI_Usage/generations/monster_directional_animation_index_v002.json",
-    "sha256": "4ea1ebb520bb3483790842ebd4b57ca633f16cfd067e1a2f845a1e72861dcf88"
+    "sha256": "7b59bb2ba7d18faa1501f8f574a297b4cd8b08f147464a9252b133c8f0359702"
   },
   "atlases": [
-    {"role":"dasher","path":"Assets/_Project/Art/M1Production/Characters/Animation/chr_dasher_animation_atlas_v002.png","size":"8192x1024","sha256":"9805cd44d272d9e96a4eb39446adba150487872600adc9e380de7ac2aebb672e"},
-    {"role":"archer","path":"Assets/_Project/Art/M1Production/Characters/Animation/chr_archer_animation_atlas_v002.png","size":"8192x1024","sha256":"47c724d1a56c57bcbd48f29de45869be7228cefe871b2b0a7a234b0026d13cb4"},
-    {"role":"minion","path":"Assets/_Project/Art/M1Production/Characters/Animation/chr_minion_animation_atlas_v002.png","size":"8192x1024","sha256":"b4a0e39bcc11485ffb8dae87fbad54ae5c8526091b2397312c5a2c3c04b7a2b9"}
+    {"role":"dasher","path":"Assets/_Project/Art/M1Production/Characters/Animation/chr_dasher_animation_atlas_v002.png","size":"8192x1024","sha256":"96c87f8fb07f1801ae56978bca7bb28b8d23e044584412f6df27fad3dd0c5b3e"},
+    {"role":"archer","path":"Assets/_Project/Art/M1Production/Characters/Animation/chr_archer_animation_atlas_v002.png","size":"8192x1024","sha256":"3bb27889ce6fa512b1080c6506a4c9dded72689ac9200df391c58aebba27e65a"},
+    {"role":"minion","path":"Assets/_Project/Art/M1Production/Characters/Animation/chr_minion_animation_atlas_v002.png","size":"8192x1024","sha256":"998a4c6d214351a01894fe03bbbd50421c977d0d5c86877f17bb9e0f68aae049"}
   ],
+  "motion_cycle_curation": {
+    "path": "Docs/AI_Usage/edits/monster_motion_cycle_curation_v003.json",
+    "scope": "Walk and Run loop selection only"
+  },
   "verification": {
     "processor_build": "passed",
     "determinism_check": "passed",

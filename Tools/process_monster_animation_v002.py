@@ -46,8 +46,8 @@ MIRROR_SOURCES = {
     "northwest": "northeast",
 }
 
-EXPECTED_AUTHORED_FRAME_COUNT = 450
-EXPECTED_DERIVED_FRAME_COUNT = 270
+EXPECTED_AUTHORED_FRAME_COUNT = 360
+EXPECTED_DERIVED_FRAME_COUNT = 216
 EXPECTED_INHERITED_FRAME_COUNT = 312
 
 
@@ -80,8 +80,12 @@ class LoadedSheet:
 
 ANIMATION_STATES = (
     StateSpec("idle", 4, 4.0, True, None),
-    StateSpec("walk", 6, 8.0, True, 0),
-    StateSpec("run", 8, 12.0, True, 1),
+    # The Walk row contains a coherent four-pose character cycle. The source
+    # Run row changes each role's silhouette and palette, so it cannot represent
+    # the same character in motion. Reuse Walk at 1.5x cadence for Run until a
+    # coherent authored Run row is approved.
+    StateSpec("walk", 4, 6.0, True, 0),
+    StateSpec("run", 4, 9.0, True, 0),
     StateSpec("attack_charge", 6, 8.0, False, 2),
     StateSpec("attack_execute", 6, 14.0, False, 3),
     StateSpec("recover", 4, 7.0, False, 4),
@@ -383,6 +387,11 @@ def validate_loop_seam(frames: list[Image.Image], label: str) -> None:
         raise ProcessingError(f"{label} loop seam endpoints shift more than 32 pixels")
 
 
+def validate_loop_cycle_has_no_held_duplicate(frames: list[Image.Image], label: str) -> None:
+    if len({frame.tobytes() for frame in frames}) != len(frames):
+        raise ProcessingError(f"{label} repeats a frame inside an active loop")
+
+
 def validate_mirror(source: Image.Image, mirrored: Image.Image, label: str) -> None:
     expected = source.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
     if mirrored.tobytes() != expected.tobytes():
@@ -531,6 +540,10 @@ def build_authored_frames(
             validate_frame_variation(images, f"{role_spec.role} authored {state.name}/{direction}")
             if state.loop:
                 validate_loop_seam(images, f"{role_spec.role} authored {state.name}/{direction}")
+                validate_loop_cycle_has_no_held_duplicate(
+                    images,
+                    f"{role_spec.role} authored {state.name}/{direction}",
+                )
             by_state[state.name] = frames
         authored[direction] = by_state
     return authored
