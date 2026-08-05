@@ -1,0 +1,54 @@
+{
+  "schema_version": "1.0",
+  "generation_id": "archer_motion_v003",
+  "project": "Overbless",
+  "status": "machine-pass-runtime-verification-pending",
+  "created_at": "2026-08-05",
+  "tool": {
+    "generator": "OpenAI image generation tool",
+    "provider": "session image generation tool",
+    "model": "not exposed by tool receipt",
+    "postprocessor": "Tools/build_archer_motion_v003.py"
+  },
+  "source_contract": {
+    "root": "Docs/AI_Usage/sprite_runs/archer_motion_v003",
+    "direct_directions": ["south", "north", "east", "southeast", "northeast"],
+    "states": ["idle", "walk", "run", "attack_charge", "attack_execute", "recover", "hit", "death"],
+    "source_count": 40,
+    "cell_size": "128x128",
+    "review_gate": "accepted south Idle anchor before action rows; first detached-effect Hit attempts rejected and excluded"
+  },
+  "deterministic_modifications": [
+    "Extract only accepted independent state rows through the sprite-gen connected-component pipeline.",
+    "Normalize every extracted frame to a transparent 128x128 cell with a bottom-center pivot.",
+    "Pack five authored directions and derive only west, southwest, and northwest by exact horizontal pixel mirroring.",
+    "Emit one Runtime Unity motion sheet per state and verify its deterministic bytes against the index."
+  ],
+  "forbidden_modifications": [
+    "reuse of the legacy v002 shared source grid",
+    "static-frame fallback",
+    "detached projectile, VFX, or neighboring-cell pixels inside character frames"
+  ],
+  "atlas_index": {
+    "path": "Docs/AI_Usage/generations/archer_motion_v003_index.json"
+  },
+  "outputs": [
+    {"state":"idle","path":"Assets/_Project/Art/M1Production/Characters/Animation/MotionsV003/chr_archer_idle_motion_v003.png","size":"4096x128","sha256":"31cd3d6b128a3dfc268179a745f261c7b27de1b5d2ac72c9840f16a8200ae7f5"},
+    {"state":"walk","path":"Assets/_Project/Art/M1Production/Characters/Animation/MotionsV003/chr_archer_walk_motion_v003.png","size":"4096x128","sha256":"4285e5b2ce5c12bacdedf72a5f39c3224db5b89498e5bb6a4d79d1484f864968"},
+    {"state":"run","path":"Assets/_Project/Art/M1Production/Characters/Animation/MotionsV003/chr_archer_run_motion_v003.png","size":"4096x128","sha256":"4da656dd269b040f8ad248fe1b527f2e4955b60a2e01a151c491b27062674fc9"},
+    {"state":"attack_charge","path":"Assets/_Project/Art/M1Production/Characters/Animation/MotionsV003/chr_archer_attack_charge_motion_v003.png","size":"6144x128","sha256":"4560eb0b214291a48915f235a0231893582d2f0ec8aad31ebcca2258851d4dc6"},
+    {"state":"attack_execute","path":"Assets/_Project/Art/M1Production/Characters/Animation/MotionsV003/chr_archer_attack_execute_motion_v003.png","size":"6144x128","sha256":"33a16f1c93ada1abbe9000dc627dea2d3d5b764af01262966f7caac937f3564c"},
+    {"state":"recover","path":"Assets/_Project/Art/M1Production/Characters/Animation/MotionsV003/chr_archer_recover_motion_v003.png","size":"4096x128","sha256":"1a6f4f172dd1c7b6c2a33c11c4260341a34a637dc8bf915539767cf3f1fee223"},
+    {"state":"hit","path":"Assets/_Project/Art/M1Production/Characters/Animation/MotionsV003/chr_archer_hit_motion_v003.png","size":"3072x128","sha256":"a0857cad550aa801f6800caaf775a379f2be97e86dde04e9396068c4e8aff246"},
+    {"state":"death","path":"Assets/_Project/Art/M1Production/Characters/Animation/MotionsV003/chr_archer_death_motion_v003.png","size":"6144x128","sha256":"ffd587ac3c2cb2086779bbdb14b49bf0da737f2a52c420aa30d9994160bab11e"}
+  ],
+  "verification": {
+    "sprite_row_extraction": "passed for five direct direction runs",
+    "atlas_composition": "passed for five direct direction runs",
+    "contact_sheet_and_gif_qa": "passed for all eight state rows",
+    "determinism_check": "Tools/build_archer_motion_v003.py --check passed",
+    "unity_import": "pending",
+    "unity_editmode": "pending",
+    "unity_playmode": "pending"
+  }
+}

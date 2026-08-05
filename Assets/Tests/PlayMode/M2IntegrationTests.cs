@@ -1045,15 +1045,15 @@ namespace Overbless.Tests.PlayMode
                     animationSet,
                     CharacterAnimationState.Walk,
                     direction,
-                    6,
-                    8f,
+                    4,
+                    6f,
                     true);
                 AssertMonsterClipContract(
                     animationSet,
                     CharacterAnimationState.Run,
                     direction,
-                    8,
-                    12f,
+                    4,
+                    9f,
                     true);
                 AssertMonsterClipContract(
                     animationSet,

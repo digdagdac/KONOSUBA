@@ -24,12 +24,16 @@ namespace Overbless.Tests.EditMode
             "Docs/AI_Usage/generations/monster_directional_animation_index_v002.json";
         private const string MonsterAnimationGenerationPath =
             "Docs/AI_Usage/generations/monster_directional_animations_v002.json";
+        private const string ArcherMotionV003IndexPath =
+            "Docs/AI_Usage/generations/archer_motion_v003_index.json";
         private const string MonsterAnimationReviewPath =
             "Docs/AI_Usage/edits/monster_directional_animation_review_v002.json";
         private const string MonsterAnimationLiveReviewPath =
             "Docs/AI_Usage/edits/monster_directional_animation_live_review_v002.json";
         private const string MonsterMotionCurationPath =
             "Docs/AI_Usage/edits/monster_motion_cycle_curation_v003.json";
+        private const string ArcherAttackExecuteSourceWindowCurationPath =
+            "Docs/AI_Usage/edits/archer_attack_execute_source_window_curation_v004.json";
         private const string MonsterAnimationReviewMediaRoot =
             "Docs/AI_Usage/reviews/monster_animation_v002/";
         private const float MonsterAnimationTimingTolerancePercent = 10f;
@@ -81,13 +85,23 @@ namespace Overbless.Tests.EditMode
                 "Assets/_Project/Data/Animations/DasherDirectionalAnimationSet.asset"),
             new MonsterAnimationRoleSpec(
                 "archer",
-                "Assets/_Project/Art/M1Production/Characters/Animation/chr_archer_animation_atlas_v002.png",
-                "Assets/_Project/Data/Animations/ArcherDirectionalAnimationSet.asset"),
+                null,
+                "Assets/_Project/Data/Animations/ArcherDirectionalAnimationSet.asset",
+                true),
             new MonsterAnimationRoleSpec(
                 "minion",
                 "Assets/_Project/Art/M1Production/Characters/Animation/chr_minion_animation_atlas_v002.png",
                 "Assets/_Project/Data/Animations/MinionDirectionalAnimationSet.asset")
         };
+
+        private static readonly MonsterAnimationRoleSpec ArcherMotionV003Role =
+            new MonsterAnimationRoleSpec(
+                "archer",
+                null,
+                "Assets/_Project/Data/Animations/ArcherDirectionalAnimationSet.asset",
+                true,
+                "MotionsV003",
+                "v003");
 
         private static readonly MonsterAnimationStateSpec[] MonsterAnimationStates =
         {
@@ -333,7 +347,8 @@ namespace Overbless.Tests.EditMode
                 MonsterAnimationGenerationPath,
                 MonsterAnimationReviewPath,
                 MonsterAnimationPromptPath,
-                MonsterMotionCurationPath
+                MonsterMotionCurationPath,
+                ArcherAttackExecuteSourceWindowCurationPath
             };
             for (var pathIndex = 0; pathIndex < requiredPaths.Length; pathIndex++)
             {
@@ -430,7 +445,6 @@ namespace Overbless.Tests.EditMode
 
             CollectionAssert.AreEquivalent(indexedSources.Keys, sourcePaths);
             AssertMonsterGenerationSourcesMatchIndex(generation, indexedSources);
-
             var curation = ReadJsonDocument(MonsterMotionCurationPath);
             Assert.That(
                 GetRequiredString(GetRequiredProperty(generation, "motion_cycle_curation"), "path"),
@@ -440,6 +454,35 @@ namespace Overbless.Tests.EditMode
             Assert.That(
                 GetRequiredString(GetRequiredProperty(curation, "source"), "selectionMethod"),
                 Is.EqualTo("deterministic pixel-duplicate audit of the normalized source cells"));
+            AssertArcherAttackExecuteSourceWindowCuration(index, generation);
+        }
+
+        private static void AssertArcherAttackExecuteSourceWindowCuration(
+            CanonicalJsonValue index,
+            CanonicalJsonValue generation)
+        {
+            Assert.That(File.Exists(ResolveProjectPath(ArcherAttackExecuteSourceWindowCurationPath)), Is.True);
+            var record = ReadJsonDocument(ArcherAttackExecuteSourceWindowCurationPath);
+            Assert.That(GetRequiredString(record, "schema"), Is.EqualTo("overbless.monster-source-window-curation/v1"));
+            Assert.That(GetRequiredString(record, "scope"), Is.EqualTo("Archer east and southeast AttackExecute frames a to c only"));
+            Assert.That(
+                GetRequiredString(GetRequiredProperty(generation, "attack_execute_source_window_curation"), "record"),
+                Is.EqualTo(ArcherAttackExecuteSourceWindowCurationPath));
+
+            var overrides = GetRequiredArray(index, "source_window_overrides");
+            Assert.That(overrides.Count, Is.EqualTo(6));
+            for (var overrideIndex = 0; overrideIndex < overrides.Count; overrideIndex++)
+            {
+                var sourceWindow = overrides[overrideIndex];
+                Assert.That(GetRequiredString(sourceWindow, "role"), Is.EqualTo("archer"));
+                Assert.That(
+                    GetRequiredString(sourceWindow, "direction"),
+                    Is.EqualTo("east").Or.EqualTo("southeast"));
+                Assert.That(GetRequiredString(sourceWindow, "state"), Is.EqualTo("attack_execute"));
+                var frameIndex = GetRequiredInteger(sourceWindow, "frame");
+                Assert.That(frameIndex, Is.InRange(0, 2));
+                AssertIntArray(sourceWindow, "source_rect", new[] { 20 + frameIndex * 192, 614, 212 + frameIndex * 192, 819 });
+            }
         }
 
         [Test]
@@ -447,12 +490,19 @@ namespace Overbless.Tests.EditMode
         {
             var index = ReadJsonDocument(MonsterAnimationIndexPath);
             var atlasContract = GetRequiredProperty(index, "atlas_contract");
-            AssertIntArray(atlasContract, "atlas_size", new[] { 8192, 1024 });
             AssertIntArray(atlasContract, "cell_size", new[] { 128, 128 });
-            Assert.That(GetRequiredInteger(atlasContract, "max_frames_per_direction"), Is.EqualTo(8));
+            AssertIntArray(atlasContract, "monolithic_atlas_size", new[] { 8192, 1024 });
+            Assert.That(GetRequiredInteger(atlasContract, "monolithic_max_frames_per_direction"), Is.EqualTo(8));
             CollectionAssert.AreEqual(
                 MonsterAnimationDirections,
                 GetStringArray(GetRequiredProperty(atlasContract, "directions"), "directions"));
+            CollectionAssert.AreEqual(
+                new[] { "dasher", "minion" },
+                GetStringArray(GetRequiredProperty(atlasContract, "monolithic_atlas_roles"), "monolithic_atlas_roles"));
+            CollectionAssert.AreEqual(
+                new[] { "archer" },
+                GetStringArray(GetRequiredProperty(atlasContract, "motion_sheet_roles"), "motion_sheet_roles"));
+            Assert.That(GetRequiredInteger(GetRequiredProperty(atlasContract, "motion_sheet_layout"), "rows"), Is.EqualTo(1));
             AssertMonsterStateContracts(GetRequiredArray(atlasContract, "states"));
 
             var charactersByRole = GetMonsterCharactersByRole(index);
@@ -484,7 +534,11 @@ namespace Overbless.Tests.EditMode
                     charactersByRole.TryGetValue(role.Role, out var character),
                     Is.True,
                     $"Monster v002 index is missing role '{role.Role}'.");
-                AssertMonsterAtlasContract(role, character, framesByName);
+                AssertMonsterAtlasContract(
+                    role,
+                    character,
+                    framesByName,
+                    !string.Equals(role.Role, "archer", StringComparison.Ordinal));
             }
 
             Assert.That((int)CharacterAnimationState.Idle, Is.EqualTo(0));
@@ -501,6 +555,102 @@ namespace Overbless.Tests.EditMode
         }
 
         [Test]
+        public void ArcherMotionV003SheetsKeepIndexedPixelsImportAndRuntimeClipContracts()
+        {
+            Assert.That(File.Exists(ResolveProjectPath(ArcherMotionV003IndexPath)), Is.True);
+            var index = ReadJsonDocument(ArcherMotionV003IndexPath);
+            Assert.That(GetRequiredString(index, "schema"), Is.EqualTo("overbless.archer-motion-v003-index/v1"));
+            Assert.That(GetRequiredString(index, "role"), Is.EqualTo(ArcherMotionV003Role.Role));
+            Assert.That(GetRequiredString(index, "version"), Is.EqualTo(ArcherMotionV003Role.MotionVersion));
+
+            var cell = GetRequiredProperty(index, "cell");
+            Assert.That(GetRequiredInteger(cell, "width"), Is.EqualTo(128));
+            Assert.That(GetRequiredInteger(cell, "height"), Is.EqualTo(128));
+            var pivot = GetRequiredArray(cell, "pivot");
+            Assert.That(pivot.Count, Is.EqualTo(2));
+            Assert.That(pivot[0].NumberValue, Is.EqualTo(0.5d).Within(0.0001d));
+            Assert.That(pivot[1].NumberValue, Is.EqualTo(0d).Within(0.0001d));
+            CollectionAssert.AreEqual(
+                new[] { "south", "north", "east", "southeast", "northeast" },
+                GetStringArray(GetRequiredProperty(index, "direct_directions"), "direct_directions"));
+
+            var mirrors = GetRequiredProperty(index, "derived_mirrors");
+            Assert.That(GetRequiredString(mirrors, "west"), Is.EqualTo("east"));
+            Assert.That(GetRequiredString(mirrors, "southwest"), Is.EqualTo("southeast"));
+            Assert.That(GetRequiredString(mirrors, "northwest"), Is.EqualTo("northeast"));
+            Assert.That(mirrors.Properties.Count, Is.EqualTo(3));
+
+            var sourceRuns = GetRequiredArray(index, "source_runs");
+            Assert.That(sourceRuns.Count, Is.EqualTo(5));
+            for (var sourceIndex = 0; sourceIndex < sourceRuns.Count; sourceIndex++)
+            {
+                var sourceRun = sourceRuns[sourceIndex];
+                Assert.That(File.Exists(ResolveProjectPath(GetRequiredString(sourceRun, "atlas"))), Is.True);
+                Assert.That(File.Exists(ResolveProjectPath(GetRequiredString(sourceRun, "manifest"))), Is.True);
+            }
+
+            var sheetsByState = new Dictionary<string, CanonicalJsonValue>(StringComparer.Ordinal);
+            var outputs = GetRequiredArray(index, "outputs");
+            Assert.That(outputs.Count, Is.EqualTo(MonsterAnimationStates.Length));
+            for (var outputIndex = 0; outputIndex < outputs.Count; outputIndex++)
+            {
+                var output = outputs[outputIndex];
+                var state = GetRequiredString(output, "state");
+                Assert.That(sheetsByState.ContainsKey(state), Is.False, $"Archer v003 index repeats state '{state}'.");
+                sheetsByState.Add(state, output);
+            }
+
+            var spritesByName = new Dictionary<string, Sprite>(StringComparer.Ordinal);
+            for (var stateIndex = 0; stateIndex < MonsterAnimationStates.Length; stateIndex++)
+            {
+                var expectedState = MonsterAnimationStates[stateIndex];
+                Assert.That(sheetsByState.TryGetValue(expectedState.Name, out var sheet), Is.True);
+                var path = ArcherMotionV003Role.MotionSheetPath(expectedState.Name);
+                Assert.That(GetRequiredString(sheet, "path"), Is.EqualTo(path));
+                Assert.That(GetRequiredInteger(sheet, "frames"), Is.EqualTo(expectedState.FrameCount));
+                Assert.That(GetRequiredFloat(sheet, "fps"), Is.EqualTo(expectedState.FramesPerSecond).Within(0.0001f));
+                Assert.That(GetRequiredBoolean(sheet, "loop"), Is.EqualTo(expectedState.Loop));
+                Assert.That(GetRequiredInteger(sheet, "width"), Is.EqualTo(128 * 8 * expectedState.FrameCount));
+                Assert.That(GetRequiredInteger(sheet, "height"), Is.EqualTo(128));
+
+                var filePath = ResolveProjectPath(path);
+                Assert.That(File.Exists(filePath), Is.True, $"Archer v003 motion sheet is missing: {path}");
+                Assert.That(File.Exists(filePath + ".meta"), Is.True, $"Archer v003 motion sheet metadata is missing: {path}.meta");
+                Assert.That(ComputeSha256(filePath), Is.EqualTo(GetRequiredString(sheet, "sha256")));
+                var bytes = File.ReadAllBytes(filePath);
+                AssertStaticRgbaPngHeader(bytes, path, 128 * 8 * expectedState.FrameCount, 128);
+                AssertMonsterMotionSheetImporter(path);
+
+                var sheetSprites = GetMonsterSprites(path);
+                Assert.That(sheetSprites.Count, Is.EqualTo(8 * expectedState.FrameCount));
+                for (var directionIndex = 0; directionIndex < MonsterAnimationDirections.Length; directionIndex++)
+                {
+                    var direction = MonsterAnimationDirections[directionIndex];
+                    for (var frameIndex = 0; frameIndex < expectedState.FrameCount; frameIndex++)
+                    {
+                        var spriteName = GetMonsterFrameName(
+                            ArcherMotionV003Role.Role,
+                            expectedState.Name,
+                            direction,
+                            frameIndex,
+                            ArcherMotionV003Role.MotionVersion);
+                        Assert.That(sheetSprites.TryGetValue(spriteName, out var sprite), Is.True);
+                        Assert.That(AssetDatabase.GetAssetPath(sprite), Is.EqualTo(path));
+                        Assert.That(sprite.rect.x, Is.EqualTo((directionIndex * expectedState.FrameCount + frameIndex) * 128f));
+                        Assert.That(sprite.rect.y, Is.EqualTo(0f));
+                        Assert.That(sprite.rect.width, Is.EqualTo(128f));
+                        Assert.That(sprite.rect.height, Is.EqualTo(128f));
+                        Assert.That(spritesByName.ContainsKey(spriteName), Is.False);
+                        spritesByName.Add(spriteName, sprite);
+                    }
+                }
+            }
+
+            Assert.That(spritesByName.Count, Is.EqualTo(296));
+            AssertArcherMotionV003RuntimeAnimationSet(spritesByName);
+        }
+
+        [Test]
         public void MonsterV002LocomotionLoopsContainOnlyDistinctFrames()
         {
             var index = ReadJsonDocument(MonsterAnimationIndexPath);
@@ -512,7 +662,7 @@ namespace Overbless.Tests.EditMode
                 for (var stateIndex = 0; stateIndex < MonsterAnimationStates.Length; stateIndex++)
                 {
                     var state = MonsterAnimationStates[stateIndex];
-                    if (!state.Loop)
+                    if (!state.Loop || state.Name == "idle")
                     {
                         continue;
                     }
@@ -561,25 +711,25 @@ namespace Overbless.Tests.EditMode
                     $"Generation provenance hash drifted for '{sourcePath}'.");
             }
 
-            var generatedAtlases = GetRequiredArray(generation, "atlases");
-            Assert.That(generatedAtlases.Count, Is.EqualTo(MonsterAnimationRoles.Length));
-            var generatedAtlasHashesByPath = new Dictionary<string, string>(StringComparer.Ordinal);
-            for (var atlasIndex = 0; atlasIndex < generatedAtlases.Count; atlasIndex++)
+            var generatedOutputs = GetRequiredArray(generation, "outputs");
+            Assert.That(generatedOutputs.Count, Is.EqualTo(10));
+            var generatedOutputHashesByPath = new Dictionary<string, string>(StringComparer.Ordinal);
+            for (var outputIndex = 0; outputIndex < generatedOutputs.Count; outputIndex++)
             {
-                var atlas = generatedAtlases[atlasIndex];
-                var atlasPath = GetRequiredString(atlas, "path");
-                Assert.That(generatedAtlasHashesByPath.ContainsKey(atlasPath), Is.False, $"Generation record repeats atlas '{atlasPath}'.");
-                generatedAtlasHashesByPath.Add(atlasPath, GetRequiredString(atlas, "sha256"));
+                var output = generatedOutputs[outputIndex];
+                var outputPath = GetRequiredString(output, "path");
+                Assert.That(generatedOutputHashesByPath.ContainsKey(outputPath), Is.False, $"Generation record repeats output '{outputPath}'.");
+                generatedOutputHashesByPath.Add(outputPath, GetRequiredString(output, "sha256"));
             }
 
-            CollectionAssert.AreEquivalent(GetMonsterAnimationAtlasPaths(), generatedAtlasHashesByPath.Keys);
-            foreach (var atlasPath in generatedAtlasHashesByPath.Keys)
+            CollectionAssert.AreEquivalent(GetMonsterAnimationOutputPaths(), generatedOutputHashesByPath.Keys);
+            foreach (var outputPath in generatedOutputHashesByPath.Keys)
             {
-                Assert.That(File.Exists(ResolveProjectPath(atlasPath)), Is.True, $"Generated monster atlas is missing: {atlasPath}");
+                Assert.That(File.Exists(ResolveProjectPath(outputPath)), Is.True, $"Generated monster output is missing: {outputPath}");
                 Assert.That(
-                    ComputeSha256(ResolveProjectPath(atlasPath)),
-                    Is.EqualTo(generatedAtlasHashesByPath[atlasPath]),
-                    $"Generated monster atlas bytes drifted: {atlasPath}");
+                    ComputeSha256(ResolveProjectPath(outputPath)),
+                    Is.EqualTo(generatedOutputHashesByPath[outputPath]),
+                    $"Generated monster output bytes drifted: {outputPath}");
             }
         }
 
@@ -848,28 +998,61 @@ namespace Overbless.Tests.EditMode
 
         private static string[] GetMonsterAnimationAtlasPaths()
         {
-            var paths = new string[MonsterAnimationRoles.Length];
+            var paths = new List<string>();
             for (var roleIndex = 0; roleIndex < MonsterAnimationRoles.Length; roleIndex++)
             {
-                paths[roleIndex] = MonsterAnimationRoles[roleIndex].AtlasPath;
+                var role = MonsterAnimationRoles[roleIndex];
+                if (!role.UsesMotionSheets)
+                {
+                    paths.Add(role.AtlasPath);
+                }
             }
 
-            return paths;
+            return paths.ToArray();
+        }
+
+        private static string[] GetMonsterAnimationOutputPaths()
+        {
+            var paths = new List<string>();
+            for (var roleIndex = 0; roleIndex < MonsterAnimationRoles.Length; roleIndex++)
+            {
+                var role = MonsterAnimationRoles[roleIndex];
+                if (!role.UsesMotionSheets)
+                {
+                    paths.Add(role.AtlasPath);
+                    continue;
+                }
+
+                for (var stateIndex = 0; stateIndex < MonsterAnimationStates.Length; stateIndex++)
+                {
+                    paths.Add(role.MotionSheetPath(MonsterAnimationStates[stateIndex].Name));
+                }
+            }
+
+            return paths.ToArray();
         }
 
         private static void AssertMonsterAtlasContract(
             MonsterAnimationRoleSpec role,
             CanonicalJsonValue character,
-            IReadOnlyDictionary<string, CanonicalJsonValue> framesByName)
+            IReadOnlyDictionary<string, CanonicalJsonValue> framesByName,
+            bool assertRuntimeClipBindings)
         {
             Assert.That(GetRequiredString(character, "role"), Is.EqualTo(role.Role));
-            Assert.That(GetRequiredString(character, "atlas_path"), Is.EqualTo(role.AtlasPath));
-            AssertIntArray(character, "atlas_size", new[] { 8192, 1024 });
             AssertMonsterCharacterStateContracts(role, GetRequiredArray(character, "states"));
             var frameCounts = GetRequiredProperty(character, "frame_counts");
             Assert.That(GetRequiredInteger(frameCounts, "authored"), Is.EqualTo(120));
             Assert.That(GetRequiredInteger(frameCounts, "derived"), Is.EqualTo(72));
             Assert.That(GetRequiredInteger(frameCounts, "inherited"), Is.EqualTo(104));
+
+            if (role.UsesMotionSheets)
+            {
+                AssertMonsterMotionSheetContract(role, character, framesByName, assertRuntimeClipBindings);
+                return;
+            }
+
+            Assert.That(GetRequiredString(character, "atlas_path"), Is.EqualTo(role.AtlasPath));
+            AssertIntArray(character, "atlas_size", new[] { 8192, 1024 });
 
             var atlasPath = ResolveProjectPath(role.AtlasPath);
             Assert.That(File.Exists(atlasPath), Is.True, $"Monster v002 atlas is missing: {role.AtlasPath}");
@@ -884,8 +1067,74 @@ namespace Overbless.Tests.EditMode
             AssertMonsterAtlasImporter(role);
             var spritesByName = GetMonsterAtlasSprites(role);
             Assert.That(spritesByName.Count, Is.EqualTo(296), $"Monster v002 atlas has the wrong sprite count: {role.AtlasPath}");
-            AssertMonsterRuntimeAnimationSet(role, character, spritesByName);
+            if (assertRuntimeClipBindings)
+            {
+                AssertMonsterRuntimeAnimationSet(role, character, spritesByName);
+            }
             AssertMonsterAtlasFramePixels(role, atlasBytes, spritesByName, framesByName);
+        }
+
+        private static void AssertMonsterMotionSheetContract(
+            MonsterAnimationRoleSpec role,
+            CanonicalJsonValue character,
+            IReadOnlyDictionary<string, CanonicalJsonValue> framesByName,
+            bool assertRuntimeClipBindings)
+        {
+            Assert.That(GetRequiredString(character, "output_topology"), Is.EqualTo("per-state-motion-sheets"));
+            var sheets = GetRequiredArray(character, "motion_sheets");
+            Assert.That(sheets.Count, Is.EqualTo(MonsterAnimationStates.Length));
+
+            var spritesByName = new Dictionary<string, Sprite>(StringComparer.Ordinal);
+            var sheetsByState = new Dictionary<string, CanonicalJsonValue>(StringComparer.Ordinal);
+            for (var sheetIndex = 0; sheetIndex < sheets.Count; sheetIndex++)
+            {
+                var sheet = sheets[sheetIndex];
+                var stateName = GetRequiredString(sheet, "state");
+                Assert.That(sheetsByState.ContainsKey(stateName), Is.False, $"Monster motion sheet repeats state '{stateName}'.");
+                sheetsByState.Add(stateName, sheet);
+            }
+
+            for (var stateIndex = 0; stateIndex < MonsterAnimationStates.Length; stateIndex++)
+            {
+                var expectedState = MonsterAnimationStates[stateIndex];
+                Assert.That(
+                    sheetsByState.TryGetValue(expectedState.Name, out var sheet),
+                    Is.True,
+                    $"Monster motion sheet is missing state '{expectedState.Name}'.");
+
+                var path = role.MotionSheetPath(expectedState.Name);
+                Assert.That(GetRequiredString(sheet, "path"), Is.EqualTo(path));
+                AssertIntArray(sheet, "size", new[] { 128 * 8 * expectedState.FrameCount, 128 });
+                CollectionAssert.AreEqual(
+                    MonsterAnimationDirections,
+                    GetStringArray(GetRequiredProperty(sheet, "directions"), "directions"));
+                Assert.That(GetRequiredInteger(sheet, "frames_per_direction"), Is.EqualTo(expectedState.FrameCount));
+                Assert.That(GetRequiredInteger(sheet, "rows"), Is.EqualTo(1));
+
+                var filePath = ResolveProjectPath(path);
+                Assert.That(File.Exists(filePath), Is.True, $"Monster motion sheet is missing: {path}");
+                Assert.That(File.Exists(filePath + ".meta"), Is.True, $"Monster motion sheet metadata is missing: {path}.meta");
+                Assert.That(ComputeSha256(filePath), Is.EqualTo(GetRequiredString(sheet, "sha256")));
+                var bytes = File.ReadAllBytes(filePath);
+                AssertStaticRgbaPngHeader(bytes, path, 128 * 8 * expectedState.FrameCount, 128);
+                AssertMonsterMotionSheetImporter(path);
+
+                var sheetSprites = GetMonsterSprites(path);
+                Assert.That(sheetSprites.Count, Is.EqualTo(8 * expectedState.FrameCount));
+                foreach (var pair in sheetSprites)
+                {
+                    Assert.That(spritesByName.ContainsKey(pair.Key), Is.False, $"Monster motion sheets repeat sprite '{pair.Key}'.");
+                    spritesByName.Add(pair.Key, pair.Value);
+                }
+
+                AssertMonsterMotionSheetFramePixels(role, expectedState, path, bytes, sheetSprites, framesByName);
+            }
+
+            Assert.That(spritesByName.Count, Is.EqualTo(296));
+            if (assertRuntimeClipBindings)
+            {
+                AssertMonsterRuntimeAnimationSet(role, character, spritesByName);
+            }
         }
 
         private static void AssertMonsterCharacterStateContracts(
@@ -935,9 +1184,36 @@ namespace Overbless.Tests.EditMode
             Assert.That(Vector2.Distance(settings.spritePivot, new Vector2(0.5f, 0f)), Is.LessThanOrEqualTo(0.0001f));
         }
 
+        private static void AssertMonsterMotionSheetImporter(string path)
+        {
+            Assert.That(AssetDatabase.AssetPathToGUID(path), Is.Not.Empty, $"Monster motion sheet has no stable asset GUID: {path}");
+            var importer = AssetImporter.GetAtPath(path) as TextureImporter;
+            Assert.That(importer, Is.Not.Null, $"Monster motion sheet has no TextureImporter: {path}");
+            Assert.That(importer.textureType, Is.EqualTo(TextureImporterType.Sprite));
+            Assert.That(importer.spriteImportMode, Is.EqualTo(SpriteImportMode.Multiple));
+            Assert.That(importer.spritePixelsPerUnit, Is.EqualTo(128f));
+            Assert.That(importer.filterMode, Is.EqualTo(FilterMode.Point));
+            Assert.That(importer.textureCompression, Is.EqualTo(TextureImporterCompression.Uncompressed));
+            Assert.That(importer.crunchedCompression, Is.False);
+            Assert.That(importer.mipmapEnabled, Is.False);
+            Assert.That(importer.streamingMipmaps, Is.False);
+            Assert.That(importer.wrapMode, Is.EqualTo(TextureWrapMode.Clamp));
+            Assert.That(importer.isReadable, Is.False);
+
+            var settings = new TextureImporterSettings();
+            importer.ReadTextureSettings(settings);
+            Assert.That(settings.spriteAlignment, Is.EqualTo((int)SpriteAlignment.Custom));
+            Assert.That(Vector2.Distance(settings.spritePivot, new Vector2(0.5f, 0f)), Is.LessThanOrEqualTo(0.0001f));
+        }
+
         private static Dictionary<string, Sprite> GetMonsterAtlasSprites(MonsterAnimationRoleSpec role)
         {
-            var assets = AssetDatabase.LoadAllAssetsAtPath(role.AtlasPath);
+            return GetMonsterSprites(role.AtlasPath);
+        }
+
+        private static Dictionary<string, Sprite> GetMonsterSprites(string assetPath)
+        {
+            var assets = AssetDatabase.LoadAllAssetsAtPath(assetPath);
             var spritesByName = new Dictionary<string, Sprite>(StringComparer.Ordinal);
             for (var assetIndex = 0; assetIndex < assets.Length; assetIndex++)
             {
@@ -950,7 +1226,7 @@ namespace Overbless.Tests.EditMode
                 Assert.That(
                     spritesByName.ContainsKey(sprite.name),
                     Is.False,
-                    $"Monster v002 atlas repeats sprite '{sprite.name}': {role.AtlasPath}");
+                    $"Monster v002 sprite source repeats sprite '{sprite.name}': {assetPath}");
                 spritesByName.Add(sprite.name, sprite);
             }
 
@@ -1012,6 +1288,97 @@ namespace Overbless.Tests.EditMode
                 }
             }
         }
+
+        private static void AssertArcherMotionV003RuntimeAnimationSet(
+            IReadOnlyDictionary<string, Sprite> spritesByName)
+        {
+            var animationSet = AssetDatabase.LoadAssetAtPath<DirectionalAnimationSet>(ArcherMotionV003Role.AnimationSetPath);
+            Assert.That(animationSet, Is.Not.Null, $"Archer v003 animation set is missing: {ArcherMotionV003Role.AnimationSetPath}");
+            Assert.That(animationSet.Role, Is.EqualTo(ArcherMotionV003Role.Role));
+            Assert.That(animationSet.ClipCount, Is.EqualTo(64));
+            animationSet.Validate();
+
+            for (var stateIndex = 0; stateIndex < MonsterAnimationStates.Length; stateIndex++)
+            {
+                var expectedState = MonsterAnimationStates[stateIndex];
+                for (var directionIndex = 0; directionIndex < MonsterAnimationDirections.Length; directionIndex++)
+                {
+                    var direction = MonsterAnimationDirections[directionIndex];
+                    var clip = animationSet.GetClip(
+                        expectedState.State,
+                        GetMonsterAnimationDirection(direction));
+                    Assert.That(clip.FrameCount, Is.EqualTo(expectedState.FrameCount));
+                    Assert.That(clip.FramesPerSecond, Is.EqualTo(expectedState.FramesPerSecond).Within(0.0001f));
+                    Assert.That(clip.Loop, Is.EqualTo(expectedState.Loop));
+                    for (var frameIndex = 0; frameIndex < expectedState.FrameCount; frameIndex++)
+                    {
+                        var spriteName = GetMonsterFrameName(
+                            ArcherMotionV003Role.Role,
+                            expectedState.Name,
+                            direction,
+                            frameIndex,
+                            ArcherMotionV003Role.MotionVersion);
+                        Assert.That(spritesByName.TryGetValue(spriteName, out var sprite), Is.True);
+                        Assert.That(
+                            clip.GetFrame(frameIndex),
+                            Is.SameAs(sprite),
+                            $"Archer v003 clip {expectedState.Name}/{direction} references a stale or wrong sprite.");
+                    }
+                }
+            }
+        }
+
+        private static void AssertMonsterMotionSheetFramePixels(
+            MonsterAnimationRoleSpec role,
+            MonsterAnimationStateSpec expectedState,
+            string motionPath,
+            byte[] motionBytes,
+            IReadOnlyDictionary<string, Sprite> spritesByName,
+            IReadOnlyDictionary<string, CanonicalJsonValue> framesByName)
+        {
+            var texture = new Texture2D(2, 2, TextureFormat.RGBA32, false, false);
+            try
+            {
+                Assert.That(ImageConversion.LoadImage(texture, motionBytes, false), Is.True);
+                Assert.That(texture.width, Is.EqualTo(128 * 8 * expectedState.FrameCount));
+                Assert.That(texture.height, Is.EqualTo(128));
+                var pixels = texture.GetPixels32();
+                for (var directionIndex = 0; directionIndex < MonsterAnimationDirections.Length; directionIndex++)
+                {
+                    var direction = MonsterAnimationDirections[directionIndex];
+                    for (var frameIndex = 0; frameIndex < expectedState.FrameCount; frameIndex++)
+                    {
+                        var frameName = GetMonsterFrameName(role.Role, expectedState.Name, direction, frameIndex);
+                        Assert.That(framesByName.TryGetValue(frameName, out var frame), Is.True);
+                        Assert.That(GetRequiredString(frame, "output_path"), Is.EqualTo(motionPath));
+                        var expectedRect = new[]
+                        {
+                            (directionIndex * expectedState.FrameCount + frameIndex) * 128,
+                            0,
+                            128,
+                            128
+                        };
+                        AssertIntArray(frame, "rect", expectedRect);
+                        Assert.That(GetRequiredString(frame, "alpha"), Is.EqualTo("binary"));
+                        Assert.That(spritesByName.TryGetValue(frameName, out var sprite), Is.True);
+                        Assert.That(AssetDatabase.GetAssetPath(sprite), Is.EqualTo(motionPath));
+                        Assert.That(sprite.rect.x, Is.EqualTo(expectedRect[0]));
+                        Assert.That(sprite.rect.y, Is.EqualTo(0f));
+                        Assert.That(sprite.rect.width, Is.EqualTo(128f));
+                        Assert.That(sprite.rect.height, Is.EqualTo(128f));
+                        AssertMonsterFramePixelEvidence(
+                            frameName,
+                            frame,
+                            GetIndexedFramePixels(pixels, texture.width, texture.height, frame));
+                    }
+                }
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(texture);
+            }
+        }
+
         private static void AssertMonsterAtlasFramePixels(
             MonsterAnimationRoleSpec role,
             byte[] atlasBytes,
@@ -1271,10 +1638,20 @@ namespace Overbless.Tests.EditMode
 
         private static string GetMonsterFrameName(string role, string state, string direction, int frameIndex)
         {
+            return GetMonsterFrameName(role, state, direction, frameIndex, "v002");
+        }
+
+        private static string GetMonsterFrameName(
+            string role,
+            string state,
+            string direction,
+            int frameIndex,
+            string version)
+        {
             Assert.That(frameIndex, Is.GreaterThanOrEqualTo(0));
             Assert.That(frameIndex, Is.LessThan(8));
             var frameLetter = "abcdefgh"[frameIndex];
-            return $"chr_{role}_{state}_{direction}_{frameLetter}_v002";
+            return $"chr_{role}_{state}_{direction}_{frameLetter}_{version}";
         }
         private static string GetMonsterMirrorSourceDirection(string direction)
         {
@@ -1807,16 +2184,32 @@ namespace Overbless.Tests.EditMode
         }
         private readonly struct MonsterAnimationRoleSpec
         {
-            public MonsterAnimationRoleSpec(string role, string atlasPath, string animationSetPath)
+            public MonsterAnimationRoleSpec(
+                string role,
+                string atlasPath,
+                string animationSetPath,
+                bool usesMotionSheets = false,
+                string motionFolder = "Motions",
+                string motionVersion = "v002")
             {
                 Role = role;
                 AtlasPath = atlasPath;
                 AnimationSetPath = animationSetPath;
+                UsesMotionSheets = usesMotionSheets;
+                MotionFolder = motionFolder;
+                MotionVersion = motionVersion;
             }
 
             public string Role { get; }
             public string AtlasPath { get; }
             public string AnimationSetPath { get; }
+            public bool UsesMotionSheets { get; }
+            public string MotionFolder { get; }
+            public string MotionVersion { get; }
+            public string MotionSheetPath(string stateName)
+            {
+                return $"Assets/_Project/Art/M1Production/Characters/Animation/{MotionFolder}/chr_{Role}_{stateName}_motion_{MotionVersion}.png";
+            }
         }
 
         private readonly struct MonsterAnimationStateSpec

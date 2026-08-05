@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "kind": "sprite-gen-request",
+  "engine": "component-row",
+  "character": {
+    "id": "archer_motion_v003_southeast",
+    "description": "Lume the lunar archer, southeast directional combat animation row source",
+    "base_image": "base-source.png"
+  },
+  "cell": {
+    "shape": "square",
+    "width": 128,
+    "height": 128,
+    "safe_margin_x": 6,
+    "safe_margin_y": 6,
+    "size": 128,
+    "safe_margin": 6
+  },
+  "chroma_key": {
+    "name": "green",
+    "hex": "#00FF00",
+    "rgb": [
+      0,
+      255,
+      0
+    ],
+    "selection": "manual"
+  },
+  "states": {
+    "idle": {
+      "frames": 4,
+      "fps": 4,
+      "loop": true,
+      "action": "subtle breathing with the bow held stable; feet remain on the common baseline"
+    },
+    "walk": {
+      "frames": 4,
+      "fps": 6,
+      "loop": true,
+      "action": "clear four-step walk cycle with planted foot contacts and no vertical scale change"
+    },
+    "run": {
+      "frames": 4,
+      "fps": 9,
+      "loop": true,
+      "action": "compact running or retreat cycle with readable foot contacts and stable bow silhouette"
+    },
+    "attack_charge": {
+      "frames": 6,
+      "fps": 8,
+      "loop": false,
+      "action": "raise crescent bow, nock, and draw toward the locked lane; feet stay planted"
+    },
+    "attack_execute": {
+      "frames": 6,
+      "fps": 14,
+      "loop": false,
+      "action": "clean bow release and follow-through; no detached projectile or visual effect"
+    },
+    "recover": {
+      "frames": 4,
+      "fps": 7,
+      "loop": false,
+      "action": "lower bow and return from follow-through to ready stance"
+    },
+    "hit": {
+      "frames": 3,
+      "fps": 12,
+      "loop": false,
+      "action": "brief readable recoil while the bow remains held and full body remains visible"
+    },
+    "death": {
+      "frames": 6,
+      "fps": 8,
+      "loop": false,
+      "action": "controlled collapse to the ground with no detached bow or body parts"
+    }
+  },
+  "style": "pixel-art-adjacent low-resolution game sprite, compact chibi/mascot-friendly proportions when the base allows it, chunky whole-body silhouette, thick dark 1-2 px outline, visible stepped/pixel edges, limited palette, flat cel shading with at most one small highlight and one shadow step, simple readable face, clear limbs, and no detail that disappears at small runtime size. Avoid polished illustration, painterly rendering, anime key art, 3D render, vector app-icon polish, glossy lighting, soft gradients, anti-aliased high-detail edges, and complex tiny accessories.",
+  "motion_phase_guides": true
+}
