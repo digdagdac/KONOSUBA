@@ -45,6 +45,16 @@ MIRROR_SOURCES = {
     "southwest": "southeast",
     "northwest": "northeast",
 }
+# The original east and southeast bow poses overlap the nominal 192px source columns:
+# their bow tips reach into the following column while the following pose starts
+# after a small magenta gap.  Shift only the affected extraction windows right
+# by 20px so each pose keeps its own bow instead of inheriting a neighbour tip.
+SOURCE_RECT_OVERRIDES = {
+    ("archer", direction, "attack_execute", frame_index):
+        (20 + frame_index * 192, 614, 212 + frame_index * 192, 819)
+    for direction in ("east", "southeast")
+    for frame_index in range(3)
+}
 
 EXPECTED_AUTHORED_FRAME_COUNT = 360
 EXPECTED_DERIVED_FRAME_COUNT = 216
@@ -125,6 +135,7 @@ MODIFICATION_ALLOWLIST = {
         "bottom_center_placement_on_128px_canvas",
         "exact_horizontal_pixel_mirror_for_west_southwest_and_northwest_only",
         "exact_active_frame_pixel_copy_from_declared_v001_idle_hit_and_death_rows_only",
+        "approved_source_window_override_for_archer_east_and_southeast_attack_execute_frames_a_to_c_only",
         "transparent_canvas_atlas_packing",
         "deterministic_png_encoding",
     ],
@@ -291,6 +302,26 @@ def grid_rect(column: int, row: int) -> tuple[int, int, int, int]:
     )
 
 
+def authored_source_rect(
+    role: str, direction: str, state: StateSpec, frame_index: int
+) -> tuple[int, int, int, int]:
+    override = SOURCE_RECT_OVERRIDES.get((role, direction, state.name, frame_index))
+    return override if override is not None else grid_rect(frame_index, state.source_row)
+
+
+def source_window_override_records() -> list[dict]:
+    return [
+        {
+            "role": role,
+            "direction": direction,
+            "state": state,
+            "frame": frame_index,
+            "source_rect": list(rect),
+        }
+        for (role, direction, state, frame_index), rect in sorted(SOURCE_RECT_OVERRIDES.items())
+    ]
+
+
 def remove_chroma_magenta(
     image: Image.Image, corner_colour: tuple[int, int, int], label: str
 ) -> Image.Image:
@@ -413,7 +444,7 @@ def extract_authored_frame(
 ) -> tuple[Image.Image, dict]:
     if state.source_row is None:
         raise ProcessingError(f"{state.name} is not an authored source-sheet state")
-    rect = grid_rect(frame_index, state.source_row)
+    rect = authored_source_rect(role_spec.role, direction, state, frame_index)
     label = f"{role_spec.role}/{direction}/{state.name}/{FRAME_LETTERS[frame_index]}"
     cell = sheet.image.crop(rect)
     foreground = remove_chroma_magenta(cell, sheet.corner_colour, label)
@@ -435,6 +466,7 @@ def extract_authored_frame(
         "source_grid": [SOURCE_GRID_COLUMNS, SOURCE_GRID_ROWS],
         "source_cell": [frame_index, state.source_row],
         "source_rect": list(rect),
+        "source_window_override": (role_spec.role, direction, state.name, frame_index) in SOURCE_RECT_OVERRIDES,
         "source_opaque_bounds": source_bounds,
         "opaque_bounds": opaque_bounds,
     }
@@ -523,7 +555,7 @@ def load_inherited_frames(repository_root: Path, role_spec: RoleSpec) -> tuple[d
 
 
 def build_authored_frames(
-    role_spec: RoleSpec, sheets: dict[str, LoadedSheet]
+    repository_root: Path, role_spec: RoleSpec, sheets: dict[str, LoadedSheet]
 ) -> dict[str, dict[str, list[tuple[Image.Image, dict]]]]:
     authored: dict[str, dict[str, list[tuple[Image.Image, dict]]]] = {}
     for direction in DIRECT_DIRECTIONS:
@@ -561,7 +593,7 @@ def atlas_rect(state_index: int, direction_index: int, frame_index: int) -> list
 def build_character(
     repository_root: Path, role_spec: RoleSpec, sheets: dict[str, LoadedSheet]
 ) -> tuple[Path, bytes, dict, list[dict], dict]:
-    authored_frames = build_authored_frames(role_spec, sheets)
+    authored_frames = build_authored_frames(repository_root, role_spec, sheets)
     inherited_frames, inherited_source = load_inherited_frames(repository_root, role_spec)
     atlas = Image.new(
         "RGBA",
@@ -762,6 +794,7 @@ def build_expected(repository_root: Path) -> tuple[list[tuple[Path, bytes]], dic
         },
         "modification_allowlist": MODIFICATION_ALLOWLIST,
         "source_sheets": source_records,
+        "source_window_overrides": source_window_override_records(),
         "inherited_v001_sources": inherited_sources,
         "characters": characters,
         "frame_classification_counts": classification_counts,

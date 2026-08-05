@@ -144,6 +144,7 @@
       "bottom_center_placement_on_128px_canvas",
       "exact_horizontal_pixel_mirror_for_west_southwest_and_northwest_only",
       "exact_active_frame_pixel_copy_from_declared_v001_idle_hit_and_death_rows_only",
+      "approved_source_window_override_for_archer_east_and_southeast_attack_execute_frames_a_to_c_only",
       "transparent_canvas_atlas_packing",
       "deterministic_png_encoding"
     ],
@@ -386,6 +387,80 @@
       "grid": [
         8,
         5
+      ]
+    }
+  ],
+  "source_window_overrides": [
+    {
+      "role": "archer",
+      "direction": "east",
+      "state": "attack_execute",
+      "frame": 0,
+      "source_rect": [
+        20,
+        614,
+        212,
+        819
+      ]
+    },
+    {
+      "role": "archer",
+      "direction": "east",
+      "state": "attack_execute",
+      "frame": 1,
+      "source_rect": [
+        212,
+        614,
+        404,
+        819
+      ]
+    },
+    {
+      "role": "archer",
+      "direction": "east",
+      "state": "attack_execute",
+      "frame": 2,
+      "source_rect": [
+        404,
+        614,
+        596,
+        819
+      ]
+    },
+    {
+      "role": "archer",
+      "direction": "southeast",
+      "state": "attack_execute",
+      "frame": 0,
+      "source_rect": [
+        20,
+        614,
+        212,
+        819
+      ]
+    },
+    {
+      "role": "archer",
+      "direction": "southeast",
+      "state": "attack_execute",
+      "frame": 1,
+      "source_rect": [
+        212,
+        614,
+        404,
+        819
+      ]
+    },
+    {
+      "role": "archer",
+      "direction": "southeast",
+      "state": "attack_execute",
+      "frame": 2,
+      "source_rect": [
+        404,
+        614,
+        596,
+        819
       ]
     }
   ],
@@ -641,7 +716,7 @@
         8192,
         1024
       ],
-      "atlas_sha256": "3bb27889ce6fa512b1080c6506a4c9dded72689ac9200df391c58aebba27e65a",
+      "atlas_sha256": "6039173d3fc018ce8d04ec133dfb4d0f7f7e4abfb831eaccfbdc423c6757008e",
       "inherited_v001_source": {
         "path": "Assets/_Project/Art/M1Production/Characters/Animation/chr_archer_animation_atlas_v001.png",
         "sha256": "8703f121b5794a2290c2fe22e32fbaa6b3e6a5b3f37a8da6b1a32a67343e5bda",
@@ -2536,6 +2611,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             51,
             48,
@@ -2597,6 +2673,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             238,
             48,
@@ -2658,6 +2735,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             427,
             48,
@@ -2719,6 +2797,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             612,
             48,
@@ -2780,6 +2859,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             52,
             37,
@@ -2841,6 +2921,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             192,
             37,
@@ -2902,6 +2983,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             439,
             37,
@@ -2963,6 +3045,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             576,
             38,
@@ -3024,6 +3107,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             58,
             55,
@@ -3085,6 +3169,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             260,
             55,
@@ -3146,6 +3231,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             445,
             55,
@@ -3207,6 +3293,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             646,
             55,
@@ -3268,6 +3355,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             58,
             55,
@@ -3330,6 +3418,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             260,
             55,
@@ -3392,6 +3481,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             445,
             55,
@@ -3454,6 +3544,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             646,
             55,
@@ -3516,6 +3607,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             78,
             47,
@@ -3577,6 +3669,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             260,
             44,
@@ -3638,6 +3731,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             441,
             46,
@@ -3699,6 +3793,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             631,
             50,
@@ -3760,6 +3855,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             78,
             47,
@@ -3822,6 +3918,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             260,
             44,
@@ -3884,6 +3981,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             441,
             46,
@@ -3946,6 +4044,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             631,
             50,
@@ -4008,6 +4107,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             67,
             63,
@@ -4069,6 +4169,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             242,
             59,
@@ -4130,6 +4231,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             432,
             61,
@@ -4191,6 +4293,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             624,
             58,
@@ -4252,6 +4355,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             67,
             63,
@@ -4314,6 +4418,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             242,
             59,
@@ -4376,6 +4481,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             432,
             61,
@@ -4438,6 +4544,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             624,
             58,
@@ -4500,6 +4607,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             51,
             48,
@@ -4561,6 +4669,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             238,
             48,
@@ -4622,6 +4731,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             427,
             48,
@@ -4683,6 +4793,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             612,
             48,
@@ -4744,6 +4855,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             52,
             37,
@@ -4805,6 +4917,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             192,
             37,
@@ -4866,6 +4979,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             439,
             37,
@@ -4927,6 +5041,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             576,
             38,
@@ -4988,6 +5103,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             58,
             55,
@@ -5049,6 +5165,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             260,
             55,
@@ -5110,6 +5227,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             445,
             55,
@@ -5171,6 +5289,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             646,
             55,
@@ -5232,6 +5351,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             58,
             55,
@@ -5294,6 +5414,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             260,
             55,
@@ -5356,6 +5477,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             445,
             55,
@@ -5418,6 +5540,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             646,
             55,
@@ -5480,6 +5603,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             78,
             47,
@@ -5541,6 +5665,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             260,
             44,
@@ -5602,6 +5727,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             441,
             46,
@@ -5663,6 +5789,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             631,
             50,
@@ -5724,6 +5851,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             78,
             47,
@@ -5786,6 +5914,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             260,
             44,
@@ -5848,6 +5977,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             441,
             46,
@@ -5910,6 +6040,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             631,
             50,
@@ -5972,6 +6103,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             67,
             63,
@@ -6033,6 +6165,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             242,
             59,
@@ -6094,6 +6227,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             432,
             61,
@@ -6155,6 +6289,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             624,
             58,
@@ -6216,6 +6351,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             67,
             63,
@@ -6278,6 +6414,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             242,
             59,
@@ -6340,6 +6477,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             432,
             61,
@@ -6402,6 +6540,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             624,
             58,
@@ -6464,6 +6603,7 @@
             192,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             37,
             445,
@@ -6525,6 +6665,7 @@
             384,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             223,
             445,
@@ -6586,6 +6727,7 @@
             576,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             417,
             449,
@@ -6647,6 +6789,7 @@
             768,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             596,
             451,
@@ -6708,6 +6851,7 @@
             960,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             785,
             458,
@@ -6769,6 +6913,7 @@
             1152,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             970,
             460,
@@ -6830,6 +6975,7 @@
             192,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             47,
             432,
@@ -6891,6 +7037,7 @@
             384,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             233,
             433,
@@ -6952,6 +7099,7 @@
             576,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             417,
             435,
@@ -7013,6 +7161,7 @@
             768,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             618,
             436,
@@ -7074,6 +7223,7 @@
             960,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             800,
             440,
@@ -7135,6 +7285,7 @@
             1152,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             997,
             436,
@@ -7196,6 +7347,7 @@
             192,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             25,
             434,
@@ -7257,6 +7409,7 @@
             384,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             207,
             437,
@@ -7318,6 +7471,7 @@
             576,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             398,
             437,
@@ -7379,6 +7533,7 @@
             768,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             593,
             436,
@@ -7440,6 +7595,7 @@
             960,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             790,
             436,
@@ -7501,6 +7657,7 @@
             1152,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             987,
             436,
@@ -7562,6 +7719,7 @@
             192,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             25,
             434,
@@ -7624,6 +7782,7 @@
             384,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             207,
             437,
@@ -7686,6 +7845,7 @@
             576,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             398,
             437,
@@ -7748,6 +7908,7 @@
             768,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             593,
             436,
@@ -7810,6 +7971,7 @@
             960,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             790,
             436,
@@ -7872,6 +8034,7 @@
             1152,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             987,
             436,
@@ -7934,6 +8097,7 @@
             192,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             58,
             409,
@@ -7995,6 +8159,7 @@
             384,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             242,
             412,
@@ -8056,6 +8221,7 @@
             576,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             420,
             415,
@@ -8117,6 +8283,7 @@
             768,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             606,
             409,
@@ -8178,6 +8345,7 @@
             960,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             799,
             412,
@@ -8239,6 +8407,7 @@
             1152,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             979,
             416,
@@ -8300,6 +8469,7 @@
             192,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             58,
             409,
@@ -8362,6 +8532,7 @@
             384,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             242,
             412,
@@ -8424,6 +8595,7 @@
             576,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             420,
             415,
@@ -8486,6 +8658,7 @@
             768,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             606,
             409,
@@ -8548,6 +8721,7 @@
             960,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             799,
             412,
@@ -8610,6 +8784,7 @@
             1152,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             979,
             416,
@@ -8672,6 +8847,7 @@
             192,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             49,
             436,
@@ -8733,6 +8909,7 @@
             384,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             225,
             432,
@@ -8794,6 +8971,7 @@
             576,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             426,
             437,
@@ -8855,6 +9033,7 @@
             768,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             613,
             443,
@@ -8916,6 +9095,7 @@
             960,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             804,
             441,
@@ -8977,6 +9157,7 @@
             1152,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             1012,
             438,
@@ -9038,6 +9219,7 @@
             192,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             49,
             436,
@@ -9100,6 +9282,7 @@
             384,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             225,
             432,
@@ -9162,6 +9345,7 @@
             576,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             426,
             437,
@@ -9224,6 +9408,7 @@
             768,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             613,
             443,
@@ -9286,6 +9471,7 @@
             960,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             804,
             441,
@@ -9348,6 +9534,7 @@
             1152,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             1012,
             438,
@@ -9410,6 +9597,7 @@
             192,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             51,
             639,
@@ -9471,6 +9659,7 @@
             384,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             227,
             638,
@@ -9532,6 +9721,7 @@
             576,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             409,
             638,
@@ -9593,6 +9783,7 @@
             768,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             587,
             639,
@@ -9654,6 +9845,7 @@
             960,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             811,
             636,
@@ -9715,6 +9907,7 @@
             1152,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             982,
             631,
@@ -9776,6 +9969,7 @@
             192,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             52,
             616,
@@ -9837,6 +10031,7 @@
             384,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             228,
             619,
@@ -9898,6 +10093,7 @@
             576,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             414,
             619,
@@ -9959,6 +10155,7 @@
             768,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             606,
             619,
@@ -10020,6 +10217,7 @@
             960,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             799,
             620,
@@ -10081,6 +10279,7 @@
             1152,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             988,
             619,
@@ -10142,6 +10341,7 @@
             192,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             39,
             614,
@@ -10203,6 +10403,7 @@
             384,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             234,
             614,
@@ -10264,6 +10465,7 @@
             576,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             414,
             614,
@@ -10325,6 +10527,7 @@
             768,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             599,
             615,
@@ -10386,6 +10589,7 @@
             960,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             768,
             614,
@@ -10447,6 +10651,7 @@
             1152,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             960,
             614,
@@ -10508,6 +10713,7 @@
             192,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             39,
             614,
@@ -10570,6 +10776,7 @@
             384,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             234,
             614,
@@ -10632,6 +10839,7 @@
             576,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             414,
             614,
@@ -10694,6 +10902,7 @@
             768,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             599,
             615,
@@ -10756,6 +10965,7 @@
             960,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             768,
             614,
@@ -10818,6 +11028,7 @@
             1152,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             960,
             614,
@@ -10880,6 +11091,7 @@
             192,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             53,
             614,
@@ -10941,6 +11153,7 @@
             384,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             238,
             614,
@@ -11002,6 +11215,7 @@
             576,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             404,
             614,
@@ -11063,6 +11277,7 @@
             768,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             584,
             614,
@@ -11124,6 +11339,7 @@
             960,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             776,
             614,
@@ -11185,6 +11401,7 @@
             1152,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             960,
             614,
@@ -11246,6 +11463,7 @@
             192,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             53,
             614,
@@ -11308,6 +11526,7 @@
             384,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             238,
             614,
@@ -11370,6 +11589,7 @@
             576,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             404,
             614,
@@ -11432,6 +11652,7 @@
             768,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             584,
             614,
@@ -11494,6 +11715,7 @@
             960,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             776,
             614,
@@ -11556,6 +11778,7 @@
             1152,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             960,
             614,
@@ -11618,6 +11841,7 @@
             192,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             57,
             625,
@@ -11679,6 +11903,7 @@
             384,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             192,
             621,
@@ -11740,6 +11965,7 @@
             576,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             384,
             618,
@@ -11801,6 +12027,7 @@
             768,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             624,
             628,
@@ -11862,6 +12089,7 @@
             960,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             768,
             628,
@@ -11923,6 +12151,7 @@
             1152,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             960,
             630,
@@ -11984,6 +12213,7 @@
             192,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             57,
             625,
@@ -12046,6 +12276,7 @@
             384,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             192,
             621,
@@ -12108,6 +12339,7 @@
             576,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             384,
             618,
@@ -12170,6 +12402,7 @@
             768,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             624,
             628,
@@ -12232,6 +12465,7 @@
             960,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             768,
             628,
@@ -12294,6 +12528,7 @@
             1152,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             960,
             630,
@@ -12356,6 +12591,7 @@
             192,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             46,
             819,
@@ -12417,6 +12653,7 @@
             384,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             224,
             819,
@@ -12478,6 +12715,7 @@
             576,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             427,
             819,
@@ -12539,6 +12777,7 @@
             768,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             611,
             819,
@@ -12600,6 +12839,7 @@
             192,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             42,
             819,
@@ -12661,6 +12901,7 @@
             384,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             226,
             819,
@@ -12722,6 +12963,7 @@
             576,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             419,
             819,
@@ -12783,6 +13025,7 @@
             768,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             612,
             819,
@@ -12844,6 +13087,7 @@
             192,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             61,
             819,
@@ -12905,6 +13149,7 @@
             384,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             244,
             819,
@@ -12966,6 +13211,7 @@
             576,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             435,
             819,
@@ -13027,6 +13273,7 @@
             768,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             629,
             819,
@@ -13088,6 +13335,7 @@
             192,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             61,
             819,
@@ -13150,6 +13398,7 @@
             384,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             244,
             819,
@@ -13212,6 +13461,7 @@
             576,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             435,
             819,
@@ -13274,6 +13524,7 @@
             768,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             629,
             819,
@@ -13336,6 +13587,7 @@
             192,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             62,
             819,
@@ -13397,6 +13649,7 @@
             384,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             248,
             819,
@@ -13458,6 +13711,7 @@
             576,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             428,
             819,
@@ -13519,6 +13773,7 @@
             768,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             606,
             819,
@@ -13580,6 +13835,7 @@
             192,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             62,
             819,
@@ -13642,6 +13898,7 @@
             384,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             248,
             819,
@@ -13704,6 +13961,7 @@
             576,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             428,
             819,
@@ -13766,6 +14024,7 @@
             768,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             606,
             819,
@@ -13828,6 +14087,7 @@
             192,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             61,
             819,
@@ -13889,6 +14149,7 @@
             384,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             227,
             837,
@@ -13950,6 +14211,7 @@
             576,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             429,
             819,
@@ -14011,6 +14273,7 @@
             768,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             628,
             819,
@@ -14072,6 +14335,7 @@
             192,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             61,
             819,
@@ -14134,6 +14398,7 @@
             384,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             227,
             837,
@@ -14196,6 +14461,7 @@
             576,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             429,
             819,
@@ -14258,6 +14524,7 @@
             768,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             628,
             819,
@@ -19624,6 +19891,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             57,
             57,
@@ -19685,6 +19953,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             240,
             59,
@@ -19746,6 +20015,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             422,
             61,
@@ -19807,6 +20077,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             609,
             56,
@@ -19868,6 +20139,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             60,
             41,
@@ -19929,6 +20201,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             236,
             45,
@@ -19990,6 +20263,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             435,
             45,
@@ -20051,6 +20325,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             635,
             46,
@@ -20112,6 +20387,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             80,
             53,
@@ -20173,6 +20449,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             192,
             55,
@@ -20234,6 +20511,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             384,
             55,
@@ -20295,6 +20573,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             625,
             56,
@@ -20356,6 +20635,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             80,
             53,
@@ -20418,6 +20698,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             192,
             55,
@@ -20480,6 +20761,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             384,
             55,
@@ -20542,6 +20824,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             625,
             56,
@@ -20604,6 +20887,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             63,
             43,
@@ -20665,6 +20949,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             258,
             46,
@@ -20726,6 +21011,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             442,
             43,
@@ -20787,6 +21073,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             630,
             43,
@@ -20848,6 +21135,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             63,
             43,
@@ -20910,6 +21198,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             258,
             46,
@@ -20972,6 +21261,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             442,
             43,
@@ -21034,6 +21324,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             630,
             43,
@@ -21096,6 +21387,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             61,
             41,
@@ -21157,6 +21449,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             253,
             47,
@@ -21218,6 +21511,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             451,
             44,
@@ -21279,6 +21573,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             647,
             47,
@@ -21340,6 +21635,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             61,
             41,
@@ -21402,6 +21698,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             253,
             47,
@@ -21464,6 +21761,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             451,
             44,
@@ -21526,6 +21824,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             647,
             47,
@@ -21588,6 +21887,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             57,
             57,
@@ -21649,6 +21949,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             240,
             59,
@@ -21710,6 +22011,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             422,
             61,
@@ -21771,6 +22073,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             609,
             56,
@@ -21832,6 +22135,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             60,
             41,
@@ -21893,6 +22197,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             236,
             45,
@@ -21954,6 +22259,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             435,
             45,
@@ -22015,6 +22321,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             635,
             46,
@@ -22076,6 +22383,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             80,
             53,
@@ -22137,6 +22445,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             192,
             55,
@@ -22198,6 +22507,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             384,
             55,
@@ -22259,6 +22569,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             625,
             56,
@@ -22320,6 +22631,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             80,
             53,
@@ -22382,6 +22694,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             192,
             55,
@@ -22444,6 +22757,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             384,
             55,
@@ -22506,6 +22820,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             625,
             56,
@@ -22568,6 +22883,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             63,
             43,
@@ -22629,6 +22945,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             258,
             46,
@@ -22690,6 +23007,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             442,
             43,
@@ -22751,6 +23069,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             630,
             43,
@@ -22812,6 +23131,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             63,
             43,
@@ -22874,6 +23194,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             258,
             46,
@@ -22936,6 +23257,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             442,
             43,
@@ -22998,6 +23320,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             630,
             43,
@@ -23060,6 +23383,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             61,
             41,
@@ -23121,6 +23445,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             253,
             47,
@@ -23182,6 +23507,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             451,
             44,
@@ -23243,6 +23569,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             647,
             47,
@@ -23304,6 +23631,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             61,
             41,
@@ -23366,6 +23694,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             253,
             47,
@@ -23428,6 +23757,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             451,
             44,
@@ -23490,6 +23820,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             647,
             47,
@@ -23552,6 +23883,7 @@
             192,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             55,
             433,
@@ -23613,6 +23945,7 @@
             384,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             241,
             422,
@@ -23674,6 +24007,7 @@
             576,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             430,
             433,
@@ -23735,6 +24069,7 @@
             768,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             622,
             433,
@@ -23796,6 +24131,7 @@
             960,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             810,
             425,
@@ -23857,6 +24193,7 @@
             1152,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             1000,
             424,
@@ -23918,6 +24255,7 @@
             192,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             51,
             411,
@@ -23979,6 +24317,7 @@
             384,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             237,
             412,
@@ -24040,6 +24379,7 @@
             576,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             431,
             412,
@@ -24101,6 +24441,7 @@
             768,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             624,
             409,
@@ -24162,6 +24503,7 @@
             960,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             809,
             409,
@@ -24223,6 +24565,7 @@
             1152,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             1002,
             409,
@@ -24284,6 +24627,7 @@
             192,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             70,
             431,
@@ -24345,6 +24689,7 @@
             384,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             192,
             428,
@@ -24406,6 +24751,7 @@
             576,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             431,
             439,
@@ -24467,6 +24813,7 @@
             768,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             609,
             431,
@@ -24528,6 +24875,7 @@
             960,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             796,
             431,
@@ -24589,6 +24937,7 @@
             1152,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             984,
             427,
@@ -24650,6 +24999,7 @@
             192,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             70,
             431,
@@ -24712,6 +25062,7 @@
             384,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             192,
             428,
@@ -24774,6 +25125,7 @@
             576,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             431,
             439,
@@ -24836,6 +25188,7 @@
             768,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             609,
             431,
@@ -24898,6 +25251,7 @@
             960,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             796,
             431,
@@ -24960,6 +25314,7 @@
             1152,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             984,
             427,
@@ -25022,6 +25377,7 @@
             192,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             75,
             424,
@@ -25083,6 +25439,7 @@
             384,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             260,
             429,
@@ -25144,6 +25501,7 @@
             576,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             442,
             415,
@@ -25205,6 +25563,7 @@
             768,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             625,
             418,
@@ -25266,6 +25625,7 @@
             960,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             805,
             421,
@@ -25327,6 +25687,7 @@
             1152,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             982,
             420,
@@ -25388,6 +25749,7 @@
             192,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             75,
             424,
@@ -25450,6 +25812,7 @@
             384,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             260,
             429,
@@ -25512,6 +25875,7 @@
             576,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             442,
             415,
@@ -25574,6 +25938,7 @@
             768,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             625,
             418,
@@ -25636,6 +26001,7 @@
             960,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             805,
             421,
@@ -25698,6 +26064,7 @@
             1152,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             982,
             420,
@@ -25760,6 +26127,7 @@
             192,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             46,
             421,
@@ -25821,6 +26189,7 @@
             384,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             244,
             430,
@@ -25882,6 +26251,7 @@
             576,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             440,
             416,
@@ -25943,6 +26313,7 @@
             768,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             627,
             409,
@@ -26004,6 +26375,7 @@
             960,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             816,
             412,
@@ -26065,6 +26437,7 @@
             1152,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             1002,
             411,
@@ -26126,6 +26499,7 @@
             192,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             46,
             421,
@@ -26188,6 +26562,7 @@
             384,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             244,
             430,
@@ -26250,6 +26625,7 @@
             576,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             440,
             416,
@@ -26312,6 +26688,7 @@
             768,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             627,
             409,
@@ -26374,6 +26751,7 @@
             960,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             816,
             412,
@@ -26436,6 +26814,7 @@
             1152,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             1002,
             411,
@@ -26498,6 +26877,7 @@
             192,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             55,
             624,
@@ -26559,6 +26939,7 @@
             384,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             242,
             620,
@@ -26620,6 +27001,7 @@
             576,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             430,
             622,
@@ -26681,6 +27063,7 @@
             768,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             622,
             624,
@@ -26742,6 +27125,7 @@
             960,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             810,
             622,
@@ -26803,6 +27187,7 @@
             1152,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             1001,
             621,
@@ -26864,6 +27249,7 @@
             192,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             46,
             614,
@@ -26925,6 +27311,7 @@
             384,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             229,
             614,
@@ -26986,6 +27373,7 @@
             576,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             421,
             614,
@@ -27047,6 +27435,7 @@
             768,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             610,
             614,
@@ -27108,6 +27497,7 @@
             960,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             802,
             614,
@@ -27169,6 +27559,7 @@
             1152,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             988,
             614,
@@ -27201,14 +27592,14 @@
         128
       ],
       "opaque_bounds": [
-        26,
+        20,
         2,
-        102,
+        108,
         128
       ],
       "opaque_foot_y": 128,
       "alpha": "binary",
-      "pixel_sha256": "0f2c37238a4a84b237fee171b49e5438d0d9ce4137007f7e6eb1c5c8fddde7e9",
+      "pixel_sha256": "5eabfd9c95dd91ac83dce5095394cd9899f00eeb05ea221e37a7a9657c26ee9c",
       "classification": "authored",
       "mirror_source": null,
       "lineage": {
@@ -27225,21 +27616,22 @@
             3
           ],
           "source_rect": [
-            0,
+            20,
             614,
-            192,
+            212,
             819
           ],
+          "source_window_override": true,
           "source_opaque_bounds": [
             70,
             616,
-            192,
+            211,
             819
           ],
           "opaque_bounds": [
-            26,
+            20,
             2,
-            102,
+            108,
             128
           ]
         }
@@ -27262,14 +27654,14 @@
         128
       ],
       "opaque_bounds": [
-        4,
+        21,
         2,
-        123,
+        106,
         128
       ],
       "opaque_foot_y": 128,
       "alpha": "binary",
-      "pixel_sha256": "a21a9426b9e25c21bda8cea5ec0747034c2e1f7405319d915ba1d5b777c39723",
+      "pixel_sha256": "0c0d63516ad3f208495a7444e4004f9e24cf62fc5ae50cb593bf142e2badbadf",
       "classification": "authored",
       "mirror_source": null,
       "lineage": {
@@ -27286,21 +27678,22 @@
             3
           ],
           "source_rect": [
-            192,
+            212,
             614,
-            384,
+            404,
             819
           ],
+          "source_window_override": true,
           "source_opaque_bounds": [
-            192,
+            260,
             616,
-            384,
+            397,
             819
           ],
           "opaque_bounds": [
-            4,
+            21,
             2,
-            123,
+            106,
             128
           ]
         }
@@ -27323,14 +27716,14 @@
         128
       ],
       "opaque_bounds": [
-        4,
+        17,
         2,
-        124,
+        110,
         128
       ],
       "opaque_foot_y": 128,
       "alpha": "binary",
-      "pixel_sha256": "72c86a28f7fc194e48e0e95f6c962baab5e1359ad3ab7f09022199d5b217c0b4",
+      "pixel_sha256": "eeb63fb738c22b37499a48723ffb2a71bd28ac6a0510834e97ae1cc572ecb763",
       "classification": "authored",
       "mirror_source": null,
       "lineage": {
@@ -27347,21 +27740,22 @@
             3
           ],
           "source_rect": [
-            384,
+            404,
             614,
-            576,
+            596,
             819
           ],
+          "source_window_override": true,
           "source_opaque_bounds": [
-            384,
+            439,
             618,
-            576,
+            587,
             819
           ],
           "opaque_bounds": [
-            4,
+            17,
             2,
-            124,
+            110,
             128
           ]
         }
@@ -27413,6 +27807,7 @@
             768,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             576,
             615,
@@ -27474,6 +27869,7 @@
             960,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             803,
             624,
@@ -27535,6 +27931,7 @@
             1152,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             992,
             621,
@@ -27567,14 +27964,14 @@
         128
       ],
       "opaque_bounds": [
-        26,
+        20,
         2,
-        102,
+        108,
         128
       ],
       "opaque_foot_y": 128,
       "alpha": "binary",
-      "pixel_sha256": "0ea01312db6e22876f0335ef2e2f2aaba80761be193f7feeb8607e455b885504",
+      "pixel_sha256": "f6db532612d2fcba92659bdc030b44fc2c9c159f85af4d52e0998512a12d297c",
       "classification": "derived",
       "mirror_source": "chr_archer_attack_execute_east_a_v002",
       "lineage": {
@@ -27591,21 +27988,22 @@
             3
           ],
           "source_rect": [
-            0,
+            20,
             614,
-            192,
+            212,
             819
           ],
+          "source_window_override": true,
           "source_opaque_bounds": [
             70,
             616,
-            192,
+            211,
             819
           ],
           "opaque_bounds": [
-            26,
+            20,
             2,
-            102,
+            108,
             128
           ]
         },
@@ -27629,14 +28027,14 @@
         128
       ],
       "opaque_bounds": [
-        5,
+        22,
         2,
-        124,
+        107,
         128
       ],
       "opaque_foot_y": 128,
       "alpha": "binary",
-      "pixel_sha256": "10b23e9c9d60279f623b604ef83f624fdd91b8a09ca470a0d85ccf344019af15",
+      "pixel_sha256": "692d56e494b581deaec44cfada7ee0a88eea993a73c7f9688cbbb2398f0540fe",
       "classification": "derived",
       "mirror_source": "chr_archer_attack_execute_east_b_v002",
       "lineage": {
@@ -27653,21 +28051,22 @@
             3
           ],
           "source_rect": [
-            192,
+            212,
             614,
-            384,
+            404,
             819
           ],
+          "source_window_override": true,
           "source_opaque_bounds": [
-            192,
+            260,
             616,
-            384,
+            397,
             819
           ],
           "opaque_bounds": [
-            4,
+            21,
             2,
-            123,
+            106,
             128
           ]
         },
@@ -27691,14 +28090,14 @@
         128
       ],
       "opaque_bounds": [
-        4,
+        18,
         2,
-        124,
+        111,
         128
       ],
       "opaque_foot_y": 128,
       "alpha": "binary",
-      "pixel_sha256": "d4115ec86aa8933bcefc07d274a6782ca4a37b30b3064e9e92603d0b914e38d9",
+      "pixel_sha256": "b03359ea30d87f52aa87807a5b3a157d540f905203948a7906a0d421426cad5f",
       "classification": "derived",
       "mirror_source": "chr_archer_attack_execute_east_c_v002",
       "lineage": {
@@ -27715,21 +28114,22 @@
             3
           ],
           "source_rect": [
-            384,
+            404,
             614,
-            576,
+            596,
             819
           ],
+          "source_window_override": true,
           "source_opaque_bounds": [
-            384,
+            439,
             618,
-            576,
+            587,
             819
           ],
           "opaque_bounds": [
-            4,
+            17,
             2,
-            124,
+            110,
             128
           ]
         },
@@ -27782,6 +28182,7 @@
             768,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             576,
             615,
@@ -27844,6 +28245,7 @@
             960,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             803,
             624,
@@ -27906,6 +28308,7 @@
             1152,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             992,
             621,
@@ -27939,14 +28342,14 @@
         128
       ],
       "opaque_bounds": [
-        25,
+        24,
         2,
         103,
         128
       ],
       "opaque_foot_y": 128,
       "alpha": "binary",
-      "pixel_sha256": "2f2d1db33198ca5b0721f6a9569faddd3c5f42e2eb22ee9488a388a158ac7de5",
+      "pixel_sha256": "dbfa33b9f2f9137123ca3f497bb17372686723a94012b7eb0997c5567a86d624",
       "classification": "authored",
       "mirror_source": null,
       "lineage": {
@@ -27963,19 +28366,20 @@
             3
           ],
           "source_rect": [
-            0,
+            20,
             614,
-            192,
+            212,
             819
           ],
+          "source_window_override": true,
           "source_opaque_bounds": [
             67,
             617,
-            192,
+            193,
             819
           ],
           "opaque_bounds": [
-            25,
+            24,
             2,
             103,
             128
@@ -28000,14 +28404,14 @@
         128
       ],
       "opaque_bounds": [
-        3,
+        24,
         2,
-        125,
+        104,
         128
       ],
       "opaque_foot_y": 128,
       "alpha": "binary",
-      "pixel_sha256": "0f76920d379dae4bef83568b182f32547ea52e8589207515f98950a94881f45b",
+      "pixel_sha256": "90a7f9b193d20ffd4800b795a9bfc33394232b0dfc1da263aa76dd71ad5d1c7a",
       "classification": "authored",
       "mirror_source": null,
       "lineage": {
@@ -28024,21 +28428,22 @@
             3
           ],
           "source_rect": [
-            192,
+            212,
             614,
-            384,
+            404,
             819
           ],
+          "source_window_override": true,
           "source_opaque_bounds": [
-            192,
+            258,
             620,
-            384,
+            385,
             819
           ],
           "opaque_bounds": [
-            3,
+            24,
             2,
-            125,
+            104,
             128
           ]
         }
@@ -28061,14 +28466,14 @@
         128
       ],
       "opaque_bounds": [
-        3,
+        23,
         2,
-        125,
+        105,
         128
       ],
       "opaque_foot_y": 128,
       "alpha": "binary",
-      "pixel_sha256": "57b5ba92776fff613c2ea75483ee092d3344e7fd4bdfa24cd12f9d10b0287805",
+      "pixel_sha256": "a7d6ca4d225f2bcbae6bb395f053e13ff8f760f66cf2023455d897262a45c587",
       "classification": "authored",
       "mirror_source": null,
       "lineage": {
@@ -28085,21 +28490,22 @@
             3
           ],
           "source_rect": [
-            384,
+            404,
             614,
-            576,
+            596,
             819
           ],
+          "source_window_override": true,
           "source_opaque_bounds": [
-            384,
+            448,
             620,
-            576,
+            577,
             819
           ],
           "opaque_bounds": [
-            3,
+            23,
             2,
-            125,
+            105,
             128
           ]
         }
@@ -28151,6 +28557,7 @@
             768,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             576,
             622,
@@ -28212,6 +28619,7 @@
             960,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             798,
             622,
@@ -28273,6 +28681,7 @@
             1152,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             984,
             622,
@@ -28307,12 +28716,12 @@
       "opaque_bounds": [
         25,
         2,
-        103,
+        104,
         128
       ],
       "opaque_foot_y": 128,
       "alpha": "binary",
-      "pixel_sha256": "b22631d69be816c443da01da40b4cf614f1dd9e599e8df55d9f9196863530870",
+      "pixel_sha256": "cd60ab4a3982adf9b9bb8e8c072c91d32ff71dbd0b29046d308d2241f8439a98",
       "classification": "derived",
       "mirror_source": "chr_archer_attack_execute_southeast_a_v002",
       "lineage": {
@@ -28329,19 +28738,20 @@
             3
           ],
           "source_rect": [
-            0,
+            20,
             614,
-            192,
+            212,
             819
           ],
+          "source_window_override": true,
           "source_opaque_bounds": [
             67,
             617,
-            192,
+            193,
             819
           ],
           "opaque_bounds": [
-            25,
+            24,
             2,
             103,
             128
@@ -28367,14 +28777,14 @@
         128
       ],
       "opaque_bounds": [
-        3,
+        24,
         2,
-        125,
+        104,
         128
       ],
       "opaque_foot_y": 128,
       "alpha": "binary",
-      "pixel_sha256": "cb349077e0d649d6223aa2e0720cb3a423530719722b77475ce082da82b944c0",
+      "pixel_sha256": "487a68e75812c488772fe67a6e4b7646547ae31377c74431d15ee1cfd72a8aba",
       "classification": "derived",
       "mirror_source": "chr_archer_attack_execute_southeast_b_v002",
       "lineage": {
@@ -28391,21 +28801,22 @@
             3
           ],
           "source_rect": [
-            192,
+            212,
             614,
-            384,
+            404,
             819
           ],
+          "source_window_override": true,
           "source_opaque_bounds": [
-            192,
+            258,
             620,
-            384,
+            385,
             819
           ],
           "opaque_bounds": [
-            3,
+            24,
             2,
-            125,
+            104,
             128
           ]
         },
@@ -28429,14 +28840,14 @@
         128
       ],
       "opaque_bounds": [
-        3,
+        23,
         2,
-        125,
+        105,
         128
       ],
       "opaque_foot_y": 128,
       "alpha": "binary",
-      "pixel_sha256": "27b5d14f1d247a81cc67c68493eb49af4155512f6cdf2f41415e8a9254fc4085",
+      "pixel_sha256": "b98a993d5986dc399cff948eacb4c5ae8cb6b8f8daf4b27119528e413a5f9f86",
       "classification": "derived",
       "mirror_source": "chr_archer_attack_execute_southeast_c_v002",
       "lineage": {
@@ -28453,21 +28864,22 @@
             3
           ],
           "source_rect": [
-            384,
+            404,
             614,
-            576,
+            596,
             819
           ],
+          "source_window_override": true,
           "source_opaque_bounds": [
-            384,
+            448,
             620,
-            576,
+            577,
             819
           ],
           "opaque_bounds": [
-            3,
+            23,
             2,
-            125,
+            105,
             128
           ]
         },
@@ -28520,6 +28932,7 @@
             768,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             576,
             622,
@@ -28582,6 +28995,7 @@
             960,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             798,
             622,
@@ -28644,6 +29058,7 @@
             1152,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             984,
             622,
@@ -28706,6 +29121,7 @@
             192,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             42,
             614,
@@ -28767,6 +29183,7 @@
             384,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             235,
             614,
@@ -28828,6 +29245,7 @@
             576,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             431,
             614,
@@ -28889,6 +29307,7 @@
             768,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             624,
             614,
@@ -28950,6 +29369,7 @@
             960,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             814,
             614,
@@ -29011,6 +29431,7 @@
             1152,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             1000,
             614,
@@ -29072,6 +29493,7 @@
             192,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             42,
             614,
@@ -29134,6 +29556,7 @@
             384,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             235,
             614,
@@ -29196,6 +29619,7 @@
             576,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             431,
             614,
@@ -29258,6 +29682,7 @@
             768,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             624,
             614,
@@ -29320,6 +29745,7 @@
             960,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             814,
             614,
@@ -29382,6 +29808,7 @@
             1152,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             1000,
             614,
@@ -29444,6 +29871,7 @@
             192,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             57,
             819,
@@ -29505,6 +29933,7 @@
             384,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             239,
             819,
@@ -29566,6 +29995,7 @@
             576,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             425,
             819,
@@ -29627,6 +30057,7 @@
             768,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             611,
             819,
@@ -29688,6 +30119,7 @@
             192,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             55,
             819,
@@ -29749,6 +30181,7 @@
             384,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             245,
             819,
@@ -29810,6 +30243,7 @@
             576,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             436,
             819,
@@ -29871,6 +30305,7 @@
             768,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             628,
             819,
@@ -29932,6 +30367,7 @@
             192,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             86,
             819,
@@ -29993,6 +30429,7 @@
             384,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             192,
             819,
@@ -30054,6 +30491,7 @@
             576,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             451,
             819,
@@ -30115,6 +30553,7 @@
             768,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             631,
             819,
@@ -30176,6 +30615,7 @@
             192,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             86,
             819,
@@ -30238,6 +30678,7 @@
             384,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             192,
             819,
@@ -30300,6 +30741,7 @@
             576,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             451,
             819,
@@ -30362,6 +30804,7 @@
             768,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             631,
             819,
@@ -30424,6 +30867,7 @@
             192,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             68,
             819,
@@ -30485,6 +30929,7 @@
             384,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             248,
             819,
@@ -30546,6 +30991,7 @@
             576,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             442,
             819,
@@ -30607,6 +31053,7 @@
             768,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             629,
             819,
@@ -30668,6 +31115,7 @@
             192,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             68,
             819,
@@ -30730,6 +31178,7 @@
             384,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             248,
             819,
@@ -30792,6 +31241,7 @@
             576,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             442,
             819,
@@ -30854,6 +31304,7 @@
             768,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             629,
             819,
@@ -30916,6 +31367,7 @@
             192,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             46,
             819,
@@ -30977,6 +31429,7 @@
             384,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             243,
             819,
@@ -31038,6 +31491,7 @@
             576,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             439,
             819,
@@ -31099,6 +31553,7 @@
             768,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             639,
             819,
@@ -31160,6 +31615,7 @@
             192,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             46,
             819,
@@ -31222,6 +31678,7 @@
             384,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             243,
             819,
@@ -31284,6 +31741,7 @@
             576,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             439,
             819,
@@ -31346,6 +31804,7 @@
             768,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             639,
             819,
@@ -36712,6 +37171,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             97,
             94,
@@ -36773,6 +37233,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             192,
             92,
@@ -36834,6 +37295,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             384,
             97,
@@ -36895,6 +37357,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             645,
             97,
@@ -36956,6 +37419,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             100,
             68,
@@ -37017,6 +37481,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             192,
             68,
@@ -37078,6 +37543,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             463,
             69,
@@ -37139,6 +37605,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             640,
             68,
@@ -37200,6 +37667,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             104,
             83,
@@ -37261,6 +37729,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             275,
             84,
@@ -37322,6 +37791,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             458,
             83,
@@ -37383,6 +37853,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             642,
             86,
@@ -37444,6 +37915,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             104,
             83,
@@ -37506,6 +37978,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             275,
             84,
@@ -37568,6 +38041,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             458,
             83,
@@ -37630,6 +38104,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             642,
             86,
@@ -37692,6 +38167,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             86,
             62,
@@ -37753,6 +38229,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             273,
             62,
@@ -37814,6 +38291,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             467,
             62,
@@ -37875,6 +38353,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             657,
             62,
@@ -37936,6 +38415,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             86,
             62,
@@ -37998,6 +38478,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             273,
             62,
@@ -38060,6 +38541,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             467,
             62,
@@ -38122,6 +38604,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             657,
             62,
@@ -38184,6 +38667,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             98,
             76,
@@ -38245,6 +38729,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             282,
             74,
@@ -38306,6 +38791,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             465,
             75,
@@ -38367,6 +38853,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             654,
             74,
@@ -38428,6 +38915,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             98,
             76,
@@ -38490,6 +38978,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             282,
             74,
@@ -38552,6 +39041,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             465,
             75,
@@ -38614,6 +39104,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             654,
             74,
@@ -38676,6 +39167,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             97,
             94,
@@ -38737,6 +39229,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             192,
             92,
@@ -38798,6 +39291,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             384,
             97,
@@ -38859,6 +39353,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             645,
             97,
@@ -38920,6 +39415,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             100,
             68,
@@ -38981,6 +39477,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             192,
             68,
@@ -39042,6 +39539,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             463,
             69,
@@ -39103,6 +39601,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             640,
             68,
@@ -39164,6 +39663,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             104,
             83,
@@ -39225,6 +39725,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             275,
             84,
@@ -39286,6 +39787,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             458,
             83,
@@ -39347,6 +39849,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             642,
             86,
@@ -39408,6 +39911,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             104,
             83,
@@ -39470,6 +39974,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             275,
             84,
@@ -39532,6 +40037,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             458,
             83,
@@ -39594,6 +40100,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             642,
             86,
@@ -39656,6 +40163,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             86,
             62,
@@ -39717,6 +40225,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             273,
             62,
@@ -39778,6 +40287,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             467,
             62,
@@ -39839,6 +40349,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             657,
             62,
@@ -39900,6 +40411,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             86,
             62,
@@ -39962,6 +40474,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             273,
             62,
@@ -40024,6 +40537,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             467,
             62,
@@ -40086,6 +40600,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             657,
             62,
@@ -40148,6 +40663,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             98,
             76,
@@ -40209,6 +40725,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             282,
             74,
@@ -40270,6 +40787,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             465,
             75,
@@ -40331,6 +40849,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             654,
             74,
@@ -40392,6 +40911,7 @@
             192,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             98,
             76,
@@ -40454,6 +40974,7 @@
             384,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             282,
             74,
@@ -40516,6 +41037,7 @@
             576,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             465,
             75,
@@ -40578,6 +41100,7 @@
             768,
             204
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             654,
             74,
@@ -40640,6 +41163,7 @@
             192,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             97,
             409,
@@ -40701,6 +41225,7 @@
             384,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             192,
             409,
@@ -40762,6 +41287,7 @@
             576,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             384,
             409,
@@ -40823,6 +41349,7 @@
             768,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             637,
             409,
@@ -40884,6 +41411,7 @@
             960,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             807,
             409,
@@ -40945,6 +41473,7 @@
             1152,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             994,
             409,
@@ -41006,6 +41535,7 @@
             192,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             98,
             440,
@@ -41067,6 +41597,7 @@
             384,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             192,
             438,
@@ -41128,6 +41659,7 @@
             576,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             384,
             444,
@@ -41189,6 +41721,7 @@
             768,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             638,
             441,
@@ -41250,6 +41783,7 @@
             960,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             825,
             436,
@@ -41311,6 +41845,7 @@
             1152,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             997,
             447,
@@ -41372,6 +41907,7 @@
             192,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             91,
             440,
@@ -41433,6 +41969,7 @@
             384,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             270,
             439,
@@ -41494,6 +42031,7 @@
             576,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             442,
             438,
@@ -41555,6 +42093,7 @@
             768,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             625,
             442,
@@ -41616,6 +42155,7 @@
             960,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             802,
             441,
@@ -41677,6 +42217,7 @@
             1152,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             996,
             442,
@@ -41738,6 +42279,7 @@
             192,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             91,
             440,
@@ -41800,6 +42342,7 @@
             384,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             270,
             439,
@@ -41862,6 +42405,7 @@
             576,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             442,
             438,
@@ -41924,6 +42468,7 @@
             768,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             625,
             442,
@@ -41986,6 +42531,7 @@
             960,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             802,
             441,
@@ -42048,6 +42594,7 @@
             1152,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             996,
             442,
@@ -42110,6 +42657,7 @@
             192,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             86,
             430,
@@ -42171,6 +42719,7 @@
             384,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             267,
             434,
@@ -42232,6 +42781,7 @@
             576,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             452,
             455,
@@ -42293,6 +42843,7 @@
             768,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             638,
             455,
@@ -42354,6 +42905,7 @@
             960,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             817,
             452,
@@ -42415,6 +42967,7 @@
             1152,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             1005,
             451,
@@ -42476,6 +43029,7 @@
             192,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             86,
             430,
@@ -42538,6 +43092,7 @@
             384,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             267,
             434,
@@ -42600,6 +43155,7 @@
             576,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             452,
             455,
@@ -42662,6 +43218,7 @@
             768,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             638,
             455,
@@ -42724,6 +43281,7 @@
             960,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             817,
             452,
@@ -42786,6 +43344,7 @@
             1152,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             1005,
             451,
@@ -42848,6 +43407,7 @@
             192,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             101,
             455,
@@ -42909,6 +43469,7 @@
             384,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             282,
             454,
@@ -42970,6 +43531,7 @@
             576,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             459,
             455,
@@ -43031,6 +43593,7 @@
             768,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             634,
             455,
@@ -43092,6 +43655,7 @@
             960,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             823,
             455,
@@ -43153,6 +43717,7 @@
             1152,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             1002,
             455,
@@ -43214,6 +43779,7 @@
             192,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             101,
             455,
@@ -43276,6 +43842,7 @@
             384,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             282,
             454,
@@ -43338,6 +43905,7 @@
             576,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             459,
             455,
@@ -43400,6 +43968,7 @@
             768,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             634,
             455,
@@ -43462,6 +44031,7 @@
             960,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             823,
             455,
@@ -43524,6 +44094,7 @@
             1152,
             614
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             1002,
             455,
@@ -43586,6 +44157,7 @@
             192,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             88,
             641,
@@ -43647,6 +44219,7 @@
             384,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             192,
             642,
@@ -43708,6 +44281,7 @@
             576,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             384,
             643,
@@ -43769,6 +44343,7 @@
             768,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             576,
             647,
@@ -43830,6 +44405,7 @@
             960,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             812,
             639,
@@ -43891,6 +44467,7 @@
             1152,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             984,
             642,
@@ -43952,6 +44529,7 @@
             192,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             89,
             624,
@@ -44013,6 +44591,7 @@
             384,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             192,
             626,
@@ -44074,6 +44653,7 @@
             576,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             384,
             625,
@@ -44135,6 +44715,7 @@
             768,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             576,
             625,
@@ -44196,6 +44777,7 @@
             960,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             810,
             625,
@@ -44257,6 +44839,7 @@
             1152,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             1005,
             624,
@@ -44318,6 +44901,7 @@
             192,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             76,
             619,
@@ -44379,6 +44963,7 @@
             384,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             192,
             619,
@@ -44440,6 +45025,7 @@
             576,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             441,
             618,
@@ -44501,6 +45087,7 @@
             768,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             631,
             619,
@@ -44562,6 +45149,7 @@
             960,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             768,
             620,
@@ -44623,6 +45211,7 @@
             1152,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             991,
             622,
@@ -44684,6 +45273,7 @@
             192,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             76,
             619,
@@ -44746,6 +45336,7 @@
             384,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             192,
             619,
@@ -44808,6 +45399,7 @@
             576,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             441,
             618,
@@ -44870,6 +45462,7 @@
             768,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             631,
             619,
@@ -44932,6 +45525,7 @@
             960,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             768,
             620,
@@ -44994,6 +45588,7 @@
             1152,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             991,
             622,
@@ -45056,6 +45651,7 @@
             192,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             75,
             624,
@@ -45117,6 +45713,7 @@
             384,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             192,
             632,
@@ -45178,6 +45775,7 @@
             576,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             384,
             626,
@@ -45239,6 +45837,7 @@
             768,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             576,
             624,
@@ -45300,6 +45899,7 @@
             960,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             768,
             635,
@@ -45361,6 +45961,7 @@
             1152,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             960,
             630,
@@ -45422,6 +46023,7 @@
             192,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             75,
             624,
@@ -45484,6 +46086,7 @@
             384,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             192,
             632,
@@ -45546,6 +46149,7 @@
             576,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             384,
             626,
@@ -45608,6 +46212,7 @@
             768,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             576,
             624,
@@ -45670,6 +46275,7 @@
             960,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             768,
             635,
@@ -45732,6 +46338,7 @@
             1152,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             960,
             630,
@@ -45794,6 +46401,7 @@
             192,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             96,
             631,
@@ -45855,6 +46463,7 @@
             384,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             268,
             637,
@@ -45916,6 +46525,7 @@
             576,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             384,
             634,
@@ -45977,6 +46587,7 @@
             768,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             632,
             632,
@@ -46038,6 +46649,7 @@
             960,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             810,
             632,
@@ -46099,6 +46711,7 @@
             1152,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             988,
             630,
@@ -46160,6 +46773,7 @@
             192,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             96,
             631,
@@ -46222,6 +46836,7 @@
             384,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             268,
             637,
@@ -46284,6 +46899,7 @@
             576,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             384,
             634,
@@ -46346,6 +46962,7 @@
             768,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             632,
             632,
@@ -46408,6 +47025,7 @@
             960,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             810,
             632,
@@ -46470,6 +47088,7 @@
             1152,
             819
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             988,
             630,
@@ -46532,6 +47151,7 @@
             192,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             93,
             819,
@@ -46593,6 +47213,7 @@
             384,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             192,
             819,
@@ -46654,6 +47275,7 @@
             576,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             455,
             819,
@@ -46715,6 +47337,7 @@
             768,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             633,
             819,
@@ -46776,6 +47399,7 @@
             192,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             97,
             819,
@@ -46837,6 +47461,7 @@
             384,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             192,
             819,
@@ -46898,6 +47523,7 @@
             576,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             468,
             819,
@@ -46959,6 +47585,7 @@
             768,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             643,
             819,
@@ -47020,6 +47647,7 @@
             192,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             88,
             819,
@@ -47081,6 +47709,7 @@
             384,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             274,
             819,
@@ -47142,6 +47771,7 @@
             576,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             457,
             819,
@@ -47203,6 +47833,7 @@
             768,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             645,
             819,
@@ -47264,6 +47895,7 @@
             192,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             88,
             819,
@@ -47326,6 +47958,7 @@
             384,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             274,
             819,
@@ -47388,6 +48021,7 @@
             576,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             457,
             819,
@@ -47450,6 +48084,7 @@
             768,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             645,
             819,
@@ -47512,6 +48147,7 @@
             192,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             85,
             819,
@@ -47573,6 +48209,7 @@
             384,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             277,
             819,
@@ -47634,6 +48271,7 @@
             576,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             458,
             819,
@@ -47695,6 +48333,7 @@
             768,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             662,
             819,
@@ -47756,6 +48395,7 @@
             192,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             85,
             819,
@@ -47818,6 +48458,7 @@
             384,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             277,
             819,
@@ -47880,6 +48521,7 @@
             576,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             458,
             819,
@@ -47942,6 +48584,7 @@
             768,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             662,
             819,
@@ -48004,6 +48647,7 @@
             192,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             97,
             819,
@@ -48065,6 +48709,7 @@
             384,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             275,
             819,
@@ -48126,6 +48771,7 @@
             576,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             456,
             819,
@@ -48187,6 +48833,7 @@
             768,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             643,
             819,
@@ -48248,6 +48895,7 @@
             192,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             97,
             819,
@@ -48310,6 +48958,7 @@
             384,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             275,
             819,
@@ -48372,6 +49021,7 @@
             576,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             456,
             819,
@@ -48434,6 +49084,7 @@
             768,
             1024
           ],
+          "source_window_override": false,
           "source_opaque_bounds": [
             643,
             819,
