@@ -83,7 +83,7 @@ namespace Overbless.Editor.Bootstrap
         {
             new AtlasSpec("player", "v001", 6, PlayerStates),
             new AtlasSpec("dasher", "v002", 8, MajorEnemyStates),
-            new AtlasSpec("archer", "v002", 8, MajorEnemyStates),
+            new AtlasSpec("archer", "v002", 8, MajorEnemyStates, true),
             new AtlasSpec("minion", "v002", 8, MinionStates)
         };
 
@@ -94,7 +94,7 @@ namespace Overbless.Editor.Bootstrap
             for (var index = 0; index < Atlases.Length; index++)
             {
                 var spec = Atlases[index];
-                ConfigureAtlasImporter(spec);
+                ConfigureSpriteImporters(spec);
                 sets.Add(spec.Role, CreateAnimationSet(spec));
             }
 
@@ -113,6 +113,20 @@ namespace Overbless.Editor.Bootstrap
                 sets["dasher"],
                 sets["archer"],
                 sets["minion"]);
+        }
+
+        private static void ConfigureSpriteImporters(AtlasSpec spec)
+        {
+            if (!spec.UsesMotionSheets)
+            {
+                ConfigureAtlasImporter(spec);
+                return;
+            }
+
+            for (var stateIndex = 0; stateIndex < spec.States.Length; stateIndex++)
+            {
+                ConfigureMotionSheetImporter(spec, spec.States[stateIndex]);
+            }
         }
 
         private static void ConfigureAtlasImporter(AtlasSpec spec)
@@ -162,6 +176,53 @@ namespace Overbless.Editor.Bootstrap
             }
         }
 
+        private static void ConfigureMotionSheetImporter(AtlasSpec spec, StateSpec state)
+        {
+            var motionPath = spec.MotionPath(state);
+            AssetDatabase.ImportAsset(motionPath, ImportAssetOptions.ForceSynchronousImport);
+            var importer = AssetImporter.GetAtPath(motionPath) as TextureImporter;
+            if (importer == null)
+            {
+                throw new InvalidOperationException($"Animation motion sheet '{motionPath}' is missing or has no TextureImporter.");
+            }
+
+            importer.textureType = TextureImporterType.Sprite;
+            importer.spriteImportMode = SpriteImportMode.Multiple;
+            importer.spritePixelsPerUnit = CellSize;
+            importer.filterMode = FilterMode.Point;
+            importer.mipmapEnabled = false;
+            importer.streamingMipmaps = false;
+            importer.textureCompression = TextureImporterCompression.Uncompressed;
+            importer.crunchedCompression = false;
+            importer.wrapMode = TextureWrapMode.Clamp;
+            importer.alphaIsTransparency = true;
+            importer.sRGBTexture = true;
+            importer.isReadable = false;
+            importer.npotScale = TextureImporterNPOTScale.None;
+            importer.maxTextureSize = 8192;
+
+            var settings = new TextureImporterSettings();
+            importer.ReadTextureSettings(settings);
+            settings.spriteMeshType = SpriteMeshType.FullRect;
+            settings.spriteExtrude = 0;
+            settings.spriteAlignment = (int)SpriteAlignment.Custom;
+            settings.spritePivot = new Vector2(0.5f, 0f);
+            importer.SetTextureSettings(settings);
+
+#pragma warning disable CS0618
+            importer.spritesheet = BuildMotionMetadata(spec, state);
+#pragma warning restore CS0618
+            importer.SaveAndReimport();
+
+            var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(motionPath);
+            var expectedWidth = CellSize * state.FrameCount * Directions.Length;
+            if (texture == null || texture.width != expectedWidth || texture.height != CellSize)
+            {
+                throw new InvalidOperationException(
+                    $"Animation motion sheet '{motionPath}' must be {expectedWidth}x{CellSize}.");
+            }
+        }
+
         private static SpriteMetaData[] BuildMetadata(AtlasSpec spec)
         {
             var metadata = new List<SpriteMetaData>();
@@ -191,9 +252,31 @@ namespace Overbless.Editor.Bootstrap
             return metadata.ToArray();
         }
 
+        private static SpriteMetaData[] BuildMotionMetadata(AtlasSpec spec, StateSpec state)
+        {
+            var metadata = new List<SpriteMetaData>();
+            for (var directionIndex = 0; directionIndex < Directions.Length; directionIndex++)
+            {
+                var direction = Directions[directionIndex];
+                for (var frameIndex = 0; frameIndex < state.FrameCount; frameIndex++)
+                {
+                    metadata.Add(new SpriteMetaData
+                    {
+                        name = FrameName(spec.Role, state.Name, direction.Name, frameIndex, spec.Version),
+                        rect = new Rect((directionIndex * state.FrameCount + frameIndex) * CellSize, 0, CellSize, CellSize),
+                        alignment = (int)SpriteAlignment.Custom,
+                        pivot = new Vector2(0.5f, 0f),
+                        border = Vector4.zero
+                    });
+                }
+            }
+
+            return metadata.ToArray();
+        }
+
         private static DirectionalAnimationSet CreateAnimationSet(AtlasSpec spec)
         {
-            var sprites = LoadSpritesByName(spec.AtlasPath);
+            var sprites = LoadSpritesByName(spec);
             var assetPath = AnimationSetPath(spec.Role);
             var set = AssetDatabase.LoadAssetAtPath<DirectionalAnimationSet>(assetPath);
             if (set == null)
@@ -295,20 +378,25 @@ namespace Overbless.Editor.Bootstrap
             return $"{DataRoot}/{UppercaseFirst(role)}DirectionalAnimationSet.asset";
         }
 
-        private static Dictionary<string, Sprite> LoadSpritesByName(string atlasPath)
+        private static Dictionary<string, Sprite> LoadSpritesByName(AtlasSpec spec)
         {
             var result = new Dictionary<string, Sprite>(StringComparer.Ordinal);
-            var assets = AssetDatabase.LoadAllAssetsAtPath(atlasPath);
-            for (var index = 0; index < assets.Length; index++)
+            var spritePaths = spec.UsesMotionSheets ? spec.MotionPaths() : new[] { spec.AtlasPath };
+            for (var pathIndex = 0; pathIndex < spritePaths.Length; pathIndex++)
             {
-                if (!(assets[index] is Sprite sprite))
+                var spritePath = spritePaths[pathIndex];
+                var assets = AssetDatabase.LoadAllAssetsAtPath(spritePath);
+                for (var index = 0; index < assets.Length; index++)
                 {
-                    continue;
-                }
+                    if (!(assets[index] is Sprite sprite))
+                    {
+                        continue;
+                    }
 
-                if (!result.TryAdd(sprite.name, sprite))
-                {
-                    throw new InvalidOperationException($"Animation atlas '{atlasPath}' contains duplicate sprite '{sprite.name}'.");
+                    if (!result.TryAdd(sprite.name, sprite))
+                    {
+                        throw new InvalidOperationException($"Animation source '{spritePath}' contains duplicate sprite '{sprite.name}'.");
+                    }
                 }
             }
 
@@ -384,19 +472,32 @@ namespace Overbless.Editor.Bootstrap
 
         private readonly struct AtlasSpec
         {
-            public AtlasSpec(string role, string version, int maxFrames, StateSpec[] states)
+            public AtlasSpec(string role, string version, int maxFrames, StateSpec[] states, bool usesMotionSheets = false)
             {
                 Role = role;
                 Version = version;
                 MaxFrames = maxFrames;
                 States = states;
+                UsesMotionSheets = usesMotionSheets;
             }
 
             public string Role { get; }
             public string Version { get; }
             public int MaxFrames { get; }
             public StateSpec[] States { get; }
+            public bool UsesMotionSheets { get; }
             public string AtlasPath => $"{AtlasRoot}/chr_{Role}_animation_atlas_{Version}.png";
+            public string MotionPath(StateSpec state) => $"{AtlasRoot}/Motions/chr_{Role}_{state.Name}_motion_{Version}.png";
+            public string[] MotionPaths()
+            {
+                var paths = new string[States.Length];
+                for (var stateIndex = 0; stateIndex < States.Length; stateIndex++)
+                {
+                    paths[stateIndex] = MotionPath(States[stateIndex]);
+                }
+
+                return paths;
+            }
         }
     }
 }
