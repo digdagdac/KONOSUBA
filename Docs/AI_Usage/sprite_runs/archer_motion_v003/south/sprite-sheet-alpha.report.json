@@ -1,0 +1,608 @@
+{
+  "ok": true,
+  "engine": "component-row",
+  "curation_applied": false,
+  "errors": [],
+  "atlas": "sprite-sheet-alpha.png",
+  "manifest": "manifest.json",
+  "cell": {
+    "shape": "square",
+    "width": 128,
+    "height": 128,
+    "safe_margin_x": 6,
+    "safe_margin_y": 6,
+    "size": 128,
+    "safe_margin": 6
+  },
+  "states": [
+    "idle",
+    "walk",
+    "run",
+    "attack_charge",
+    "attack_execute",
+    "recover",
+    "hit",
+    "death"
+  ],
+  "cells": [
+    {
+      "state": "idle",
+      "frame": 0,
+      "nontransparent_pixels": 5817,
+      "x": 0,
+      "y": 0,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "state": "idle",
+      "frame": 1,
+      "nontransparent_pixels": 5708,
+      "x": 128,
+      "y": 0,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "state": "idle",
+      "frame": 2,
+      "nontransparent_pixels": 5602,
+      "x": 256,
+      "y": 0,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "state": "idle",
+      "frame": 3,
+      "nontransparent_pixels": 5632,
+      "x": 384,
+      "y": 0,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "state": "walk",
+      "frame": 0,
+      "nontransparent_pixels": 5728,
+      "x": 0,
+      "y": 128,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "state": "walk",
+      "frame": 1,
+      "nontransparent_pixels": 5145,
+      "x": 128,
+      "y": 128,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "state": "walk",
+      "frame": 2,
+      "nontransparent_pixels": 5770,
+      "x": 256,
+      "y": 128,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "state": "walk",
+      "frame": 3,
+      "nontransparent_pixels": 5197,
+      "x": 384,
+      "y": 128,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "state": "run",
+      "frame": 0,
+      "nontransparent_pixels": 5611,
+      "x": 0,
+      "y": 256,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "state": "run",
+      "frame": 1,
+      "nontransparent_pixels": 5372,
+      "x": 128,
+      "y": 256,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "state": "run",
+      "frame": 2,
+      "nontransparent_pixels": 5202,
+      "x": 256,
+      "y": 256,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "state": "run",
+      "frame": 3,
+      "nontransparent_pixels": 5357,
+      "x": 384,
+      "y": 256,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "state": "attack_charge",
+      "frame": 0,
+      "nontransparent_pixels": 5510,
+      "x": 0,
+      "y": 384,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "state": "attack_charge",
+      "frame": 1,
+      "nontransparent_pixels": 4682,
+      "x": 128,
+      "y": 384,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "state": "attack_charge",
+      "frame": 2,
+      "nontransparent_pixels": 4722,
+      "x": 256,
+      "y": 384,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "state": "attack_charge",
+      "frame": 3,
+      "nontransparent_pixels": 4637,
+      "x": 384,
+      "y": 384,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "state": "attack_charge",
+      "frame": 4,
+      "nontransparent_pixels": 4798,
+      "x": 512,
+      "y": 384,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "state": "attack_charge",
+      "frame": 5,
+      "nontransparent_pixels": 5053,
+      "x": 640,
+      "y": 384,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "state": "attack_execute",
+      "frame": 0,
+      "nontransparent_pixels": 5684,
+      "x": 0,
+      "y": 512,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "state": "attack_execute",
+      "frame": 1,
+      "nontransparent_pixels": 5244,
+      "x": 128,
+      "y": 512,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "state": "attack_execute",
+      "frame": 2,
+      "nontransparent_pixels": 5063,
+      "x": 256,
+      "y": 512,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "state": "attack_execute",
+      "frame": 3,
+      "nontransparent_pixels": 5533,
+      "x": 384,
+      "y": 512,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "state": "attack_execute",
+      "frame": 4,
+      "nontransparent_pixels": 5626,
+      "x": 512,
+      "y": 512,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "state": "attack_execute",
+      "frame": 5,
+      "nontransparent_pixels": 5664,
+      "x": 640,
+      "y": 512,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "state": "recover",
+      "frame": 0,
+      "nontransparent_pixels": 5956,
+      "x": 0,
+      "y": 640,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "state": "recover",
+      "frame": 1,
+      "nontransparent_pixels": 6123,
+      "x": 128,
+      "y": 640,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "state": "recover",
+      "frame": 2,
+      "nontransparent_pixels": 5821,
+      "x": 256,
+      "y": 640,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "state": "recover",
+      "frame": 3,
+      "nontransparent_pixels": 5771,
+      "x": 384,
+      "y": 640,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "state": "hit",
+      "frame": 0,
+      "nontransparent_pixels": 5867,
+      "x": 0,
+      "y": 768,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "state": "hit",
+      "frame": 1,
+      "nontransparent_pixels": 6490,
+      "x": 128,
+      "y": 768,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "state": "hit",
+      "frame": 2,
+      "nontransparent_pixels": 6027,
+      "x": 256,
+      "y": 768,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "state": "death",
+      "frame": 0,
+      "nontransparent_pixels": 5697,
+      "x": 0,
+      "y": 896,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "state": "death",
+      "frame": 1,
+      "nontransparent_pixels": 6229,
+      "x": 128,
+      "y": 896,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "state": "death",
+      "frame": 2,
+      "nontransparent_pixels": 7580,
+      "x": 256,
+      "y": 896,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "state": "death",
+      "frame": 3,
+      "nontransparent_pixels": 4945,
+      "x": 384,
+      "y": 896,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "state": "death",
+      "frame": 4,
+      "nontransparent_pixels": 4024,
+      "x": 512,
+      "y": 896,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "state": "death",
+      "frame": 5,
+      "nontransparent_pixels": 2918,
+      "x": 640,
+      "y": 896,
+      "w": 128,
+      "h": 128
+    }
+  ],
+  "frame_layout": {
+    "sheetWidth": 768,
+    "sheetHeight": 1024,
+    "cellWidth": 128,
+    "cellHeight": 128,
+    "rows": {
+      "idle": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 128,
+          "h": 128
+        },
+        {
+          "x": 128,
+          "y": 0,
+          "w": 128,
+          "h": 128
+        },
+        {
+          "x": 256,
+          "y": 0,
+          "w": 128,
+          "h": 128
+        },
+        {
+          "x": 384,
+          "y": 0,
+          "w": 128,
+          "h": 128
+        }
+      ],
+      "walk": [
+        {
+          "x": 0,
+          "y": 128,
+          "w": 128,
+          "h": 128
+        },
+        {
+          "x": 128,
+          "y": 128,
+          "w": 128,
+          "h": 128
+        },
+        {
+          "x": 256,
+          "y": 128,
+          "w": 128,
+          "h": 128
+        },
+        {
+          "x": 384,
+          "y": 128,
+          "w": 128,
+          "h": 128
+        }
+      ],
+      "run": [
+        {
+          "x": 0,
+          "y": 256,
+          "w": 128,
+          "h": 128
+        },
+        {
+          "x": 128,
+          "y": 256,
+          "w": 128,
+          "h": 128
+        },
+        {
+          "x": 256,
+          "y": 256,
+          "w": 128,
+          "h": 128
+        },
+        {
+          "x": 384,
+          "y": 256,
+          "w": 128,
+          "h": 128
+        }
+      ],
+      "attack_charge": [
+        {
+          "x": 0,
+          "y": 384,
+          "w": 128,
+          "h": 128
+        },
+        {
+          "x": 128,
+          "y": 384,
+          "w": 128,
+          "h": 128
+        },
+        {
+          "x": 256,
+          "y": 384,
+          "w": 128,
+          "h": 128
+        },
+        {
+          "x": 384,
+          "y": 384,
+          "w": 128,
+          "h": 128
+        },
+        {
+          "x": 512,
+          "y": 384,
+          "w": 128,
+          "h": 128
+        },
+        {
+          "x": 640,
+          "y": 384,
+          "w": 128,
+          "h": 128
+        }
+      ],
+      "attack_execute": [
+        {
+          "x": 0,
+          "y": 512,
+          "w": 128,
+          "h": 128
+        },
+        {
+          "x": 128,
+          "y": 512,
+          "w": 128,
+          "h": 128
+        },
+        {
+          "x": 256,
+          "y": 512,
+          "w": 128,
+          "h": 128
+        },
+        {
+          "x": 384,
+          "y": 512,
+          "w": 128,
+          "h": 128
+        },
+        {
+          "x": 512,
+          "y": 512,
+          "w": 128,
+          "h": 128
+        },
+        {
+          "x": 640,
+          "y": 512,
+          "w": 128,
+          "h": 128
+        }
+      ],
+      "recover": [
+        {
+          "x": 0,
+          "y": 640,
+          "w": 128,
+          "h": 128
+        },
+        {
+          "x": 128,
+          "y": 640,
+          "w": 128,
+          "h": 128
+        },
+        {
+          "x": 256,
+          "y": 640,
+          "w": 128,
+          "h": 128
+        },
+        {
+          "x": 384,
+          "y": 640,
+          "w": 128,
+          "h": 128
+        }
+      ],
+      "hit": [
+        {
+          "x": 0,
+          "y": 768,
+          "w": 128,
+          "h": 128
+        },
+        {
+          "x": 128,
+          "y": 768,
+          "w": 128,
+          "h": 128
+        },
+        {
+          "x": 256,
+          "y": 768,
+          "w": 128,
+          "h": 128
+        }
+      ],
+      "death": [
+        {
+          "x": 0,
+          "y": 896,
+          "w": 128,
+          "h": 128
+        },
+        {
+          "x": 128,
+          "y": 896,
+          "w": 128,
+          "h": 128
+        },
+        {
+          "x": 256,
+          "y": 896,
+          "w": 128,
+          "h": 128
+        },
+        {
+          "x": 384,
+          "y": 896,
+          "w": 128,
+          "h": 128
+        },
+        {
+          "x": 512,
+          "y": 896,
+          "w": 128,
+          "h": 128
+        },
+        {
+          "x": 640,
+          "y": 896,
+          "w": 128,
+          "h": 128
+        }
+      ]
+    }
+  }
+}

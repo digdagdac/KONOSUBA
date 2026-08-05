@@ -83,7 +83,7 @@ namespace Overbless.Editor.Bootstrap
         {
             new AtlasSpec("player", "v001", 6, PlayerStates),
             new AtlasSpec("dasher", "v002", 8, MajorEnemyStates),
-            new AtlasSpec("archer", "v002", 8, MajorEnemyStates, true),
+            new AtlasSpec("archer", "v003", 8, MajorEnemyStates, true, "MotionsV003"),
             new AtlasSpec("minion", "v002", 8, MinionStates)
         };
 
@@ -472,13 +472,20 @@ namespace Overbless.Editor.Bootstrap
 
         private readonly struct AtlasSpec
         {
-            public AtlasSpec(string role, string version, int maxFrames, StateSpec[] states, bool usesMotionSheets = false)
+            public AtlasSpec(
+                string role,
+                string version,
+                int maxFrames,
+                StateSpec[] states,
+                bool usesMotionSheets = false,
+                string motionFolder = "Motions")
             {
                 Role = role;
                 Version = version;
                 MaxFrames = maxFrames;
                 States = states;
                 UsesMotionSheets = usesMotionSheets;
+                MotionFolder = motionFolder;
             }
 
             public string Role { get; }
@@ -486,8 +493,9 @@ namespace Overbless.Editor.Bootstrap
             public int MaxFrames { get; }
             public StateSpec[] States { get; }
             public bool UsesMotionSheets { get; }
+            public string MotionFolder { get; }
             public string AtlasPath => $"{AtlasRoot}/chr_{Role}_animation_atlas_{Version}.png";
-            public string MotionPath(StateSpec state) => $"{AtlasRoot}/Motions/chr_{Role}_{state.Name}_motion_{Version}.png";
+            public string MotionPath(StateSpec state) => $"{AtlasRoot}/{MotionFolder}/chr_{Role}_{state.Name}_motion_{Version}.png";
             public string[] MotionPaths()
             {
                 var paths = new string[States.Length];
