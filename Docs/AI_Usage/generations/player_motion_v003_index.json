@@ -1,0 +1,96 @@
+{
+  "schema": "overbless.character-motion-v003-index/v1",
+  "role": "player",
+  "version": "v003",
+  "cell": {
+    "width": 128,
+    "height": 128,
+    "pivot": [
+      0.5,
+      0.0
+    ]
+  },
+  "authored_directions": [
+    "south"
+  ],
+  "derived_directions": {
+    "north": "south",
+    "east": "south",
+    "west": "south",
+    "southeast": "south",
+    "southwest": "south",
+    "northeast": "south",
+    "northwest": "south"
+  },
+  "mirrored_directions": [
+    "northwest",
+    "southwest",
+    "west"
+  ],
+  "source_run": {
+    "atlas": "Docs/AI_Usage/sprite_runs/character_motion_v003/player/south/sprite-sheet-alpha.png",
+    "manifest": "Docs/AI_Usage/sprite_runs/character_motion_v003/player/south/manifest.json"
+  },
+  "outputs": [
+    {
+      "state": "idle",
+      "frames": 4,
+      "fps": 4.0,
+      "loop": true,
+      "path": "Assets/_Project/Art/M1Production/Characters/Animation/MotionsV003/chr_player_idle_motion_v003.png",
+      "width": 4096,
+      "height": 128,
+      "sha256": "6d3b71fa589e6e80505a9c0f9e602d0709398f669fb0e8eafe9bb7a06d4212c2"
+    },
+    {
+      "state": "move",
+      "frames": 4,
+      "fps": 8.0,
+      "loop": true,
+      "path": "Assets/_Project/Art/M1Production/Characters/Animation/MotionsV003/chr_player_move_motion_v003.png",
+      "width": 4096,
+      "height": 128,
+      "sha256": "0e12f18373da38b9c046064dd63ed61d426eab923e1a13d4abf3c11efdf64e01"
+    },
+    {
+      "state": "dash",
+      "frames": 4,
+      "fps": 14.0,
+      "loop": false,
+      "path": "Assets/_Project/Art/M1Production/Characters/Animation/MotionsV003/chr_player_dash_motion_v003.png",
+      "width": 4096,
+      "height": 128,
+      "sha256": "3306897ecea9bb18652270c69ebb40ec0df0bb7dfa27fc868ff3b68b1691cda6"
+    },
+    {
+      "state": "bless_cast",
+      "frames": 4,
+      "fps": 8.0,
+      "loop": true,
+      "path": "Assets/_Project/Art/M1Production/Characters/Animation/MotionsV003/chr_player_bless_cast_motion_v003.png",
+      "width": 4096,
+      "height": 128,
+      "sha256": "699be0b5902c6c5bf2fac013d92fdb718bfd20483c97e4dd014300890b3f565b"
+    },
+    {
+      "state": "hit",
+      "frames": 3,
+      "fps": 12.0,
+      "loop": false,
+      "path": "Assets/_Project/Art/M1Production/Characters/Animation/MotionsV003/chr_player_hit_motion_v003.png",
+      "width": 3072,
+      "height": 128,
+      "sha256": "7b385854c10648fba2ea513ce8a655dc70394635151fc9e5b73cd597ee067e1d"
+    },
+    {
+      "state": "death",
+      "frames": 6,
+      "fps": 8.0,
+      "loop": false,
+      "path": "Assets/_Project/Art/M1Production/Characters/Animation/MotionsV003/chr_player_death_motion_v003.png",
+      "width": 6144,
+      "height": 128,
+      "sha256": "314c921acd7ad00ec3de14882e0ffce97c2a937bb3a8cd27a8eaadc5027f76ea"
+    }
+  ]
+}

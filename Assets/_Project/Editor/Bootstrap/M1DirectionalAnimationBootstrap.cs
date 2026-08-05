@@ -48,9 +48,9 @@ namespace Overbless.Editor.Bootstrap
         private static readonly StateSpec[] PlayerStates =
         {
             new StateSpec(CharacterAnimationState.Idle, "idle", 4, 4f, true),
-            new StateSpec(CharacterAnimationState.Walk, "move", 6, 10f, true),
+            new StateSpec(CharacterAnimationState.Walk, "move", 4, 8f, true),
             new StateSpec(CharacterAnimationState.Dash, "dash", 4, 14f, false),
-            new StateSpec(CharacterAnimationState.BlessCast, "bless_cast", 6, 8f, true),
+            new StateSpec(CharacterAnimationState.BlessCast, "bless_cast", 4, 8f, true),
             new StateSpec(CharacterAnimationState.Hit, "hit", 3, 12f, false),
             new StateSpec(CharacterAnimationState.Death, "death", 6, 8f, false)
         };
@@ -81,10 +81,10 @@ namespace Overbless.Editor.Bootstrap
 
         private static readonly AtlasSpec[] Atlases =
         {
-            new AtlasSpec("player", "v001", 6, PlayerStates),
-            new AtlasSpec("dasher", "v002", 8, MajorEnemyStates),
+            new AtlasSpec("player", "v003", 6, PlayerStates, true, "MotionsV003"),
+            new AtlasSpec("dasher", "v003", 8, MajorEnemyStates, true, "MotionsV003"),
             new AtlasSpec("archer", "v003", 8, MajorEnemyStates, true, "MotionsV003"),
-            new AtlasSpec("minion", "v002", 8, MinionStates)
+            new AtlasSpec("minion", "v003", 8, MinionStates, true, "MotionsV003")
         };
 
         public static M1DirectionalAnimationAssets CreateOrUpdate()
