@@ -153,6 +153,19 @@ namespace Overbless.Editor.Bootstrap
             importer.npotScale = TextureImporterNPOTScale.None;
             importer.maxTextureSize = 8192;
 
+            // Motion sheets up to 6144 px wide must survive every platform's default 2048 cap,
+            // otherwise the dimension validation below reads a downscaled texture and rejects it.
+            var platformSettings = importer.GetPlatformTextureSettings("Standalone");
+            platformSettings.overridden = true;
+            platformSettings.maxTextureSize = 8192;
+            platformSettings.textureCompression = TextureImporterCompression.Uncompressed;
+            importer.SetPlatformTextureSettings(platformSettings);
+            var webSettings = importer.GetPlatformTextureSettings("WebGL");
+            webSettings.overridden = true;
+            webSettings.maxTextureSize = 8192;
+            webSettings.textureCompression = TextureImporterCompression.Uncompressed;
+            importer.SetPlatformTextureSettings(webSettings);
+
             var settings = new TextureImporterSettings();
             importer.ReadTextureSettings(settings);
             settings.spriteMeshType = SpriteMeshType.FullRect;
@@ -200,6 +213,17 @@ namespace Overbless.Editor.Bootstrap
             importer.isReadable = false;
             importer.npotScale = TextureImporterNPOTScale.None;
             importer.maxTextureSize = 8192;
+
+            var platformSettings = importer.GetPlatformTextureSettings("Standalone");
+            platformSettings.overridden = true;
+            platformSettings.maxTextureSize = 8192;
+            platformSettings.textureCompression = TextureImporterCompression.Uncompressed;
+            importer.SetPlatformTextureSettings(platformSettings);
+            var webSettings = importer.GetPlatformTextureSettings("WebGL");
+            webSettings.overridden = true;
+            webSettings.maxTextureSize = 8192;
+            webSettings.textureCompression = TextureImporterCompression.Uncompressed;
+            importer.SetPlatformTextureSettings(webSettings);
 
             var settings = new TextureImporterSettings();
             importer.ReadTextureSettings(settings);
