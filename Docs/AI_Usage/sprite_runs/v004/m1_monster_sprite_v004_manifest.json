@@ -1,0 +1,98 @@
+{
+  "schema_version": "1.0",
+  "production_status": "pending_external_art",
+  "scope": "M1 monster character motion replacement only",
+  "source_of_truth": "Docs/Design/M1_SPRITE_PRODUCTION_BRIEF_V004_KO.md",
+  "delivery_contract": {
+    "source_frame_size": "256x256 or larger",
+    "unity_frame_size": "128x128",
+    "unity_pivot": [64, 116],
+    "standing_silhouette_height_px": "72 +/- 2",
+    "directions": [
+      "south",
+      "southeast",
+      "east",
+      "northeast",
+      "north",
+      "northwest",
+      "west",
+      "southwest"
+    ],
+    "direction_policy": "All eight directions are independently authored for v004. Runtime mirroring is not an approved substitute.",
+    "raw_path_template": "Docs/AI_Usage/sprite_runs/v004/<role>/<direction>/<state>/frame_<index>.png",
+    "review_path_template": "Docs/AI_Usage/sprite_runs/v004/<role>/<direction>/<state>/review_contact_sheet.png",
+    "unity_output_path_template": "Assets/_Project/Art/M1Production/Characters/Animation/MotionsV004/chr_<role>_<state>_<direction>_motion_v004.png",
+    "max_unity_strip_size": "768x128",
+    "transparent_background_required": true,
+    "separate_assets_required": [
+      "projectile",
+      "telegraph",
+      "hit_vfx",
+      "death_vfx"
+    ]
+  },
+  "roles": [
+    {
+      "role": "dasher",
+      "character_card": "Heavy charging knight with forward lance silhouette; distinguishable from Archer at a glance.",
+      "states": [
+        { "state": "idle", "frames": 4, "fps": 4, "loop": true },
+        { "state": "walk", "frames": 4, "fps": 6, "loop": true },
+        { "state": "run", "frames": 4, "fps": 9, "loop": true },
+        { "state": "attack_charge", "frames": 6, "fps": 8, "loop": false },
+        { "state": "attack_execute", "frames": 6, "fps": 14, "loop": false },
+        { "state": "recover", "frames": 4, "fps": 7, "loop": false },
+        { "state": "hit", "frames": 3, "fps": 12, "loop": false },
+        { "state": "death", "frames": 6, "fps": 8, "loop": false }
+      ],
+      "frame_total": 296,
+      "acceptance_focus": [
+        "lance and cloak never crop",
+        "charge, execute, recover read as one action",
+        "feet retain the common pivot"
+      ]
+    },
+    {
+      "role": "archer",
+      "character_card": "Asymmetric bow, quiver, light cloak; aim, release, and recovery must be distinct.",
+      "states": [
+        { "state": "idle", "frames": 4, "fps": 4, "loop": true },
+        { "state": "walk", "frames": 4, "fps": 6, "loop": true },
+        { "state": "run", "frames": 4, "fps": 9, "loop": true },
+        { "state": "attack_charge", "frames": 6, "fps": 8, "loop": false },
+        { "state": "attack_execute", "frames": 6, "fps": 14, "loop": false },
+        { "state": "recover", "frames": 4, "fps": 7, "loop": false },
+        { "state": "hit", "frames": 3, "fps": 12, "loop": false },
+        { "state": "death", "frames": 6, "fps": 8, "loop": false }
+      ],
+      "frame_total": 296,
+      "acceptance_focus": [
+        "all eight directions are unique because the bow and quiver are asymmetric",
+        "bow, hands, head, and feet never crop",
+        "arrow and flight trail are not part of the body frames"
+      ]
+    },
+    {
+      "role": "minion",
+      "character_card": "Small close-range pursuer with large sleeves or hands; clearly lighter and shorter than Dasher.",
+      "states": [
+        { "state": "idle", "frames": 4, "fps": 4, "loop": true },
+        { "state": "walk", "frames": 4, "fps": 6, "loop": true },
+        { "state": "run", "frames": 4, "fps": 9, "loop": true },
+        { "state": "attack_charge", "frames": 6, "fps": 8, "loop": false },
+        { "state": "attack_execute", "frames": 6, "fps": 24, "loop": false },
+        { "state": "recover", "frames": 4, "fps": 7, "loop": false },
+        { "state": "hit", "frames": 3, "fps": 12, "loop": false },
+        { "state": "death", "frames": 6, "fps": 8, "loop": false }
+      ],
+      "frame_total": 296,
+      "acceptance_focus": [
+        "run is a genuine four-frame pursuit loop, not duplicated idle poses",
+        "attack execute reads in a single 0.25 second gameplay window",
+        "no bow, lance, or Archer-like silhouette"
+      ]
+    }
+  ],
+  "total_directional_frames": 888,
+  "integration_gate": "No v004 art is wired into Unity until every state-direction contact sheet has visual approval and the full set passes pivot, crop, and PlayMode checks."
+}
