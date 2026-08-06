@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Overbless.Runtime;
 using UnityEditor;
+using UnityEditor.U2D.Sprites;
 using UnityEngine;
 
 namespace Overbless.Editor.Bootstrap
@@ -32,6 +33,7 @@ namespace Overbless.Editor.Bootstrap
         private const string FrameLetters = "abcdefgh";
         private const string AtlasRoot = "Assets/_Project/Art/M1Production/Characters/Animation";
         private const string DataRoot = "Assets/_Project/Data/Animations";
+        private const string MotionSpriteProviderTag = "M1MotionSpriteProviderV1";
 
         private static readonly DirectionSpec[] Directions =
         {
@@ -95,6 +97,11 @@ namespace Overbless.Editor.Bootstrap
             {
                 var spec = Atlases[index];
                 ConfigureSpriteImporters(spec);
+            }
+
+            for (var index = 0; index < Atlases.Length; index++)
+            {
+                var spec = Atlases[index];
                 sets.Add(spec.Role, CreateAnimationSet(spec));
             }
 
@@ -139,6 +146,7 @@ namespace Overbless.Editor.Bootstrap
             }
 
             importer.textureType = TextureImporterType.Sprite;
+            importer.textureShape = TextureImporterShape.Texture2D;
             importer.spriteImportMode = SpriteImportMode.Multiple;
             importer.spritePixelsPerUnit = CellSize;
             importer.filterMode = FilterMode.Point;
@@ -199,7 +207,13 @@ namespace Overbless.Editor.Bootstrap
                 throw new InvalidOperationException($"Animation motion sheet '{motionPath}' is missing or has no TextureImporter.");
             }
 
+            if (HasExpectedMotionSheetMetadata(importer, spec, state))
+            {
+                return;
+            }
+
             importer.textureType = TextureImporterType.Sprite;
+            importer.textureShape = TextureImporterShape.Texture2D;
             importer.spriteImportMode = SpriteImportMode.Multiple;
             importer.spritePixelsPerUnit = CellSize;
             importer.filterMode = FilterMode.Point;
@@ -233,35 +247,94 @@ namespace Overbless.Editor.Bootstrap
             settings.spritePivot = new Vector2(0.5f, 0f);
             importer.SetTextureSettings(settings);
 
-#pragma warning disable CS0618
-            importer.spritesheet = BuildMotionMetadata(spec, state);
-#pragma warning restore CS0618
+            ApplyMotionSpriteRects(importer, spec, state);
+            importer.userData = MotionSpriteProviderTag;
             importer.SaveAndReimport();
-            // The auto-generated meta defaults every platform maxTextureSize to 2048, so the very
-            // first synchronous import downscaled the sheet. After we pin 8192 and SaveAndReimport
-            // the in-memory texture cache can still lag one import behind, so force a synchronous
-            // reimport before validating so we read the newly-imported surface.
-            AssetDatabase.ImportAsset(motionPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
-            AssetDatabase.ImportAsset(motionPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
+        }
 
-            var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(motionPath);
-            var expectedWidth = CellSize * state.FrameCount * Directions.Length;
-            if (texture == null)
+        private static void ApplyMotionSpriteRects(TextureImporter importer, AtlasSpec spec, StateSpec state)
+        {
+            var factory = new SpriteDataProviderFactories();
+            factory.Init();
+            var dataProvider = factory.GetSpriteEditorDataProviderFromObject(importer);
+            if (dataProvider == null)
             {
                 throw new InvalidOperationException(
-                    $"Animation motion sheet '{motionPath}' was not imported.");
+                    $"Animation motion sheet '{importer.assetPath}' does not support Unity's sprite data provider.");
             }
 
-            if (texture.width != expectedWidth || texture.height != CellSize)
+            dataProvider.InitSpriteEditorDataProvider();
+            var metadata = BuildMotionMetadata(spec, state);
+            var spriteRects = new SpriteRect[metadata.Length];
+            for (var index = 0; index < metadata.Length; index++)
             {
-                // The importer metadata is already pinned to 8192 max, so the next fresh import
-                // (editor restart or Reimport All) produces the expected size. Hard-failing here
-                // only blocks scene generation when the editor holds a stale 2048 texture cache.
-                Debug.LogWarning(
-                    $"Animation motion sheet '{motionPath}' was imported at {texture.width}x{texture.height}; "
-                    + $"its metadata is pinned to {expectedWidth}x{CellSize}. Reimport this asset once "
-                    + "to produce the expected runtime size; bootstrap continues using the authored sprite rects.");
+                var frame = metadata[index];
+                spriteRects[index] = new SpriteRect
+                {
+                    name = frame.name,
+                    rect = frame.rect,
+                    alignment = (SpriteAlignment)frame.alignment,
+                    pivot = frame.pivot,
+                    border = frame.border,
+                    spriteID = GUID.Generate()
+                };
             }
+
+            dataProvider.SetSpriteRects(spriteRects);
+            var nameProvider = dataProvider.GetDataProvider<ISpriteNameFileIdDataProvider>();
+            if (nameProvider != null)
+            {
+                var names = new List<SpriteNameFileIdPair>(spriteRects.Length);
+                for (var index = 0; index < spriteRects.Length; index++)
+                {
+                    names.Add(new SpriteNameFileIdPair(spriteRects[index].name, spriteRects[index].spriteID));
+                }
+
+                nameProvider.SetNameFileIdPairs(names);
+            }
+
+            dataProvider.Apply();
+
+            // SpriteDataProvider.Apply writes through a serialized importer snapshot. Reassert
+            // these shape settings afterwards so an ultra-wide sheet cannot be restored to an
+            // auto-detected Cubemap during that write.
+            importer.textureType = TextureImporterType.Sprite;
+            importer.textureShape = TextureImporterShape.Texture2D;
+            importer.spriteImportMode = SpriteImportMode.Multiple;
+        }
+
+        private static bool HasExpectedMotionSheetMetadata(TextureImporter importer, AtlasSpec spec, StateSpec state)
+        {
+            if (importer.userData != MotionSpriteProviderTag
+                || importer.spriteImportMode != SpriteImportMode.Multiple
+                || importer.textureShape != TextureImporterShape.Texture2D
+                || importer.spritePixelsPerUnit != CellSize
+                || importer.filterMode != FilterMode.Point
+                || importer.mipmapEnabled)
+            {
+                return false;
+            }
+
+#pragma warning disable CS0618
+            var metadata = importer.spritesheet;
+#pragma warning restore CS0618
+            var expected = BuildMotionMetadata(spec, state);
+            if (metadata == null || metadata.Length != expected.Length)
+            {
+                return false;
+            }
+
+            for (var index = 0; index < expected.Length; index++)
+            {
+                var actual = metadata[index];
+                var wanted = expected[index];
+                if (actual.name != wanted.name || actual.rect != wanted.rect || actual.pivot != wanted.pivot)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private static SpriteMetaData[] BuildMetadata(AtlasSpec spec)
