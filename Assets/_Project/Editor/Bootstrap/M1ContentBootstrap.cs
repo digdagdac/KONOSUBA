@@ -28,6 +28,8 @@ namespace Overbless.Editor.Bootstrap
         private const string ProductionArtRoot = ProjectRoot + "/Art/M1Production";
         private const string ProductionCharactersRoot = ProductionArtRoot + "/Characters";
         private const string ProductionPickupsRoot = ProductionArtRoot + "/Pickups";
+        private const int MaxDeferredAnimationImportAttempts = 1;
+        private static int deferredAnimationImportAttempts;
         private const string ProductionEnvironmentRoot = ProductionArtRoot + "/Environment";
         private const string ProductionUiRoot = ProductionArtRoot + "/UI";
         private const string PlayerProductionSpritePath = ProductionCharactersRoot + "/chr_player_idle_south_a_v001.png";
@@ -170,6 +172,24 @@ namespace Overbless.Editor.Bootstrap
         [MenuItem("Overbless/M1/Create Or Update Guided Validation Content")]
         public static void CreateOrUpdate()
         {
+            try
+            {
+                CreateOrUpdateImmediately();
+                deferredAnimationImportAttempts = 0;
+                Debug.Log("M1 guided validation content was created successfully.");
+            }
+            catch (InvalidOperationException exception) when (CanDeferAnimationImport(exception))
+            {
+                deferredAnimationImportAttempts++;
+                Debug.LogWarning(
+                    "M1 motion sprites are being imported. Retrying content generation once after the AssetDatabase refresh.");
+                AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+                EditorApplication.delayCall += CreateOrUpdate;
+            }
+        }
+
+        private static void CreateOrUpdateImmediately()
+        {
             GuardOpenScenes();
             EnsureDirectories();
             ConfigureUniversalRenderPipeline();
@@ -185,6 +205,13 @@ namespace Overbless.Editor.Bootstrap
             CreateScene(sprites, roomDefinition, audioCatalog, prefabs);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
+        }
+
+        private static bool CanDeferAnimationImport(InvalidOperationException exception)
+        {
+            return deferredAnimationImportAttempts < MaxDeferredAnimationImportAttempts
+                && exception.Message.StartsWith("Animation atlas '", StringComparison.Ordinal)
+                && exception.Message.Contains("is missing sprite", StringComparison.Ordinal);
         }
         [MenuItem("Overbless/M2/Create Or Update Two-Room Content")]
         public static void CreateOrUpdateM2()
