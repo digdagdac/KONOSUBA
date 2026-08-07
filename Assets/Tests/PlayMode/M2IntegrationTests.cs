@@ -152,7 +152,7 @@ namespace Overbless.Tests.PlayMode
                 new Vector2(5.8f, 2.4f),
                 new Vector2(3.4f, 1.1f),
                 new Vector2(5.4f, -0.1f),
-                string.Empty);
+                "Result");
 
             var pillars = FindGameObjectsInScene(room03.Scene, "WorldPillar");
             Assert.That(pillars.Count, Is.EqualTo(1));
@@ -1190,7 +1190,20 @@ namespace Overbless.Tests.PlayMode
             var presenter = FindComponentInScene<CharacterAppealPresenter>(room.Scene);
             Assert.That(presenter, Is.Not.Null);
             Assert.That(presenter.IsCardVisible, Is.False);
-            Assert.That(room.SequenceController.NextScene, Is.Empty, "Room_03 must end the sequence in place.");
+            Assert.That(
+                room.SequenceController.NextScene,
+                Is.EqualTo("Result"),
+                "Room_03 must hand the run to the result screen.");
+
+            // The run normally leaves for the result screen here. Blanking the next scene keeps
+            // the transition out of the test while still firing the same exit-entry signal.
+#if UNITY_EDITOR
+            var sequenceSerialized = new SerializedObject(room.SequenceController);
+            sequenceSerialized.FindProperty("nextScene").stringValue = string.Empty;
+            sequenceSerialized.ApplyModifiedPropertiesWithoutUndo();
+#else
+            Assert.Ignore("Verifying the victory card requires Unity Editor scene control.");
+#endif
 
             var mouse = AddMouse();
             yield return StartWithTrustedGesture(room.WebGate, mouse);
@@ -1235,6 +1248,45 @@ namespace Overbless.Tests.PlayMode
             }
 
             Assert.That(inspected, Is.GreaterThan(0), "The card must own the graphics this asserts on.");
+        }
+
+        /// <summary>
+        /// A browser build starts with everything stopped until a trusted input arrives, and a
+        /// death leaves the room waiting for R. Both states now say so on screen, because a
+        /// first-time reviewer cannot be expected to guess either one.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator Room02_ExplainsTheStartGateAndTheDefeatRecovery()
+        {
+            LoadedRoom room = null;
+            yield return LoadRoom(Room02ScenePath, loadedRoom => room = loadedRoom);
+
+            var startPrompt = FindComponentInScene<StartGatePrompt>(room.Scene);
+            var outcome = FindComponentInScene<RunOutcomePresenter>(room.Scene);
+            Assert.That(startPrompt, Is.Not.Null, "Every room must explain what it waits for.");
+            Assert.That(outcome, Is.Not.Null, "Every room must explain how to recover from a defeat.");
+
+            Assert.That(room.WebGate.IsAwaitingGesture, Is.True);
+            Assert.That(startPrompt.IsPromptVisible, Is.True, "The start prompt must be visible while the gate waits.");
+            Assert.That(outcome.IsDefeatVisible, Is.False);
+
+            var mouse = AddMouse();
+            yield return StartWithTrustedGesture(room.WebGate, mouse);
+            yield return null;
+            Assert.That(startPrompt.IsPromptVisible, Is.False, "The start prompt must clear once the run starts.");
+
+            var playerHealth = room.Player.GetComponent<Health>();
+            Assert.That(
+                playerHealth.TryApplyDamage(
+                    new DamageEvent(30002, 91002, playerHealth.EntityId, playerHealth.MaximumHealth)),
+                Is.True);
+            Assert.That(room.Player.IsAlive, Is.False);
+            Assert.That(outcome.IsDefeatVisible, Is.True, "A defeat must tell the player what to press.");
+
+            room.RestartController.RestartRoom();
+            yield return null;
+            Assert.That(room.Player.IsAlive, Is.True);
+            Assert.That(outcome.IsDefeatVisible, Is.False, "A restart must clear the defeat panel.");
         }
 
         private static T GetRequiredDirectChildComponent<T>(Transform parent, string childName) where T : Component

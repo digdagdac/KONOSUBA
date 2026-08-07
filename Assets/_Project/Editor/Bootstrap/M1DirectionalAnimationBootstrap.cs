@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Overbless.Runtime;
 using UnityEditor;
 using UnityEngine;
@@ -31,7 +32,9 @@ namespace Overbless.Editor.Bootstrap
         private const int CellSize = 128;
         private const string FrameLetters = "abcdefgh";
         private const string AtlasRoot = "Assets/_Project/Art/M1Production/Characters/Animation";
+        private const string MotionsV004Root = AtlasRoot + "/MotionsV004";
         private const string DataRoot = "Assets/_Project/Data/Animations";
+        private const string V004AutoApplyEditorPrefKey = "Overbless.M1.V004MonsterAnimationsApplied.v1";
 
         private static readonly DirectionSpec[] Directions =
         {
@@ -81,11 +84,70 @@ namespace Overbless.Editor.Bootstrap
 
         private static readonly AtlasSpec[] Atlases =
         {
-            new AtlasSpec("player", "v001", 6, PlayerStates),
-            new AtlasSpec("dasher", "v002", 8, MajorEnemyStates),
-            new AtlasSpec("archer", "v002", 8, MajorEnemyStates),
-            new AtlasSpec("minion", "v002", 8, MinionStates)
+            new AtlasSpec("player", "v001", 6, PlayerStates)
         };
+
+        // v004 stores one normalized, transparent PNG per animation frame. Keeping
+        // motions separate avoids the source-sheet cropping and per-action scale
+        // drift that made the v002 monolithic monster atlases unsuitable at runtime.
+        private static readonly V004RoleSpec[] V004Roles =
+        {
+            new V004RoleSpec("dasher", 224f),
+            new V004RoleSpec("archer", 224f),
+            new V004RoleSpec("minion", 208f)
+        };
+
+        private static readonly V004StateSpec[] V004States =
+        {
+            new V004StateSpec(CharacterAnimationState.Idle, "Idle", 4, 4f, true),
+            new V004StateSpec(CharacterAnimationState.Walk, "Run", 8, 8f, true),
+            new V004StateSpec(CharacterAnimationState.Run, "Run", 8, 12f, true),
+            new V004StateSpec(CharacterAnimationState.AttackCharge, "Attack", 5, 8f, false),
+            new V004StateSpec(CharacterAnimationState.AttackExecute, "Attack", 5, 14f, false),
+            new V004StateSpec(CharacterAnimationState.Recover, "Idle", 4, 7f, false),
+            new V004StateSpec(CharacterAnimationState.Hit, "Hurt", 3, 12f, false),
+            new V004StateSpec(CharacterAnimationState.Death, "Death", 5, 8f, false)
+        };
+
+        [MenuItem("Overbless/M1/Refresh v004 Monster Animation Sets")]
+        public static void RefreshV004MonsterAnimations()
+        {
+            CreateOrUpdate();
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+        }
+
+        [InitializeOnLoadMethod]
+        private static void ScheduleV004MonsterAnimationAutoApply()
+        {
+            if (EditorPrefs.GetBool(V004AutoApplyEditorPrefKey, false))
+            {
+                return;
+            }
+
+            EditorApplication.update -= ApplyV004MonsterAnimationsWhenReady;
+            EditorApplication.update += ApplyV004MonsterAnimationsWhenReady;
+        }
+
+        private static void ApplyV004MonsterAnimationsWhenReady()
+        {
+            if (EditorApplication.isCompiling || EditorApplication.isUpdating)
+            {
+                return;
+            }
+
+            EditorApplication.update -= ApplyV004MonsterAnimationsWhenReady;
+            try
+            {
+                CreateOrUpdate();
+                EditorPrefs.SetBool(V004AutoApplyEditorPrefKey, true);
+                Debug.Log("Applied v004 monster animation sets to existing M1/M2 prefabs and scene instances.");
+            }
+            catch (Exception exception)
+            {
+                Debug.LogException(exception);
+            }
+        }
 
         public static M1DirectionalAnimationAssets CreateOrUpdate()
         {
@@ -98,6 +160,12 @@ namespace Overbless.Editor.Bootstrap
                 sets.Add(spec.Role, CreateAnimationSet(spec));
             }
 
+            for (var index = 0; index < V004Roles.Length; index++)
+            {
+                var spec = V004Roles[index];
+                sets.Add(spec.Role, CreateV004AnimationSet(spec));
+            }
+
             AssetDatabase.SaveAssets();
             for (var index = 0; index < Atlases.Length; index++)
             {
@@ -105,6 +173,15 @@ namespace Overbless.Editor.Bootstrap
                 var assetPath = AnimationSetPath(spec.Role);
                 var reloaded = AssetDatabase.LoadAssetAtPath<DirectionalAnimationSet>(assetPath);
                 ValidateExactSet(reloaded, spec);
+                sets[spec.Role] = reloaded;
+            }
+
+            for (var index = 0; index < V004Roles.Length; index++)
+            {
+                var spec = V004Roles[index];
+                var assetPath = AnimationSetPath(spec.Role);
+                var reloaded = AssetDatabase.LoadAssetAtPath<DirectionalAnimationSet>(assetPath);
+                ValidateV004Set(reloaded, spec);
                 sets[spec.Role] = reloaded;
             }
 
@@ -244,6 +321,207 @@ namespace Overbless.Editor.Bootstrap
             return set;
         }
 
+        private static DirectionalAnimationSet CreateV004AnimationSet(V004RoleSpec spec)
+        {
+            var assetPath = AnimationSetPath(spec.Role);
+            var set = AssetDatabase.LoadAssetAtPath<DirectionalAnimationSet>(assetPath);
+            if (set == null)
+            {
+                if (AssetDatabase.LoadMainAssetAtPath(assetPath) != null)
+                {
+                    throw new InvalidOperationException($"'{assetPath}' exists but is not a DirectionalAnimationSet.");
+                }
+
+                set = ScriptableObject.CreateInstance<DirectionalAnimationSet>();
+                AssetDatabase.CreateAsset(set, assetPath);
+            }
+
+            var serialized = new SerializedObject(set);
+            serialized.FindProperty("role").stringValue = spec.Role;
+            var clips = serialized.FindProperty("clips");
+            clips.arraySize = V004States.Length * Directions.Length;
+            var clipIndex = 0;
+            for (var stateIndex = 0; stateIndex < V004States.Length; stateIndex++)
+            {
+                var state = V004States[stateIndex];
+                for (var directionIndex = 0; directionIndex < Directions.Length; directionIndex++)
+                {
+                    var direction = Directions[directionIndex];
+                    var clip = clips.GetArrayElementAtIndex(clipIndex++);
+                    clip.FindPropertyRelative("state").intValue = (int)state.State;
+                    clip.FindPropertyRelative("direction").intValue = (int)direction.Direction;
+                    clip.FindPropertyRelative("framesPerSecond").floatValue = state.FramesPerSecond;
+                    clip.FindPropertyRelative("loop").boolValue = state.Loop;
+                    var frames = clip.FindPropertyRelative("frames");
+                    frames.arraySize = state.FrameCount;
+                    for (var frameIndex = 0; frameIndex < state.FrameCount; frameIndex++)
+                    {
+                        frames.GetArrayElementAtIndex(frameIndex).objectReferenceValue =
+                            LoadV004Frame(spec, state, direction, frameIndex);
+                    }
+                }
+            }
+
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(set);
+            ValidateV004Set(set, spec);
+            return set;
+        }
+
+        private static Sprite LoadV004Frame(
+            V004RoleSpec role,
+            V004StateSpec state,
+            DirectionSpec direction,
+            int frameIndex)
+        {
+            var path = V004FramePath(role, state, direction, frameIndex);
+            if (!File.Exists(Path.GetFullPath(path)))
+            {
+                throw new FileNotFoundException("Required v004 animation frame is missing.", path);
+            }
+
+            AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport);
+            var importer = AssetImporter.GetAtPath(path) as TextureImporter;
+            if (importer == null)
+            {
+                throw new InvalidOperationException($"v004 animation frame '{path}' has no TextureImporter.");
+            }
+
+            var settings = new TextureImporterSettings();
+            importer.ReadTextureSettings(settings);
+            var needsImport = importer.textureType != TextureImporterType.Sprite ||
+                              importer.spriteImportMode != SpriteImportMode.Single ||
+                              !Mathf.Approximately(importer.spritePixelsPerUnit, role.PixelsPerUnit) ||
+                              !importer.alphaIsTransparency ||
+                              importer.filterMode != FilterMode.Point ||
+                              importer.mipmapEnabled ||
+                              importer.streamingMipmaps ||
+                              importer.textureCompression != TextureImporterCompression.Uncompressed ||
+                              importer.crunchedCompression ||
+                              importer.wrapMode != TextureWrapMode.Clamp ||
+                              importer.npotScale != TextureImporterNPOTScale.None ||
+                              settings.spriteMeshType != SpriteMeshType.FullRect ||
+                              settings.spriteExtrude != 0 ||
+                              settings.spriteAlignment != (int)SpriteAlignment.Custom ||
+                              settings.spritePivot != new Vector2(0.5f, 0f);
+            if (needsImport)
+            {
+                settings.spriteMeshType = SpriteMeshType.FullRect;
+                settings.spriteExtrude = 0;
+                settings.spriteAlignment = (int)SpriteAlignment.Custom;
+                settings.spritePivot = new Vector2(0.5f, 0f);
+                importer.SetTextureSettings(settings);
+
+                // SetTextureSettings can restore its old default texture mode. Keep
+                // all importer-level fields after it so Unity persists this file as
+                // a Sprite instead of silently returning it to Texture2D/Default.
+                importer.textureType = TextureImporterType.Sprite;
+                importer.spriteImportMode = SpriteImportMode.Single;
+                importer.alphaIsTransparency = true;
+                importer.spritePixelsPerUnit = role.PixelsPerUnit;
+                importer.filterMode = FilterMode.Point;
+                importer.mipmapEnabled = false;
+                importer.streamingMipmaps = false;
+                importer.textureCompression = TextureImporterCompression.Uncompressed;
+                importer.crunchedCompression = false;
+                importer.wrapMode = TextureWrapMode.Clamp;
+                importer.npotScale = TextureImporterNPOTScale.None;
+                importer.SaveAndReimport();
+            }
+
+            var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+            if (sprite == null)
+            {
+                var importedAssets = AssetDatabase.LoadAllAssetsAtPath(path);
+                for (var index = 0; index < importedAssets.Length; index++)
+                {
+                    if (importedAssets[index] is Sprite importedSprite)
+                    {
+                        sprite = importedSprite;
+                        break;
+                    }
+                }
+            }
+
+            if (sprite == null)
+            {
+                throw new InvalidOperationException($"v004 animation frame '{path}' did not import as a Sprite.");
+            }
+
+            return sprite;
+        }
+
+        private static void ValidateV004Set(DirectionalAnimationSet set, V004RoleSpec spec)
+        {
+            if (set == null)
+            {
+                throw new InvalidOperationException(
+                    $"Directional animation set '{AnimationSetPath(spec.Role)}' failed to reload.");
+            }
+
+            set.Validate();
+            var expectedClipCount = V004States.Length * Directions.Length;
+            if (!string.Equals(set.Role, spec.Role, StringComparison.Ordinal) ||
+                set.ClipCount != expectedClipCount)
+            {
+                throw new InvalidOperationException(
+                    $"Animation set '{spec.Role}' must contain exactly {expectedClipCount} v004 clips.");
+            }
+
+            for (var stateIndex = 0; stateIndex < V004States.Length; stateIndex++)
+            {
+                var state = V004States[stateIndex];
+                for (var directionIndex = 0; directionIndex < Directions.Length; directionIndex++)
+                {
+                    var direction = Directions[directionIndex];
+                    var clip = set.GetClip(state.State, direction.Direction);
+                    if (clip.FrameCount != state.FrameCount ||
+                        !Mathf.Approximately(clip.FramesPerSecond, state.FramesPerSecond) ||
+                        clip.Loop != state.Loop)
+                    {
+                        throw new InvalidOperationException(
+                            $"Animation set '{spec.Role}' has an invalid v004 {state.State}/{direction.Direction} contract.");
+                    }
+
+                    for (var frameIndex = 0; frameIndex < clip.FrameCount; frameIndex++)
+                    {
+                        var expectedPath = V004FramePath(spec, state, direction, frameIndex);
+                        var sprite = clip.GetFrame(frameIndex);
+                        if (sprite == null ||
+                            !string.Equals(AssetDatabase.GetAssetPath(sprite), expectedPath, StringComparison.Ordinal))
+                        {
+                            throw new InvalidOperationException(
+                                $"Animation set '{spec.Role}' contains a stale v004 frame for {state.State}/{direction.Direction}.");
+                        }
+                    }
+                }
+            }
+        }
+
+        private static string V004FramePath(
+            V004RoleSpec role,
+            V004StateSpec state,
+            DirectionSpec direction,
+            int frameIndex)
+        {
+            return $"{MotionsV004Root}/{UppercaseFirst(role.Role)}/{V004SourceDirection(direction)}/{state.SourceFolder}/frame-{frameIndex}.png";
+        }
+
+        private static string V004SourceDirection(DirectionSpec direction)
+        {
+            switch (direction.Direction)
+            {
+                case CharacterDirection.SouthEast:
+                case CharacterDirection.SouthWest:
+                    return "South";
+                case CharacterDirection.NorthEast:
+                case CharacterDirection.NorthWest:
+                    return "North";
+                default:
+                    return UppercaseFirst(direction.Name);
+            }
+        }
+
         private static void ValidateExactSet(DirectionalAnimationSet set, AtlasSpec spec)
         {
             if (set == null)
@@ -377,6 +655,41 @@ namespace Overbless.Editor.Bootstrap
 
             public CharacterAnimationState State { get; }
             public string Name { get; }
+            public int FrameCount { get; }
+            public float FramesPerSecond { get; }
+            public bool Loop { get; }
+        }
+
+        private readonly struct V004RoleSpec
+        {
+            public V004RoleSpec(string role, float pixelsPerUnit)
+            {
+                Role = role;
+                PixelsPerUnit = pixelsPerUnit;
+            }
+
+            public string Role { get; }
+            public float PixelsPerUnit { get; }
+        }
+
+        private readonly struct V004StateSpec
+        {
+            public V004StateSpec(
+                CharacterAnimationState state,
+                string sourceFolder,
+                int frameCount,
+                float framesPerSecond,
+                bool loop)
+            {
+                State = state;
+                SourceFolder = sourceFolder;
+                FrameCount = frameCount;
+                FramesPerSecond = framesPerSecond;
+                Loop = loop;
+            }
+
+            public CharacterAnimationState State { get; }
+            public string SourceFolder { get; }
             public int FrameCount { get; }
             public float FramesPerSecond { get; }
             public bool Loop { get; }

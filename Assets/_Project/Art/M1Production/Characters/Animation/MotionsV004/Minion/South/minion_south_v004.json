@@ -1,0 +1,13 @@
+{
+  "version": 4,
+  "character": "minion",
+  "direction": "south",
+  "cell": { "width": 160, "height": 208, "pivot": [0.5, 0.0] },
+  "states": {
+    "idle": { "fps": 4, "loop": true, "folder": "Idle", "frames": 4 },
+    "run": { "fps": 10, "loop": true, "folder": "Run", "frames": 8, "qa_status": "experimental-motion-reviewed" },
+    "attack": { "fps": 10, "loop": false, "folder": "Attack", "frames": 5 },
+    "hurt": { "fps": 8, "loop": false, "folder": "Hurt", "frames": 3 },
+    "death": { "fps": 8, "loop": false, "folder": "Death", "frames": 5 }
+  }
+}
