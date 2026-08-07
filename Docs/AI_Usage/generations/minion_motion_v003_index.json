@@ -1,0 +1,116 @@
+{
+  "schema": "overbless.character-motion-v003-index/v1",
+  "role": "minion",
+  "version": "v003",
+  "cell": {
+    "width": 128,
+    "height": 128,
+    "pivot": [
+      0.5,
+      0.0
+    ]
+  },
+  "authored_directions": [
+    "south"
+  ],
+  "derived_directions": {
+    "north": "south",
+    "east": "south",
+    "west": "south",
+    "southeast": "south",
+    "southwest": "south",
+    "northeast": "south",
+    "northwest": "south"
+  },
+  "mirrored_directions": [
+    "northwest",
+    "southwest",
+    "west"
+  ],
+  "source_run": {
+    "atlas": "Docs/AI_Usage/sprite_runs/character_motion_v003/minion/south/sprite-sheet-alpha.png",
+    "manifest": "Docs/AI_Usage/sprite_runs/character_motion_v003/minion/south/manifest.json"
+  },
+  "outputs": [
+    {
+      "state": "idle",
+      "frames": 4,
+      "fps": 4.0,
+      "loop": true,
+      "path": "Assets/_Project/Art/M1Production/Characters/Animation/MotionsV003/chr_minion_idle_motion_v003.png",
+      "width": 4096,
+      "height": 128,
+      "sha256": "1480bddb0f573b51e92729344c5690ac8cece91fed8659179a3810b4a00a4919"
+    },
+    {
+      "state": "walk",
+      "frames": 4,
+      "fps": 6.0,
+      "loop": true,
+      "path": "Assets/_Project/Art/M1Production/Characters/Animation/MotionsV003/chr_minion_walk_motion_v003.png",
+      "width": 4096,
+      "height": 128,
+      "sha256": "54b248315f00965b30072c6761b2ed51d6ff6c21539203c4fd5052c2e59c31e4"
+    },
+    {
+      "state": "run",
+      "frames": 4,
+      "fps": 9.0,
+      "loop": true,
+      "path": "Assets/_Project/Art/M1Production/Characters/Animation/MotionsV003/chr_minion_run_motion_v003.png",
+      "width": 4096,
+      "height": 128,
+      "sha256": "306f35c2113686ec87860b7dc40e77ff57d65a1aaa8b6af14b2d2cfd07955861"
+    },
+    {
+      "state": "attack_charge",
+      "frames": 6,
+      "fps": 8.0,
+      "loop": false,
+      "path": "Assets/_Project/Art/M1Production/Characters/Animation/MotionsV003/chr_minion_attack_charge_motion_v003.png",
+      "width": 6144,
+      "height": 128,
+      "sha256": "6d1e0bdb62a4b6fc051a43c234c3106fe2cd4408e4a47e3c3c936d33541991d8"
+    },
+    {
+      "state": "attack_execute",
+      "frames": 6,
+      "fps": 24.0,
+      "loop": false,
+      "path": "Assets/_Project/Art/M1Production/Characters/Animation/MotionsV003/chr_minion_attack_execute_motion_v003.png",
+      "width": 6144,
+      "height": 128,
+      "sha256": "f9c58226e07cf3d3eafe36bf27c9726fd3fad739a18593b79b38c875fd515c6b"
+    },
+    {
+      "state": "recover",
+      "frames": 4,
+      "fps": 7.0,
+      "loop": false,
+      "path": "Assets/_Project/Art/M1Production/Characters/Animation/MotionsV003/chr_minion_recover_motion_v003.png",
+      "width": 4096,
+      "height": 128,
+      "sha256": "6ddf2c94062da50339efb3f3fd5c294bef066562b873b4c2d040f9775eadeb7b"
+    },
+    {
+      "state": "hit",
+      "frames": 3,
+      "fps": 12.0,
+      "loop": false,
+      "path": "Assets/_Project/Art/M1Production/Characters/Animation/MotionsV003/chr_minion_hit_motion_v003.png",
+      "width": 3072,
+      "height": 128,
+      "sha256": "00d55c039f53bcb6928db682c4ed1e4fe1c6496e99414970d8264cd00d9afd1b"
+    },
+    {
+      "state": "death",
+      "frames": 6,
+      "fps": 8.0,
+      "loop": false,
+      "path": "Assets/_Project/Art/M1Production/Characters/Animation/MotionsV003/chr_minion_death_motion_v003.png",
+      "width": 6144,
+      "height": 128,
+      "sha256": "7aefb158d26d726fc219d319b4204699be78952f1c0532d92a145ab13b8a6c25"
+    }
+  ]
+}

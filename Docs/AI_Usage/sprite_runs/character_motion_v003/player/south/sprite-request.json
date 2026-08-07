@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "kind": "sprite-gen-request",
+  "engine": "component-row",
+  "character": {
+    "id": "player_motion_v003_south",
+    "description": "",
+    "base_image": "base-source.png"
+  },
+  "cell": {
+    "shape": "square",
+    "width": 128,
+    "height": 128,
+    "safe_margin_x": 6,
+    "safe_margin_y": 6,
+    "size": 128,
+    "safe_margin": 6
+  },
+  "chroma_key": {
+    "name": "green",
+    "hex": "#00FF00",
+    "rgb": [
+      0,
+      255,
+      0
+    ],
+    "selection": "auto",
+    "score": 189.72
+  },
+  "states": {
+    "idle": {
+      "frames": 4,
+      "fps": 4,
+      "loop": true,
+      "action": "subtle breathing, feet fixed on a shared baseline"
+    },
+    "walk": {
+      "frames": 4,
+      "fps": 8,
+      "loop": true,
+      "action": "clear four-step walk cycle with planted contacts and stable cloak volume"
+    },
+    "dash": {
+      "frames": 4,
+      "fps": 14,
+      "loop": false,
+      "action": "crouch, launch, low dash, then balanced stop; full body remains visible"
+    },
+    "bless_cast": {
+      "frames": 4,
+      "fps": 8,
+      "loop": true,
+      "action": "raise both hands and channel a blessing without detached effects"
+    },
+    "hit": {
+      "frames": 3,
+      "fps": 12,
+      "loop": false,
+      "action": "brief readable recoil, then regain balance"
+    },
+    "death": {
+      "frames": 6,
+      "fps": 8,
+      "loop": false,
+      "action": "controlled fall onto the ground without detached limbs or props"
+    }
+  },
+  "style": "pixel-art-adjacent low-resolution game sprite, compact chibi/mascot-friendly proportions when the base allows it, chunky whole-body silhouette, thick dark 1-2 px outline, visible stepped/pixel edges, limited palette, flat cel shading with at most one small highlight and one shadow step, simple readable face, clear limbs, and no detail that disappears at small runtime size. Avoid polished illustration, painterly rendering, anime key art, 3D render, vector app-icon polish, glossy lighting, soft gradients, anti-aliased high-detail edges, and complex tiny accessories.",
+  "motion_phase_guides": true
+}

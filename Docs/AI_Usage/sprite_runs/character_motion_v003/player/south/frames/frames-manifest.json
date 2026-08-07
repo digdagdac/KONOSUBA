@@ -1,0 +1,414 @@
+{
+  "ok": true,
+  "engine": "component-row",
+  "run_dir": "C:\\Users\\kimhs\\AppData\\Local\\Temp\\KONOSUBA_AllCharacterMotion\\Docs\\AI_Usage\\sprite_runs\\character_motion_v003\\player\\south",
+  "cell": {
+    "shape": "square",
+    "width": 128,
+    "height": 128,
+    "safe_margin_x": 6,
+    "safe_margin_y": 6,
+    "size": 128,
+    "safe_margin": 6
+  },
+  "chroma_key": {
+    "name": "green",
+    "hex": "#00FF00",
+    "rgb": [
+      0,
+      255,
+      0
+    ],
+    "selection": "auto",
+    "score": 189.72
+  },
+  "rows": [
+    {
+      "state": "idle",
+      "frames": 4,
+      "method": "components",
+      "files": [
+        "frames\\idle\\frame-0.png",
+        "frames\\idle\\frame-1.png",
+        "frames\\idle\\frame-2.png",
+        "frames\\idle\\frame-3.png"
+      ],
+      "frame_records": [
+        {
+          "index": 0,
+          "nontransparent_pixels": 5501,
+          "bbox": [
+            30,
+            6,
+            97,
+            122
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 0
+        },
+        {
+          "index": 1,
+          "nontransparent_pixels": 5541,
+          "bbox": [
+            31,
+            6,
+            97,
+            122
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 0
+        },
+        {
+          "index": 2,
+          "nontransparent_pixels": 5582,
+          "bbox": [
+            30,
+            6,
+            97,
+            122
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 0
+        },
+        {
+          "index": 3,
+          "nontransparent_pixels": 5466,
+          "bbox": [
+            31,
+            6,
+            97,
+            122
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 0
+        }
+      ],
+      "ok": true
+    },
+    {
+      "state": "walk",
+      "frames": 4,
+      "method": "components",
+      "files": [
+        "frames\\walk\\frame-0.png",
+        "frames\\walk\\frame-1.png",
+        "frames\\walk\\frame-2.png",
+        "frames\\walk\\frame-3.png"
+      ],
+      "frame_records": [
+        {
+          "index": 0,
+          "nontransparent_pixels": 5367,
+          "bbox": [
+            32,
+            6,
+            95,
+            122
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 0
+        },
+        {
+          "index": 1,
+          "nontransparent_pixels": 5359,
+          "bbox": [
+            29,
+            6,
+            99,
+            122
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 0
+        },
+        {
+          "index": 2,
+          "nontransparent_pixels": 5476,
+          "bbox": [
+            29,
+            6,
+            99,
+            122
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 0
+        },
+        {
+          "index": 3,
+          "nontransparent_pixels": 5277,
+          "bbox": [
+            29,
+            6,
+            99,
+            122
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 0
+        }
+      ],
+      "ok": true
+    },
+    {
+      "state": "dash",
+      "frames": 4,
+      "method": "components",
+      "files": [
+        "frames\\dash\\frame-0.png",
+        "frames\\dash\\frame-1.png",
+        "frames\\dash\\frame-2.png",
+        "frames\\dash\\frame-3.png"
+      ],
+      "frame_records": [
+        {
+          "index": 0,
+          "nontransparent_pixels": 8497,
+          "bbox": [
+            12,
+            6,
+            115,
+            122
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 0
+        },
+        {
+          "index": 1,
+          "nontransparent_pixels": 7059,
+          "bbox": [
+            14,
+            6,
+            113,
+            122
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 0
+        },
+        {
+          "index": 2,
+          "nontransparent_pixels": 5746,
+          "bbox": [
+            6,
+            24,
+            122,
+            104
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 0
+        },
+        {
+          "index": 3,
+          "nontransparent_pixels": 6205,
+          "bbox": [
+            26,
+            6,
+            102,
+            122
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 0
+        }
+      ],
+      "ok": true
+    },
+    {
+      "state": "bless_cast",
+      "frames": 4,
+      "method": "components",
+      "files": [
+        "frames\\bless_cast\\frame-0.png",
+        "frames\\bless_cast\\frame-1.png",
+        "frames\\bless_cast\\frame-2.png",
+        "frames\\bless_cast\\frame-3.png"
+      ],
+      "frame_records": [
+        {
+          "index": 0,
+          "nontransparent_pixels": 5493,
+          "bbox": [
+            30,
+            6,
+            97,
+            122
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 0
+        },
+        {
+          "index": 1,
+          "nontransparent_pixels": 5529,
+          "bbox": [
+            22,
+            6,
+            105,
+            122
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 0
+        },
+        {
+          "index": 2,
+          "nontransparent_pixels": 4982,
+          "bbox": [
+            37,
+            6,
+            91,
+            122
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 0
+        },
+        {
+          "index": 3,
+          "nontransparent_pixels": 5465,
+          "bbox": [
+            30,
+            6,
+            97,
+            122
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 0
+        }
+      ],
+      "ok": true
+    },
+    {
+      "state": "hit",
+      "frames": 3,
+      "method": "components",
+      "files": [
+        "frames\\hit\\frame-0.png",
+        "frames\\hit\\frame-1.png",
+        "frames\\hit\\frame-2.png"
+      ],
+      "frame_records": [
+        {
+          "index": 0,
+          "nontransparent_pixels": 4725,
+          "bbox": [
+            31,
+            6,
+            97,
+            122
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 0
+        },
+        {
+          "index": 1,
+          "nontransparent_pixels": 5881,
+          "bbox": [
+            32,
+            6,
+            95,
+            122
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 0
+        },
+        {
+          "index": 2,
+          "nontransparent_pixels": 5586,
+          "bbox": [
+            30,
+            6,
+            98,
+            122
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 0
+        }
+      ],
+      "ok": true
+    },
+    {
+      "state": "death",
+      "frames": 6,
+      "method": "components",
+      "files": [
+        "frames\\death\\frame-0.png",
+        "frames\\death\\frame-1.png",
+        "frames\\death\\frame-2.png",
+        "frames\\death\\frame-3.png",
+        "frames\\death\\frame-4.png",
+        "frames\\death\\frame-5.png"
+      ],
+      "frame_records": [
+        {
+          "index": 0,
+          "nontransparent_pixels": 5674,
+          "bbox": [
+            29,
+            6,
+            99,
+            122
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 0
+        },
+        {
+          "index": 1,
+          "nontransparent_pixels": 6411,
+          "bbox": [
+            28,
+            6,
+            99,
+            122
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 0
+        },
+        {
+          "index": 2,
+          "nontransparent_pixels": 7858,
+          "bbox": [
+            23,
+            6,
+            105,
+            122
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 0
+        },
+        {
+          "index": 3,
+          "nontransparent_pixels": 9212,
+          "bbox": [
+            6,
+            10,
+            122,
+            118
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 0
+        },
+        {
+          "index": 4,
+          "nontransparent_pixels": 6000,
+          "bbox": [
+            6,
+            29,
+            122,
+            99
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 0
+        },
+        {
+          "index": 5,
+          "nontransparent_pixels": 4581,
+          "bbox": [
+            6,
+            37,
+            122,
+            91
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 0
+        }
+      ],
+      "ok": true
+    }
+  ],
+  "errors": [],
+  "warnings": []
+}

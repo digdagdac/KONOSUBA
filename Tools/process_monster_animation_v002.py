@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build deterministic v002 directional monster animation atlases from authored sheets."""
+"""Build deterministic v002 directional monster animation outputs from authored sheets."""
 
 from __future__ import annotations
 
@@ -28,6 +28,7 @@ CREATED_UTC = "2026-07-30T00:00:00Z"
 SOURCE_ROOT = Path("Docs/AI_Usage/sources/monster_animation_v002")
 OUTPUT_ROOT = Path("Assets/_Project/Art/M1Production/Characters/Animation")
 INDEX_PATH = Path("Docs/AI_Usage/generations/monster_directional_animation_index_v002.json")
+MOTION_SHEET_ROLE = "archer"
 
 DIRECT_DIRECTIONS = ("south", "north", "east", "southeast", "northeast")
 DIRECTIONS = (
@@ -45,9 +46,19 @@ MIRROR_SOURCES = {
     "southwest": "southeast",
     "northwest": "northeast",
 }
+# The original east and southeast bow poses overlap the nominal 192px source columns:
+# their bow tips reach into the following column while the following pose starts
+# after a small magenta gap.  Shift only the affected extraction windows right
+# by 20px so each pose keeps its own bow instead of inheriting a neighbour tip.
+SOURCE_RECT_OVERRIDES = {
+    ("archer", direction, "attack_execute", frame_index):
+        (20 + frame_index * 192, 614, 212 + frame_index * 192, 819)
+    for direction in ("east", "southeast")
+    for frame_index in range(3)
+}
 
-EXPECTED_AUTHORED_FRAME_COUNT = 450
-EXPECTED_DERIVED_FRAME_COUNT = 270
+EXPECTED_AUTHORED_FRAME_COUNT = 360
+EXPECTED_DERIVED_FRAME_COUNT = 216
 EXPECTED_INHERITED_FRAME_COUNT = 312
 
 
@@ -80,8 +91,12 @@ class LoadedSheet:
 
 ANIMATION_STATES = (
     StateSpec("idle", 4, 4.0, True, None),
-    StateSpec("walk", 6, 8.0, True, 0),
-    StateSpec("run", 8, 12.0, True, 1),
+    # The Walk row contains a coherent four-pose character cycle. The source
+    # Run row changes each role's silhouette and palette, so it cannot represent
+    # the same character in motion. Reuse Walk at 1.5x cadence for Run until a
+    # coherent authored Run row is approved.
+    StateSpec("walk", 4, 6.0, True, 0),
+    StateSpec("run", 4, 9.0, True, 0),
     StateSpec("attack_charge", 6, 8.0, False, 2),
     StateSpec("attack_execute", 6, 14.0, False, 3),
     StateSpec("recover", 4, 7.0, False, 4),
@@ -121,6 +136,7 @@ MODIFICATION_ALLOWLIST = {
         "bottom_center_placement_on_128px_canvas",
         "exact_horizontal_pixel_mirror_for_west_southwest_and_northwest_only",
         "exact_active_frame_pixel_copy_from_declared_v001_idle_hit_and_death_rows_only",
+        "approved_source_window_override_for_archer_east_and_southeast_attack_execute_frames_a_to_c_only",
         "transparent_canvas_atlas_packing",
         "deterministic_png_encoding",
     ],
@@ -196,6 +212,14 @@ def v001_atlas_relative_path(role: str) -> Path:
 
 def v002_atlas_relative_path(role: str) -> Path:
     return OUTPUT_ROOT / f"chr_{role}_animation_atlas_v002.png"
+
+
+def v002_motion_sheet_relative_path(role: str, state: StateSpec) -> Path:
+    return OUTPUT_ROOT / "Motions" / f"chr_{role}_{state.name}_motion_v002.png"
+
+
+def uses_motion_sheets(role_spec: RoleSpec) -> bool:
+    return role_spec.role == MOTION_SHEET_ROLE
 
 
 def frame_name(role: str, state: str, direction: str, frame_index: int) -> str:
@@ -285,6 +309,26 @@ def grid_rect(column: int, row: int) -> tuple[int, int, int, int]:
         width * (column + 1) // SOURCE_GRID_COLUMNS,
         height * (row + 1) // SOURCE_GRID_ROWS,
     )
+
+
+def authored_source_rect(
+    role: str, direction: str, state: StateSpec, frame_index: int
+) -> tuple[int, int, int, int]:
+    override = SOURCE_RECT_OVERRIDES.get((role, direction, state.name, frame_index))
+    return override if override is not None else grid_rect(frame_index, state.source_row)
+
+
+def source_window_override_records() -> list[dict]:
+    return [
+        {
+            "role": role,
+            "direction": direction,
+            "state": state,
+            "frame": frame_index,
+            "source_rect": list(rect),
+        }
+        for (role, direction, state, frame_index), rect in sorted(SOURCE_RECT_OVERRIDES.items())
+    ]
 
 
 def remove_chroma_magenta(
@@ -383,6 +427,11 @@ def validate_loop_seam(frames: list[Image.Image], label: str) -> None:
         raise ProcessingError(f"{label} loop seam endpoints shift more than 32 pixels")
 
 
+def validate_loop_cycle_has_no_held_duplicate(frames: list[Image.Image], label: str) -> None:
+    if len({frame.tobytes() for frame in frames}) != len(frames):
+        raise ProcessingError(f"{label} repeats a frame inside an active loop")
+
+
 def validate_mirror(source: Image.Image, mirrored: Image.Image, label: str) -> None:
     expected = source.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
     if mirrored.tobytes() != expected.tobytes():
@@ -399,12 +448,24 @@ def validate_atlas(image: Image.Image, label: str) -> None:
         raise ProcessingError(f"{label} atlas is empty")
 
 
+def validate_motion_sheet(image: Image.Image, state: StateSpec, label: str) -> None:
+    expected_size = (CELL_SIZE * len(DIRECTIONS) * state.frames, CELL_SIZE)
+    if image.mode != "RGBA" or image.size != expected_size:
+        raise ProcessingError(
+            f"{label} must be a {expected_size[0]}x{expected_size[1]} RGBA motion sheet"
+        )
+    if not set(image.getchannel("A").tobytes()).issubset({0, 255}):
+        raise ProcessingError(f"{label} motion sheet alpha is not binary")
+    if image.getchannel("A").getbbox() is None:
+        raise ProcessingError(f"{label} motion sheet is empty")
+
+
 def extract_authored_frame(
     sheet: LoadedSheet, role_spec: RoleSpec, state: StateSpec, frame_index: int, direction: str
 ) -> tuple[Image.Image, dict]:
     if state.source_row is None:
         raise ProcessingError(f"{state.name} is not an authored source-sheet state")
-    rect = grid_rect(frame_index, state.source_row)
+    rect = authored_source_rect(role_spec.role, direction, state, frame_index)
     label = f"{role_spec.role}/{direction}/{state.name}/{FRAME_LETTERS[frame_index]}"
     cell = sheet.image.crop(rect)
     foreground = remove_chroma_magenta(cell, sheet.corner_colour, label)
@@ -426,6 +487,7 @@ def extract_authored_frame(
         "source_grid": [SOURCE_GRID_COLUMNS, SOURCE_GRID_ROWS],
         "source_cell": [frame_index, state.source_row],
         "source_rect": list(rect),
+        "source_window_override": (role_spec.role, direction, state.name, frame_index) in SOURCE_RECT_OVERRIDES,
         "source_opaque_bounds": source_bounds,
         "opaque_bounds": opaque_bounds,
     }
@@ -514,7 +576,7 @@ def load_inherited_frames(repository_root: Path, role_spec: RoleSpec) -> tuple[d
 
 
 def build_authored_frames(
-    role_spec: RoleSpec, sheets: dict[str, LoadedSheet]
+    repository_root: Path, role_spec: RoleSpec, sheets: dict[str, LoadedSheet]
 ) -> dict[str, dict[str, list[tuple[Image.Image, dict]]]]:
     authored: dict[str, dict[str, list[tuple[Image.Image, dict]]]] = {}
     for direction in DIRECT_DIRECTIONS:
@@ -531,6 +593,10 @@ def build_authored_frames(
             validate_frame_variation(images, f"{role_spec.role} authored {state.name}/{direction}")
             if state.loop:
                 validate_loop_seam(images, f"{role_spec.role} authored {state.name}/{direction}")
+                validate_loop_cycle_has_no_held_duplicate(
+                    images,
+                    f"{role_spec.role} authored {state.name}/{direction}",
+                )
             by_state[state.name] = frames
         authored[direction] = by_state
     return authored
@@ -545,15 +611,40 @@ def atlas_rect(state_index: int, direction_index: int, frame_index: int) -> list
     ]
 
 
+def motion_sheet_rect(state: StateSpec, direction_index: int, frame_index: int) -> list[int]:
+    return [
+        (direction_index * state.frames + frame_index) * CELL_SIZE,
+        0,
+        CELL_SIZE,
+        CELL_SIZE,
+    ]
+
+
 def build_character(
     repository_root: Path, role_spec: RoleSpec, sheets: dict[str, LoadedSheet]
-) -> tuple[Path, bytes, dict, list[dict], dict]:
-    authored_frames = build_authored_frames(role_spec, sheets)
+) -> tuple[list[tuple[Path, bytes]], dict, list[dict], dict]:
+    authored_frames = build_authored_frames(repository_root, role_spec, sheets)
     inherited_frames, inherited_source = load_inherited_frames(repository_root, role_spec)
-    atlas = Image.new(
-        "RGBA",
-        (CELL_SIZE * ATLAS_MAX_FRAMES * len(DIRECTIONS), CELL_SIZE * len(ANIMATION_STATES)),
-        (0, 0, 0, 0),
+    motion_sheets = (
+        {
+            state.name: Image.new(
+                "RGBA",
+                (CELL_SIZE * len(DIRECTIONS) * state.frames, CELL_SIZE),
+                (0, 0, 0, 0),
+            )
+            for state in ANIMATION_STATES
+        }
+        if uses_motion_sheets(role_spec)
+        else {}
+    )
+    atlas = (
+        None
+        if uses_motion_sheets(role_spec)
+        else Image.new(
+            "RGBA",
+            (CELL_SIZE * ATLAS_MAX_FRAMES * len(DIRECTIONS), CELL_SIZE * len(ANIMATION_STATES)),
+            (0, 0, 0, 0),
+        )
     )
     records: list[dict] = []
 
@@ -561,7 +652,16 @@ def build_character(
         for direction_index, direction in enumerate(DIRECTIONS):
             for frame_index in range(state.frames):
                 name = frame_name(role_spec.role, state.name, direction, frame_index)
-                rect = atlas_rect(state_index, direction_index, frame_index)
+                output_path = (
+                    v002_motion_sheet_relative_path(role_spec.role, state)
+                    if uses_motion_sheets(role_spec)
+                    else v002_atlas_relative_path(role_spec.role)
+                )
+                rect = (
+                    motion_sheet_rect(state, direction_index, frame_index)
+                    if uses_motion_sheets(role_spec)
+                    else atlas_rect(state_index, direction_index, frame_index)
+                )
                 if state.source_row is not None:
                     if direction in DIRECT_DIRECTIONS:
                         frame, source_record = authored_frames[direction][state.name][frame_index]
@@ -596,7 +696,12 @@ def build_character(
                     name,
                     require_bottom_aligned=classification != "inherited",
                 )
-                atlas.alpha_composite(frame, (rect[0], rect[1]))
+                if uses_motion_sheets(role_spec):
+                    motion_sheets[state.name].alpha_composite(frame, (rect[0], rect[1]))
+                else:
+                    if atlas is None:
+                        raise ProcessingError(f"missing monolithic atlas for {role_spec.role}")
+                    atlas.alpha_composite(frame, (rect[0], rect[1]))
                 records.append(
                     {
                         "name": name,
@@ -608,6 +713,7 @@ def build_character(
                         "fps": fps_for_role(role_spec, state),
                         "loop": state.loop,
                         "frame_count": state.frames,
+                        "output_path": output_path.as_posix(),
                         "rect": rect,
                         "opaque_bounds": opaque_bounds,
                         "opaque_foot_y": opaque_bounds[3],
@@ -619,21 +725,10 @@ def build_character(
                     }
                 )
 
-    validate_atlas(atlas, f"{role_spec.role} v002 atlas")
-    for record in records:
-        x, y, width, height = record["rect"]
-        packed_frame = atlas.crop((x, y, x + width, y + height))
-        if sha256_bytes(packed_frame.tobytes()) != record["pixel_sha256"]:
-            raise ProcessingError(f"atlas packing changed frame pixels: {record['name']}")
-
-    output_relative_path = v002_atlas_relative_path(role_spec.role)
-    encoded_atlas = encode_png(atlas)
-    character_record = {
+    outputs: list[tuple[Path, bytes]] = []
+    character_record: dict = {
         "role": role_spec.role,
         "content_height": role_spec.content_height,
-        "atlas_path": output_relative_path.as_posix(),
-        "atlas_size": list(atlas.size),
-        "atlas_sha256": sha256_bytes(encoded_atlas),
         "inherited_v001_source": inherited_source,
         "states": [
             {
@@ -650,7 +745,59 @@ def build_character(
             "inherited": sum(record["classification"] == "inherited" for record in records),
         },
     }
-    return output_relative_path, encoded_atlas, character_record, records, inherited_source
+    if uses_motion_sheets(role_spec):
+        sheet_records = []
+        for state in ANIMATION_STATES:
+            sheet = motion_sheets[state.name]
+            relative_path = v002_motion_sheet_relative_path(role_spec.role, state)
+            validate_motion_sheet(sheet, state, f"{role_spec.role} {state.name} v002 motion sheet")
+            for record in records:
+                if record["state"] != state.name:
+                    continue
+                x, y, width, height = record["rect"]
+                packed_frame = sheet.crop((x, y, x + width, y + height))
+                if sha256_bytes(packed_frame.tobytes()) != record["pixel_sha256"]:
+                    raise ProcessingError(f"motion-sheet packing changed frame pixels: {record['name']}")
+            encoded_sheet = encode_png(sheet)
+            outputs.append((relative_path, encoded_sheet))
+            sheet_records.append(
+                {
+                    "state": state.name,
+                    "path": relative_path.as_posix(),
+                    "size": list(sheet.size),
+                    "sha256": sha256_bytes(encoded_sheet),
+                    "directions": list(DIRECTIONS),
+                    "frames_per_direction": state.frames,
+                    "rows": 1,
+                }
+            )
+        character_record.update(
+            {
+                "output_topology": "per-state-motion-sheets",
+                "motion_sheets": sheet_records,
+            }
+        )
+    else:
+        if atlas is None:
+            raise ProcessingError(f"missing monolithic atlas for {role_spec.role}")
+        validate_atlas(atlas, f"{role_spec.role} v002 atlas")
+        for record in records:
+            x, y, width, height = record["rect"]
+            packed_frame = atlas.crop((x, y, x + width, y + height))
+            if sha256_bytes(packed_frame.tobytes()) != record["pixel_sha256"]:
+                raise ProcessingError(f"atlas packing changed frame pixels: {record['name']}")
+        output_relative_path = v002_atlas_relative_path(role_spec.role)
+        encoded_atlas = encode_png(atlas)
+        outputs.append((output_relative_path, encoded_atlas))
+        character_record.update(
+            {
+                "output_topology": "monolithic-atlas",
+                "atlas_path": output_relative_path.as_posix(),
+                "atlas_size": list(atlas.size),
+                "atlas_sha256": sha256_bytes(encoded_atlas),
+            }
+        )
+    return outputs, character_record, records, inherited_source
 
 
 def validate_classification_counts(frame_records: list[dict]) -> dict[str, int]:
@@ -695,10 +842,10 @@ def build_expected(repository_root: Path) -> tuple[list[tuple[Path, bytes]], dic
     all_frame_records: list[dict] = []
     inherited_sources = []
     for role_spec in ROLE_SPECS:
-        output_path, output_bytes, character_record, records, inherited_source = build_character(
+        character_outputs, character_record, records, inherited_source = build_character(
             repository_root, role_spec, loaded_sheets[role_spec.role]
         )
-        outputs.append((output_path, output_bytes))
+        outputs.extend(character_outputs)
         characters.append(character_record)
         all_frame_records.extend(records)
         inherited_sources.append(inherited_source)
@@ -720,13 +867,24 @@ def build_expected(repository_root: Path) -> tuple[list[tuple[Path, bytes]], dic
             "source_rows": ["walk", "run", "attack_charge", "attack_execute", "recover"],
         },
         "atlas_contract": {
-            "atlas_size": [
+            "cell_size": [CELL_SIZE, CELL_SIZE],
+            "directions": list(DIRECTIONS),
+            "monolithic_atlas_roles": [
+                role_spec.role for role_spec in ROLE_SPECS if not uses_motion_sheets(role_spec)
+            ],
+            "monolithic_atlas_size": [
                 CELL_SIZE * ATLAS_MAX_FRAMES * len(DIRECTIONS),
                 CELL_SIZE * len(ANIMATION_STATES),
             ],
-            "cell_size": [CELL_SIZE, CELL_SIZE],
-            "max_frames_per_direction": ATLAS_MAX_FRAMES,
-            "directions": list(DIRECTIONS),
+            "monolithic_max_frames_per_direction": ATLAS_MAX_FRAMES,
+            "motion_sheet_roles": [
+                role_spec.role for role_spec in ROLE_SPECS if uses_motion_sheets(role_spec)
+            ],
+            "motion_sheet_layout": {
+                "rows": 1,
+                "width": "cell_size * direction_count * state_frames",
+                "height": "cell_size",
+            },
             "states": [
                 {
                     "name": state.name,
@@ -749,6 +907,7 @@ def build_expected(repository_root: Path) -> tuple[list[tuple[Path, bytes]], dic
         },
         "modification_allowlist": MODIFICATION_ALLOWLIST,
         "source_sheets": source_records,
+        "source_window_overrides": source_window_override_records(),
         "inherited_v001_sources": inherited_sources,
         "characters": characters,
         "frame_classification_counts": classification_counts,
@@ -757,9 +916,12 @@ def build_expected(repository_root: Path) -> tuple[list[tuple[Path, bytes]], dic
     return outputs, index
 
 
-def validate_output_atlas(path: Path, expected_bytes: bytes) -> None:
-    image, _ = load_png(path, "v002 output atlas", require_rgba=True)
-    validate_atlas(image, path.as_posix())
+def validate_output_png(path: Path, expected_bytes: bytes) -> None:
+    image, _ = load_png(path, "v002 output PNG", require_rgba=True)
+    if image.getchannel("A").getbbox() is None:
+        raise ProcessingError(f"v002 output PNG is empty: {path}")
+    if not set(image.getchannel("A").tobytes()).issubset({0, 255}):
+        raise ProcessingError(f"v002 output PNG alpha is not binary: {path}")
     actual_bytes = path.read_bytes()
     if actual_bytes != expected_bytes:
         raise ProcessingError(f"output hash or deterministic PNG encoding drift: {path}")
@@ -769,8 +931,8 @@ def check_outputs(repository_root: Path, outputs: list[tuple[Path, bytes]], expe
     for relative_path, expected_bytes in outputs:
         output_path = repository_root / relative_path
         if not output_path.is_file():
-            raise ProcessingError(f"missing v002 output atlas: {output_path}")
-        validate_output_atlas(output_path, expected_bytes)
+            raise ProcessingError(f"missing v002 output PNG: {output_path}")
+        validate_output_png(output_path, expected_bytes)
 
     index_path = repository_root / INDEX_PATH
     if not index_path.is_file():
@@ -824,7 +986,7 @@ def main(argv: Iterable[str] | None = None) -> int:
     outputs, index = build_expected(repository_root)
     if arguments.check:
         check_outputs(repository_root, outputs, index)
-        print("Monster animation v002 check passed: 3 atlases and index are deterministic.")
+        print("Monster animation v002 check passed: 2 atlases, 8 Archer motion sheets, and index are deterministic.")
         return 0
 
     write_outputs_atomically(repository_root, outputs, index)

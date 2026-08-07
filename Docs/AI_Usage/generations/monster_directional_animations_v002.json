@@ -4,12 +4,13 @@
   "project": "Overbless",
   "status": "machine-pass-live-review-pending",
   "created_at": "2026-07-31",
+  "postprocessed_at": "2026-08-05",
   "tool": {
     "generator": "GJC generate_image",
     "provider": "session image generation tool",
     "model": "not exposed by tool receipt",
     "postprocessor": "Tools/process_monster_animation_v002.py",
-    "postprocessor_sha256": "d2e42c8f1b8f13b9ea454018817a2c61774e2b56aeb5378a84c544d366af3728"
+    "postprocessor_sha256": "9369151cec229c3ede3193627f36904c4fe3fdf33feba6a8f0ad2fe667a2544f"
   },
   "prompt_file": {
     "path": "Docs/AI_Usage/prompts/monster_directional_animation_prompts_v002.json",
@@ -42,23 +43,39 @@
     {"path":"Docs/AI_Usage/sources/monster_animation_v002/rejected/dasher_northeast_7col_attempt.webp","sha256":"4e88631f624ca9908181b99716c77dd15e3df68296ad5785a9de63f1090303a1","reason":"seven-column topology; required eight"},
     {"path":"Docs/AI_Usage/sources/monster_animation_v002/rejected/dasher_northeast_7col_retry.webp","sha256":"6d5c8d62858babfdc02ed1b14e5b6128e88485705caaf3dcac08fd8a95d84ee1","reason":"seven-column retry; required eight"}
   ],
+  "attack_execute_source_window_curation": {
+    "record": "Docs/AI_Usage/edits/archer_attack_execute_source_window_curation_v004.json",
+    "role": "archer",
+    "directions": ["east", "southeast"],
+    "state": "attack_execute",
+    "frames": ["a", "b", "c"],
+    "reason": "The original east-facing bow poses crossed nominal source-column boundaries, which clipped bow tips or retained detached neighbour fragments."
+  },
   "production_contract": {
     "roles": ["dasher", "archer", "minion"],
     "direct_directions": ["south", "north", "east", "southeast", "northeast"],
     "derived_directions": {"west":"east", "southwest":"southeast", "northwest":"northeast"},
     "source_grid": "8x5",
     "source_rows": ["walk", "run", "attack_charge", "attack_execute", "recover"],
-    "authored_frames": 450,
-    "mirror_derived_frames": 270,
+    "authored_frames": 360,
+    "mirror_derived_frames": 216,
     "inherited_v001_frames": 312,
-    "inherited_states": ["idle", "hit", "death"]
+    "inherited_states": ["idle", "hit", "death"],
+    "output_topology": {
+      "dasher": "monolithic-atlas",
+      "archer": "eight-per-state-one-row-motion-sheets",
+      "minion": "monolithic-atlas"
+    }
   },
   "deterministic_modifications": [
     "Remove magenta chroma into binary alpha.",
+    "Shift only the approved Archer east and southeast AttackExecute source windows for frames a to c by 20px right before the existing nearest-neighbor bottom-center normalization.",
     "Crop and resize with nearest-neighbor sampling, then bottom-center align.",
     "Derive only west, southwest and northwest by exact horizontal pixel mirroring.",
-    "Pack 128x128 cells into eight 8-frame directional blocks and eight state rows.",
-    "Validate nonempty variation, loop seams, binary alpha, mirror equality, names, dimensions and deterministic output hashes."
+    "Curate Walk source cells 0..3 and reuse that consistent cycle for Run at 1.5x cadence because the source Run row changes each role's visual identity.",
+    "Pack Dasher and Minion 128x128 cells into eight 8-frame directional blocks and eight state rows.",
+    "Pack Archer into one 128px-high sheet per state, with eight direction blocks and only that state's frame count per block.",
+    "Validate nonempty variation, loop seams, no held duplicate frames in looping clips, binary alpha, mirror equality, names, dimensions and deterministic output hashes."
   ],
   "forbidden_modifications": [
     "idle translation, rotation, scale or tint synthesis",
@@ -67,18 +84,29 @@
   ],
   "atlas_index": {
     "path": "Docs/AI_Usage/generations/monster_directional_animation_index_v002.json",
-    "sha256": "4ea1ebb520bb3483790842ebd4b57ca633f16cfd067e1a2f845a1e72861dcf88"
+    "sha256": "91b788328345652a1a97b19e36d4df26cfdc095ea5700d027f44353a7d13c440"
   },
-  "atlases": [
-    {"role":"dasher","path":"Assets/_Project/Art/M1Production/Characters/Animation/chr_dasher_animation_atlas_v002.png","size":"8192x1024","sha256":"9805cd44d272d9e96a4eb39446adba150487872600adc9e380de7ac2aebb672e"},
-    {"role":"archer","path":"Assets/_Project/Art/M1Production/Characters/Animation/chr_archer_animation_atlas_v002.png","size":"8192x1024","sha256":"47c724d1a56c57bcbd48f29de45869be7228cefe871b2b0a7a234b0026d13cb4"},
-    {"role":"minion","path":"Assets/_Project/Art/M1Production/Characters/Animation/chr_minion_animation_atlas_v002.png","size":"8192x1024","sha256":"b4a0e39bcc11485ffb8dae87fbad54ae5c8526091b2397312c5a2c3c04b7a2b9"}
+  "outputs": [
+    {"role":"dasher","kind":"monolithic-atlas","path":"Assets/_Project/Art/M1Production/Characters/Animation/chr_dasher_animation_atlas_v002.png","size":"8192x1024","sha256":"96c87f8fb07f1801ae56978bca7bb28b8d23e044584412f6df27fad3dd0c5b3e"},
+    {"role":"archer","state":"idle","kind":"motion-sheet","path":"Assets/_Project/Art/M1Production/Characters/Animation/Motions/chr_archer_idle_motion_v002.png","size":"4096x128","sha256":"df8b83764818ee29e87f0b17ce9a14dbb5ced792030879891c5fd8a378cdc258"},
+    {"role":"archer","state":"walk","kind":"motion-sheet","path":"Assets/_Project/Art/M1Production/Characters/Animation/Motions/chr_archer_walk_motion_v002.png","size":"4096x128","sha256":"9bf657c87e556f14e476695af4fa2403a8edb715cea5907d9f9783a69ee6998f"},
+    {"role":"archer","state":"run","kind":"motion-sheet","path":"Assets/_Project/Art/M1Production/Characters/Animation/Motions/chr_archer_run_motion_v002.png","size":"4096x128","sha256":"9bf657c87e556f14e476695af4fa2403a8edb715cea5907d9f9783a69ee6998f"},
+    {"role":"archer","state":"attack_charge","kind":"motion-sheet","path":"Assets/_Project/Art/M1Production/Characters/Animation/Motions/chr_archer_attack_charge_motion_v002.png","size":"6144x128","sha256":"84c04ea1c1d40295858b39c6a23b974bc299f2815f4e5bb8b60585d47c2f3176"},
+    {"role":"archer","state":"attack_execute","kind":"motion-sheet","path":"Assets/_Project/Art/M1Production/Characters/Animation/Motions/chr_archer_attack_execute_motion_v002.png","size":"6144x128","sha256":"ccd204865eccb8111467e5cf5a1efc61eb7cd72d2911bf8377e78e585bd3f677"},
+    {"role":"archer","state":"recover","kind":"motion-sheet","path":"Assets/_Project/Art/M1Production/Characters/Animation/Motions/chr_archer_recover_motion_v002.png","size":"4096x128","sha256":"fbf5ad66e9cd8456ccc1bc826c5bb0bf844bccc01bfb38c001a69ec53cacbc0c"},
+    {"role":"archer","state":"hit","kind":"motion-sheet","path":"Assets/_Project/Art/M1Production/Characters/Animation/Motions/chr_archer_hit_motion_v002.png","size":"3072x128","sha256":"ff3de661185439f30b338978ee05b56349b0c466f05436a80a2f1b6f7daeeeb6"},
+    {"role":"archer","state":"death","kind":"motion-sheet","path":"Assets/_Project/Art/M1Production/Characters/Animation/Motions/chr_archer_death_motion_v002.png","size":"6144x128","sha256":"31a4193e27a63061940af49f3b5f8e88d34013bc4b6427b914b94688f2f061a4"},
+    {"role":"minion","kind":"monolithic-atlas","path":"Assets/_Project/Art/M1Production/Characters/Animation/chr_minion_animation_atlas_v002.png","size":"8192x1024","sha256":"998a4c6d214351a01894fe03bbbd50421c977d0d5c86877f17bb9e0f68aae049"}
   ],
+  "motion_cycle_curation": {
+    "path": "Docs/AI_Usage/edits/monster_motion_cycle_curation_v003.json",
+    "scope": "Walk and Run loop selection only"
+  },
   "verification": {
     "processor_build": "passed",
     "determinism_check": "passed",
-    "unity_import": "passed",
-    "unity_tests": "pending final expanded suite",
+    "unity_import": "passed-motion-sheet-import",
+    "unity_tests": "M2VisualResourceTests passed (7/7); M2IntegrationTests passed (16/16)",
     "webgl_builds": "pending",
     "live_visual_review": "pending"
   }

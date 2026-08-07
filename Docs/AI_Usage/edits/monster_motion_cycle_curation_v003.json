@@ -1,0 +1,35 @@
+{
+  "schema": "overbless.monster-motion-cycle-curation/v1",
+  "revision": "v003",
+  "createdUtc": "2026-08-05T00:00:00Z",
+  "scope": "M1 monster locomotion cycles only",
+  "source": {
+    "index": "Docs/AI_Usage/generations/monster_directional_animation_index_v002.json",
+    "selectionMethod": "deterministic pixel-duplicate audit of the normalized source cells",
+    "roles": ["dasher", "archer", "minion"],
+    "directions": ["south", "north", "east", "west", "southeast", "southwest", "northeast", "northwest"]
+  },
+  "cycles": [
+    {
+      "state": "walk",
+      "sourceRow": 0,
+      "selectedSourceFrames": [0, 1, 2, 3],
+      "fps": 6.0,
+      "loop": true,
+      "reason": "Source cells 4 and 5 duplicate terminal pose 3; omit held duplicates to remove visible stutter."
+    },
+    {
+      "state": "run",
+      "sourceRow": 0,
+      "selectedSourceFrames": [0, 1, 2, 3],
+      "fps": 9.0,
+      "loop": true,
+      "reason": "The authored Run row changes the character silhouette and palette. Reuse the consistent four-pose Walk row at a 1.5x faster cadence until a cohesive Run row is approved."
+    }
+  ],
+  "dasherExecution": {
+    "frameCount": 6,
+    "rateRule": "frameCount / (attackRange / currentChargeSpeed)",
+    "reason": "The execution animation must span the same duration as the actual charge so the sprite does not hold its final frame while the Dasher is still moving."
+  }
+}

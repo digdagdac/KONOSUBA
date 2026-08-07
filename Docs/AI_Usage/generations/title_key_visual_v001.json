@@ -1,0 +1,25 @@
+{
+  "asset": "title_key_visual_v001",
+  "toolName": "OpenAI Codex built-in imagegen",
+  "toolVersion": "not exposed by built-in tool",
+  "provider": "OpenAI",
+  "responseId": null,
+  "responseArtifactId": "exec-2b03d0b1-e625-4e2e-bb9a-5538386d73d3",
+  "promptFile": "Docs/AI_Usage/prompts/title_visual_prompts_v001.json",
+  "generationUtc": "2026-08-04T16:36:20Z",
+  "requestedDimensions": "1920x1080",
+  "actualDimensions": "1672x941",
+  "originalPath": "Docs/AI_Usage/sources/title_v001/title_key_visual_v001_source.png",
+  "originalSha256": "c3d2a4b195f13d0f6544bf9d3293af7928008ea498d5e39a02aa3ccf22e4c1da",
+  "modifications": [
+    {
+      "order": 1,
+      "operation": "resize 1672x941 to 1920x1080 with Pillow Lanczos"
+    }
+  ],
+  "finalPath": "Assets/_Project/Art/M1Production/UI/ui_title_key_visual_a_v001.png",
+  "finalSha256": "b1a8fad175ba0d37d9548d65b1d1b1b238fd9ee16b3240458329b4c5e98e763d",
+  "reviewer": "user",
+  "reviewedUtc": "2026-08-04T16:46:20Z",
+  "reviewState": "approved"
+}
