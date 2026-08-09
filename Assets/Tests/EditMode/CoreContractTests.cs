@@ -123,6 +123,59 @@ namespace Overbless.Tests.EditMode
             Assert.That(
                 DirectionalSpriteAnimator.CalculateDasherChargeFramesPerSecond(6, 0f, 10f, 14f),
                 Is.EqualTo(14f));
+            Assert.That(
+                DirectionalSpriteAnimator.CalculateDasherChargeFramesPerSecond(6, -8f, 10f, 14f),
+                Is.EqualTo(14f));
+            Assert.That(
+                DirectionalSpriteAnimator.CalculateDasherChargeFramesPerSecond(6, 8f, float.NaN, 14f),
+                Is.EqualTo(14f));
+            Assert.That(
+                DirectionalSpriteAnimator.CalculateDasherChargeFramesPerSecond(6, 8f, 10f, float.PositiveInfinity),
+                Is.EqualTo(float.PositiveInfinity));
+        }
+
+        [Test]
+        public void DirectionalSpriteAnimator_EnemyAttackPhasesDriveStateAndKeepLockedDirection()
+        {
+            var definition = Track(ScriptableObject.CreateInstance<EnemyDefinition>());
+            var enemy = CreateTestEnemy(32, definition, Vector2.right);
+            var animationSet = CreateTestAnimationSet(
+                new AnimationClipKey(CharacterAnimationState.Idle, CharacterDirection.East),
+                new AnimationClipKey(CharacterAnimationState.Idle, CharacterDirection.South),
+                new AnimationClipKey(CharacterAnimationState.AttackCharge, CharacterDirection.East),
+                new AnimationClipKey(CharacterAnimationState.AttackCharge, CharacterDirection.North),
+                new AnimationClipKey(CharacterAnimationState.AttackExecute, CharacterDirection.North),
+                new AnimationClipKey(CharacterAnimationState.Recover, CharacterDirection.North));
+            var animator = CreateEnemyAnimator(enemy, animationSet);
+
+            Assert.That(animator.CurrentState, Is.EqualTo(CharacterAnimationState.Idle));
+            Assert.That(animator.CurrentDirection, Is.EqualTo(CharacterDirection.East));
+
+            enemy.BeginAttackForTest(AttackStateMachine.MinimumWarningDuration);
+            Assert.That(animator.CurrentState, Is.EqualTo(CharacterAnimationState.AttackCharge));
+            Assert.That(animator.CurrentDirection, Is.EqualTo(CharacterDirection.East));
+
+            Assert.That(
+                enemy.AdvanceAttackForTest(AttackStateMachine.MinimumWarningDuration),
+                Is.True);
+            enemy.LockAttackForTest(Vector2.up);
+            Assert.That(animator.CurrentState, Is.EqualTo(CharacterAnimationState.AttackCharge));
+            Assert.That(animator.CurrentDirection, Is.EqualTo(CharacterDirection.North));
+
+            enemy.SetFacingForTest(Vector2.down);
+            Assert.That(animator.CurrentDirection, Is.EqualTo(CharacterDirection.North));
+
+            enemy.BeginAttackExecutionForTest();
+            Assert.That(animator.CurrentState, Is.EqualTo(CharacterAnimationState.AttackExecute));
+            Assert.That(animator.CurrentDirection, Is.EqualTo(CharacterDirection.North));
+
+            enemy.BeginAttackRecoveryForTest();
+            Assert.That(animator.CurrentState, Is.EqualTo(CharacterAnimationState.Recover));
+            Assert.That(animator.CurrentDirection, Is.EqualTo(CharacterDirection.North));
+
+            enemy.CompleteAttackRecoveryForTest();
+            Assert.That(animator.CurrentState, Is.EqualTo(CharacterAnimationState.Idle));
+            Assert.That(animator.CurrentDirection, Is.EqualTo(CharacterDirection.South));
         }
 
         [Test]
@@ -189,7 +242,9 @@ namespace Overbless.Tests.EditMode
                 BindingFlags.Static | BindingFlags.NonPublic);
             Assert.That(executeDuration, Is.Not.Null);
             Assert.That(executeDuration.IsLiteral, Is.True);
-            Assert.That(executeDuration.GetRawConstantValue(), Is.EqualTo(0.25f));
+            Assert.That(
+                (float)executeDuration.GetRawConstantValue(),
+                Is.EqualTo(5f / 14f).Within(0.0001f));
 
             var source = ReadRuntimeSource("Enemies/MinionAI.cs");
             StringAssert.DoesNotContain("DirectionalAnimation", source);
@@ -608,6 +663,61 @@ namespace Overbless.Tests.EditMode
         }
 
         [Test]
+        public void EnemyRuntimeStats_BlessingsKeepChargeAnimationTimingContracts()
+        {
+            var definition = Track(ScriptableObject.CreateInstance<EnemyDefinition>());
+            var baseline = EnemyRuntimeStats.Recompute(definition, Array.Empty<BlessingType>());
+            var haste = EnemyRuntimeStats.Recompute(definition, new[] { BlessingType.Haste });
+            var giant = EnemyRuntimeStats.Recompute(definition, new[] { BlessingType.Giant });
+            var echo = EnemyRuntimeStats.Recompute(definition, new[] { BlessingType.Echo });
+
+            Assert.That(
+                haste.ChargeSpeed,
+                Is.EqualTo(baseline.ChargeSpeed * BlessingDefinition.Haste.MovementSpeedMultiplier));
+            Assert.That(
+                DirectionalSpriteAnimator.CalculateDasherChargeFramesPerSecond(
+                    5,
+                    haste.AttackRange,
+                    haste.ChargeSpeed,
+                    14f),
+                Is.EqualTo(
+                    DirectionalSpriteAnimator.CalculateDasherChargeFramesPerSecond(
+                        5,
+                        baseline.AttackRange,
+                        baseline.ChargeSpeed,
+                        14f) * BlessingDefinition.Haste.MovementSpeedMultiplier).Within(0.0001f));
+            Assert.That(giant.ChargeSpeed, Is.EqualTo(baseline.ChargeSpeed));
+            Assert.That(
+                giant.AttackRange,
+                Is.EqualTo(baseline.AttackRange * BlessingDefinition.Giant.AttackRangeMultiplier));
+            Assert.That(
+                DirectionalSpriteAnimator.CalculateDasherChargeFramesPerSecond(
+                    5,
+                    giant.AttackRange,
+                    giant.ChargeSpeed,
+                    14f),
+                Is.EqualTo(
+                    DirectionalSpriteAnimator.CalculateDasherChargeFramesPerSecond(
+                        5,
+                        baseline.AttackRange,
+                        baseline.ChargeSpeed,
+                        14f) / BlessingDefinition.Giant.AttackRangeMultiplier).Within(0.0001f));
+            Assert.That(echo.ChargeSpeed, Is.EqualTo(baseline.ChargeSpeed));
+            Assert.That(echo.AttackRange, Is.EqualTo(baseline.AttackRange));
+            Assert.That(
+                DirectionalSpriteAnimator.CalculateDasherChargeFramesPerSecond(
+                    5,
+                    echo.AttackRange,
+                    echo.ChargeSpeed,
+                    14f),
+                Is.EqualTo(DirectionalSpriteAnimator.CalculateDasherChargeFramesPerSecond(
+                    5,
+                    baseline.AttackRange,
+                    baseline.ChargeSpeed,
+                    14f)).Within(0.0001f));
+        }
+
+        [Test]
         public void Blessings_RejectDuplicatesOrderEffectsDeterministicallyAndUseExactMultipliers()
         {
             var definition = Track(ScriptableObject.CreateInstance<EnemyDefinition>());
@@ -877,6 +987,44 @@ namespace Overbless.Tests.EditMode
             return enemy;
         }
 
+        private DirectionalSpriteAnimator CreateEnemyAnimator(TestEnemy enemy, DirectionalAnimationSet animationSet)
+        {
+            var renderer = enemy.gameObject.AddComponent<SpriteRenderer>();
+            var animator = enemy.gameObject.AddComponent<DirectionalSpriteAnimator>();
+            SetPrivateField(animator, "driver", CharacterAnimationDriver.MajorEnemy);
+            SetPrivateField(animator, "spriteRenderer", renderer);
+            SetPrivateField(animator, "animationSet", animationSet);
+            SetPrivateField(animator, "health", enemy.Health);
+            SetPrivateField(animator, "enemy", enemy);
+            InvokeNonPublicMethod(animator, "Awake");
+            InvokeNonPublicMethod(animator, "OnEnable");
+            return animator;
+        }
+
+        private DirectionalAnimationSet CreateTestAnimationSet(params AnimationClipKey[] keys)
+        {
+            var texture = Track(new Texture2D(1, 1));
+            texture.SetPixel(0, 0, Color.white);
+            texture.Apply();
+            var sprite = Track(Sprite.Create(texture, new Rect(0f, 0f, 1f, 1f), new Vector2(0.5f, 0.5f)));
+            var clips = new DirectionalAnimationClip[keys.Length];
+            for (var index = 0; index < keys.Length; index++)
+            {
+                var clip = new DirectionalAnimationClip();
+                SetPrivateField(clip, "state", keys[index].State);
+                SetPrivateField(clip, "direction", keys[index].Direction);
+                SetPrivateField(clip, "framesPerSecond", 8f);
+                SetPrivateField(clip, "loop", true);
+                SetPrivateField(clip, "frames", new[] { sprite });
+                clips[index] = clip;
+            }
+
+            var animationSet = Track(ScriptableObject.CreateInstance<DirectionalAnimationSet>());
+            SetPrivateField(animationSet, "role", "test");
+            SetPrivateField(animationSet, "clips", clips);
+            return animationSet;
+        }
+
         private static void AssertVector2Approximately(Vector2 actual, Vector2 expected)
         {
             Assert.That(Vector2.Distance(actual, expected), Is.LessThanOrEqualTo(0.0001f));
@@ -965,10 +1113,53 @@ namespace Overbless.Tests.EditMode
                 SetLocomotionMode(mode);
             }
 
+            public void BeginAttackForTest(float warningDuration)
+            {
+                BeginAttackWarning(warningDuration);
+            }
+
+            public bool AdvanceAttackForTest(float deltaTime)
+            {
+                return AdvanceAttackWarning(deltaTime);
+            }
+
+            public void LockAttackForTest(Vector2 direction)
+            {
+                LockAttack(direction, AttackShape.Line, 2f, 1f, 1, 1 << 8);
+            }
+
+            public void BeginAttackExecutionForTest()
+            {
+                BeginAttackExecution();
+            }
+
+            public void BeginAttackRecoveryForTest()
+            {
+                BeginAttackRecovery();
+            }
+
+            public void CompleteAttackRecoveryForTest()
+            {
+                CompleteAttackRecovery();
+            }
+
             protected override void TickBehavior(float deltaTime)
             {
             }
         }
+
+        private readonly struct AnimationClipKey
+        {
+            public AnimationClipKey(CharacterAnimationState state, CharacterDirection direction)
+            {
+                State = state;
+                Direction = direction;
+            }
+
+            public CharacterAnimationState State { get; }
+            public CharacterDirection Direction { get; }
+        }
+
         private sealed class RecordingDamageable : IDamageable
         {
             public RecordingDamageable(int entityId)

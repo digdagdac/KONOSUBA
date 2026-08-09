@@ -6,7 +6,9 @@ namespace Overbless.Runtime
     public sealed class MinionAI : EnemyBase
     {
         private const float MinimumDirectionSqrMagnitude = 0.000001f;
-        internal const float ExecuteDuration = 0.25f;
+        // Match the authored AttackExecute clip (5 frames @ 14 fps ≈ 0.357s) so the
+        // full strike animation is visible before recovery.
+        internal const float ExecuteDuration = 5f / 14f;
 
         private float nextAttackEligibleAt;
         private float executeEndsAt;

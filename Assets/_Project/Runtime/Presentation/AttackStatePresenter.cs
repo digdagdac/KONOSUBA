@@ -9,7 +9,6 @@ namespace Overbless.Runtime
         private const float MinimumLockedVisibilitySeconds = 0.08f;
         private const float CircleStrokeWidth = 0.06f;
         private const float MinimumLineStrokeWidth = 0.04f;
-        private const float MaximumLineStrokeWidth = 0.14f;
 
         [SerializeField] private LineRenderer line;
         [SerializeField] private Color warningColor = Color.yellow;
@@ -141,9 +140,11 @@ namespace Overbless.Runtime
         {
             var renderer = RequireLine();
             var normalizedDirection = direction.sqrMagnitude > 0.000001f ? direction.normalized : Vector2.down;
+            // Line telegraphs must match the damaging corridor width; a thin "hint"
+            // stroke made edge hits look unfair relative to authoritative geometry.
             renderer.startWidth = renderer.endWidth = shape == AttackShape.Circle
                 ? CircleStrokeWidth
-                : Mathf.Clamp(0.04f + width * 0.12f, MinimumLineStrokeWidth, MaximumLineStrokeWidth);
+                : Mathf.Max(width, MinimumLineStrokeWidth);
 
             switch (shape)
             {

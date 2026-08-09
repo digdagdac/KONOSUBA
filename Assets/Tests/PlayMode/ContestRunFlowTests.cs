@@ -173,7 +173,7 @@ namespace Overbless.Tests.PlayMode
                             enemy.Health,
                             new DamageEvent(
                                 70000 + index,
-                                9000,
+                                enemies[(index + 1) % enemies.Count].EntityId,
                                 enemy.EntityId,
                                 enemy.Health.CurrentHealth)),
                         Is.True,

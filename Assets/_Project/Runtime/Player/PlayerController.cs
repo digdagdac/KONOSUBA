@@ -57,8 +57,12 @@ namespace Overbless.Runtime
 
             var direction = movement.normalized;
             lastMoveDirection = direction;
-            var nextPosition = playerTransform.position + (Vector3)(direction * (config.MovementSpeed * Time.deltaTime));
-            playerTransform.position = ClampToWorld(nextPosition, playerCollider.bounds.extents);
+            var desiredDelta = direction * (config.MovementSpeed * Time.deltaTime);
+            playerTransform.position = PlayerWorldMovement.ResolvePosition(
+                playerCollider,
+                playerTransform.position,
+                desiredDelta,
+                playerCollider.bounds.extents);
         }
 
         public void SetMovementEnabled(bool value)

@@ -240,7 +240,12 @@ namespace Overbless.Runtime
             }
 
             SoulFragment soul = null;
-            if (spawnedSouls.Count < M1RoomDefinition.RequiredSoulCount)
+            // Souls only drop when another room enemy dealt the killing blow
+            // (friendly fire). Environmental or injected non-enemy kills still
+            // process death for combat state, but do not advance the exit purse.
+            if (spawnedSouls.Count < M1RoomDefinition.RequiredSoulCount &&
+                IsEnemyEntity(deathEvent.DamageEvent.AttackerEntityId) &&
+                deathEvent.DamageEvent.AttackerEntityId != deathEvent.EntityId)
             {
                 soul = SpawnSoul(enemyHealth.transform.position);
             }

@@ -61,8 +61,12 @@ namespace Overbless.Runtime
             var dashDeltaTime = Mathf.Min(deltaTime, remainingDuration);
             if (dashDeltaTime > 0f)
             {
-                var nextPosition = playerTransform.position + (Vector3)(lockedDirection * (dashSpeed * dashDeltaTime));
-                playerTransform.position = PlayerController.ClampToWorld(nextPosition, playerCollider.bounds.extents);
+                var desiredDelta = lockedDirection * (dashSpeed * dashDeltaTime);
+                playerTransform.position = PlayerWorldMovement.ResolvePosition(
+                    playerCollider,
+                    playerTransform.position,
+                    desiredDelta,
+                    playerCollider.bounds.extents);
                 dashElapsed += dashDeltaTime;
             }
 

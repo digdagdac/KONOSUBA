@@ -1374,7 +1374,11 @@ namespace Overbless.Tests.PlayMode
             Assert.That(
                 fixture.Lifecycle.TryApplyDamage(
                     firstEnemy,
-                    new DamageEvent(1, 99, firstEnemy.EntityId, firstEnemy.MaximumHealth)),
+                    new DamageEvent(
+                        1,
+                        fixture.EnemyHealths[1].EntityId,
+                        firstEnemy.EntityId,
+                        firstEnemy.MaximumHealth)),
                 Is.True);
             Assert.That(firstEnemy.IsDead, Is.True);
             Assert.That(spawnedSouls.Count, Is.EqualTo(1));
@@ -1383,10 +1387,11 @@ namespace Overbless.Tests.PlayMode
             for (var index = 1; index < M1RoomDefinition.RequiredSoulCount; index++)
             {
                 var enemy = fixture.EnemyHealths[index];
+                var attackerId = fixture.EnemyHealths[(index + 1) % fixture.EnemyHealths.Length].EntityId;
                 Assert.That(
                     fixture.Lifecycle.TryApplyDamage(
                         enemy,
-                        new DamageEvent(index + 1, 99, enemy.EntityId, enemy.MaximumHealth)),
+                        new DamageEvent(index + 1, attackerId, enemy.EntityId, enemy.MaximumHealth)),
                     Is.True);
                 Assert.That(enemy.IsDead, Is.True);
             }
@@ -1430,7 +1435,11 @@ namespace Overbless.Tests.PlayMode
             Assert.That(
                 fixture.Lifecycle.TryApplyDamage(
                     oldCycleEnemy,
-                    new DamageEvent(10, 99, oldCycleEnemy.EntityId, oldCycleEnemy.MaximumHealth)),
+                    new DamageEvent(
+                        10,
+                        fixture.EnemyHealths[0].EntityId,
+                        oldCycleEnemy.EntityId,
+                        oldCycleEnemy.MaximumHealth)),
                 Is.True);
             fixture.Lifecycle.ResetForRoom();
             oldCycleEnemy.ResetHealth();
@@ -1463,7 +1472,11 @@ namespace Overbless.Tests.PlayMode
             Assert.That(
                 fixture.Lifecycle.TryApplyDamage(
                     generationEnemy,
-                    new DamageEvent(11, 99, generationEnemy.EntityId, generationEnemy.MaximumHealth)),
+                    new DamageEvent(
+                        11,
+                        fixture.EnemyHealths[0].EntityId,
+                        generationEnemy.EntityId,
+                        generationEnemy.MaximumHealth)),
                 Is.True);
             var generationSoul = spawnedSouls[spawnedSouls.Count - 1];
             Assert.That(generationSoul.TryCollect(player.LifeCycle), Is.True);

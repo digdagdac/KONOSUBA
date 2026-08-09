@@ -236,7 +236,7 @@ namespace Overbless.Tests.PlayMode
                 var enemy = room.Enemies[index];
                 var damage = new DamageEvent(
                     10000 + index,
-                    9000,
+                    room.Enemies[(index + 1) % room.Enemies.Count].EntityId,
                     enemy.EntityId,
                     enemy.Health.CurrentHealth);
 
@@ -1045,7 +1045,7 @@ namespace Overbless.Tests.PlayMode
                     animationSet,
                     CharacterAnimationState.Walk,
                     direction,
-                    6,
+                    8,
                     8f,
                     true);
                 AssertMonsterClipContract(
@@ -1059,15 +1059,15 @@ namespace Overbless.Tests.PlayMode
                     animationSet,
                     CharacterAnimationState.AttackCharge,
                     direction,
-                    6,
+                    5,
                     8f,
                     false);
                 AssertMonsterClipContract(
                     animationSet,
                     CharacterAnimationState.AttackExecute,
                     direction,
-                    6,
-                    isMinion ? 24f : 14f,
+                    5,
+                    14f,
                     false);
                 AssertMonsterClipContract(
                     animationSet,

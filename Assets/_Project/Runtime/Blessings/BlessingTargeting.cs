@@ -219,6 +219,13 @@ namespace Overbless.Runtime
 
         private void Awake()
         {
+            // Existing scene/player prefabs may predate the feedback presenter.
+            // Auto-attach so TargetStatesChanged always has a subscriber in play.
+            if (GetComponent<BlessingTargetFeedbackPresenter>() == null)
+            {
+                gameObject.AddComponent<BlessingTargetFeedbackPresenter>();
+            }
+
             EnsureInitialized();
         }
         private void OnEnable()

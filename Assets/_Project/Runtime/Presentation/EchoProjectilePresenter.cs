@@ -163,7 +163,11 @@ namespace Overbless.Runtime
 
             renderer.transform.position = new Vector3(center.x, center.y, 0f);
             renderer.transform.rotation = Quaternion.FromToRotation(Vector3.right, direction);
-            renderer.transform.localScale = new Vector3(context.Range, Mathf.Max(context.Width, 0.08f), 1f);
+            // Context range/width are already world sizes. Parent Giant scale must not
+            // multiply them a second time when converting to localScale.
+            renderer.transform.localScale = WorldToLocalScale(
+                renderer.transform,
+                new Vector3(context.Range, Mathf.Max(context.Width, 0.08f), 1f));
             renderer.color = new Color(PendingColor.r, PendingColor.g, PendingColor.b, alpha);
             renderer.enabled = true;
         }
@@ -173,9 +177,27 @@ namespace Overbless.Runtime
             var renderer = RequireProjectileRenderer();
             renderer.transform.position = new Vector3(position.x, position.y, 0f);
             renderer.transform.rotation = Quaternion.FromToRotation(Vector3.right, context.NormalizedDirection);
-            renderer.transform.localScale = Vector3.one * Mathf.Max(context.Width * 2f, 0.4f);
+            var diameter = Mathf.Max(context.Width * 2f, 0.4f);
+            renderer.transform.localScale = WorldToLocalScale(
+                renderer.transform,
+                new Vector3(diameter, diameter, 1f));
             renderer.color = ProjectileColor;
             renderer.enabled = true;
+        }
+
+        private static Vector3 WorldToLocalScale(Transform target, Vector3 worldScale)
+        {
+            var parent = target.parent;
+            if (parent == null)
+            {
+                return worldScale;
+            }
+
+            var lossy = parent.lossyScale;
+            return new Vector3(
+                worldScale.x / Mathf.Max(0.0001f, Mathf.Abs(lossy.x)),
+                worldScale.y / Mathf.Max(0.0001f, Mathf.Abs(lossy.y)),
+                worldScale.z / Mathf.Max(0.0001f, Mathf.Abs(lossy.z)));
         }
 
         private void ClearPresentation()

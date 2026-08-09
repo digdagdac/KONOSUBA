@@ -967,6 +967,7 @@ namespace Overbless.Editor.Bootstrap
             var controller = root.AddComponent<PlayerController>();
             var lifeCycle = root.AddComponent<PlayerLifeCycle>();
             var targeting = root.AddComponent<BlessingTargeting>();
+            root.AddComponent<BlessingTargetFeedbackPresenter>();
             ConfigureBlessingTargetingInput(targeting, input);
 
             ConfigureDash(dash, config, root.transform, health);
