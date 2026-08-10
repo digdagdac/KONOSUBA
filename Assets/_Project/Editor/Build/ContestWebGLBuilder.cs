@@ -39,6 +39,14 @@ namespace Overbless.Editor.Build
         public const string ManifestFileName = "submission-build-manifest.json";
         public const string PageTitle = "이 멋진 적에게 축복을 | Overbless";
 
+        private static readonly string[] VersionedPayloadFiles =
+        {
+            "Overbless_Web.loader.js",
+            "Overbless_Web.data.unityweb",
+            "Overbless_Web.framework.js.unityweb",
+            "Overbless_Web.wasm.unityweb"
+        };
+
         /// <summary>Every scene of the submitted run, in play order.</summary>
         public static readonly string[] Scenes =
         {
@@ -156,6 +164,7 @@ namespace Overbless.Editor.Build
             var html = File.ReadAllText(indexPath).Replace("\r\n", "\n");
             html = ReplaceTitle(html);
             html = ReplaceBuildTitle(html);
+            html = VersionWebGlPayloadUrls(html, outputDirectory);
 
             // Unity keeps the canvas drawing buffer in sync with the canvas element itself, and
             // the runtime letterboxes to 16:9 from Screen. Overriding the element size here made
@@ -201,6 +210,85 @@ namespace Overbless.Editor.Build
             }
 
             return html.Substring(0, contentStart) + "이 멋진 적에게 축복을" + html.Substring(end);
+        }
+
+        private static string VersionWebGlPayloadUrls(string html, string outputDirectory)
+        {
+            var version = ComputeWebGlPayloadVersion(outputDirectory);
+            for (var index = 0; index < VersionedPayloadFiles.Length; index++)
+            {
+                html = ReplacePayloadUrlVersion(html, VersionedPayloadFiles[index], version);
+            }
+
+            return html;
+        }
+
+        private static string ReplacePayloadUrlVersion(string html, string fileName, string version)
+        {
+            var result = new StringBuilder(html.Length + version.Length * 2);
+            var sourceOffset = 0;
+            var replaced = false;
+            while (true)
+            {
+                var fileNameIndex = html.IndexOf(fileName, sourceOffset, StringComparison.Ordinal);
+                if (fileNameIndex < 0)
+                {
+                    break;
+                }
+
+                var versionStart = fileNameIndex + fileName.Length;
+                var versionEnd = versionStart;
+                if (versionStart < html.Length && html[versionStart] == '?')
+                {
+                    versionEnd = html.IndexOf('"', versionStart);
+                    if (versionEnd < 0)
+                    {
+                        throw new InvalidOperationException(
+                            $"Submission template has an unterminated versioned URL for '{fileName}'.");
+                    }
+                }
+
+                result.Append(html, sourceOffset, versionStart - sourceOffset);
+                result.Append("?v=").Append(version);
+                sourceOffset = versionEnd;
+                replaced = true;
+            }
+
+            if (!replaced)
+            {
+                throw new InvalidOperationException(
+                    $"Submission template has no URL for required WebGL payload '{fileName}'.");
+            }
+
+            result.Append(html, sourceOffset, html.Length - sourceOffset);
+            return result.ToString();
+        }
+
+        private static string ComputeWebGlPayloadVersion(string outputDirectory)
+        {
+            var fingerprint = new StringBuilder();
+            var buildDirectory = Path.Combine(outputDirectory, "Build");
+            for (var index = 0; index < VersionedPayloadFiles.Length; index++)
+            {
+                var payloadPath = Path.Combine(buildDirectory, VersionedPayloadFiles[index]);
+                if (!File.Exists(payloadPath))
+                {
+                    throw new InvalidOperationException(
+                        $"Submission build has no required WebGL payload '{VersionedPayloadFiles[index]}'.");
+                }
+
+                fingerprint.Append(ComputeSha256(payloadPath)).Append('\n');
+            }
+
+            using var sha = SHA256.Create();
+            var hash = sha.ComputeHash(Encoding.UTF8.GetBytes(fingerprint.ToString()));
+            var version = new StringBuilder(hash.Length * 2);
+            for (var index = 0; index < hash.Length; index++)
+            {
+                version.Append(hash[index].ToString("x2", CultureInfo.InvariantCulture));
+            }
+
+            return version.ToString();
         }
 
         /// <summary>

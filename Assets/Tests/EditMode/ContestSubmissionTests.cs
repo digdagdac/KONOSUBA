@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Reflection;
 using NUnit.Framework;
 using Overbless.Editor.Bootstrap;
 using Overbless.Editor.Build;
@@ -115,6 +116,63 @@ namespace Overbless.Tests.EditMode
         }
 
         [Test]
+        public void PostprocessedSubmissionTemplateVersionsEveryWebGlPayload()
+        {
+            var root = Path.Combine(Path.GetTempPath(), "overbless-submission-cache-" + Guid.NewGuid().ToString("N"));
+            var buildDirectory = Path.Combine(root, "Build");
+            Directory.CreateDirectory(buildDirectory);
+            try
+            {
+                File.WriteAllText(
+                    Path.Combine(root, "index.html"),
+                    "<html><head><title>Default</title></head><body>" +
+                    "<div id=\"unity-build-title\">Default</div>" +
+                    "<script>" +
+                    "var buildUrl = \"Build\";" +
+                    "var loaderUrl = buildUrl + \"/Overbless_Web.loader.js\";" +
+                    "var config = {" +
+                    "dataUrl: buildUrl + \"/Overbless_Web.data.unityweb\"," +
+                    "frameworkUrl: buildUrl + \"/Overbless_Web.framework.js.unityweb\"," +
+                    "codeUrl: buildUrl + \"/Overbless_Web.wasm.unityweb\"};" +
+                    "</script></body></html>");
+
+                foreach (var fileName in new[]
+                {
+                    "Overbless_Web.loader.js",
+                    "Overbless_Web.data.unityweb",
+                    "Overbless_Web.framework.js.unityweb",
+                    "Overbless_Web.wasm.unityweb"
+                })
+                {
+                    File.WriteAllText(Path.Combine(buildDirectory, fileName), fileName);
+                }
+
+                var postprocess = typeof(ContestWebGLBuilder).GetMethod(
+                    "PostprocessTemplate",
+                    BindingFlags.Static | BindingFlags.NonPublic);
+                Assert.That(postprocess, Is.Not.Null);
+                postprocess.Invoke(null, new object[] { root });
+
+                var html = File.ReadAllText(Path.Combine(root, "index.html"));
+                var version = ExtractBuildVersion(html, "Overbless_Web.loader.js");
+                Assert.That(version, Is.Not.Empty);
+                Assert.That(
+                    ExtractBuildVersion(html, "Overbless_Web.data.unityweb"),
+                    Is.EqualTo(version));
+                Assert.That(
+                    ExtractBuildVersion(html, "Overbless_Web.framework.js.unityweb"),
+                    Is.EqualTo(version));
+                Assert.That(
+                    ExtractBuildVersion(html, "Overbless_Web.wasm.unityweb"),
+                    Is.EqualTo(version));
+            }
+            finally
+            {
+                Directory.Delete(root, true);
+            }
+        }
+
+        [Test]
         public void DistributionDecisionIsRecordedWithoutClaimingTheEntryGate()
         {
             var approval = ReadText(ApprovalPath);
@@ -138,6 +196,7 @@ namespace Overbless.Tests.EditMode
                 Does.Contain("\"decidedAtUtc\": \"2026-07-14T04:48:59Z\""),
                 "The earlier approval is write-once evidence and must keep its recorded bytes.");
         }
+
         [Test]
         public void RoomObjectivesTeachTheNewRuleWithoutCoaching()
         {
@@ -191,6 +250,18 @@ namespace Overbless.Tests.EditMode
             var fullPath = Path.GetFullPath(relativePath);
             Assert.That(File.Exists(fullPath), Is.True, $"'{relativePath}' must exist.");
             return File.ReadAllText(fullPath);
+        }
+
+        private static string ExtractBuildVersion(string html, string fileName)
+        {
+            var prefix = fileName + "?v=";
+            var start = html.IndexOf(prefix, StringComparison.Ordinal);
+            Assert.That(start, Is.GreaterThanOrEqualTo(0), $"'{fileName}' must use a build-versioned URL.");
+
+            start += prefix.Length;
+            var end = html.IndexOf('"', start);
+            Assert.That(end, Is.GreaterThan(start), $"'{fileName}' must include a non-empty build version.");
+            return html.Substring(start, end - start);
         }
     }
 }
